@@ -1,38 +1,94 @@
 import "server-only";
+import dns from "node:dns";
+import { MongoClient, Db } from "mongodb";
+
+// Ensure IPv4 DNS resolution for MongoDB Atlas connectivity
+dns.setDefaultResultOrder("ipv4first");
 
 /**
- * Database Abstraction Foundation (Phase 1).
+ * MongoDB Atlas Connection Management (Phase 3).
  *
- * This file establishes the server-side architectural boundary for database
- * access. It ensures that any future MongoDB driver interaction (Phase 3) is
- * strictly contained on the server and never exposed to the client bundle.
+ * Implements server-only connection pooling and singleton caching compatible
+ * with Next.js fast-refresh in local development and serverless execution on Vercel.
  *
- * Flow:
- * UI / Route Handler -> Server Layer / Service -> lib/server/db.ts -> MongoDB Atlas
+ * SECURITY:
+ * - Credentials remain strictly server-side.
+ * - MONGODB_URI is never logged, printed, or sent to client bundles.
  */
 
-export interface DatabaseConnection {
-  isConnected: boolean;
-  getDbName(): string;
+const DB_NAME = "siddharth_portfolio";
+
+declare global {
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-/**
- * Placeholder for future MongoDB client connection getter.
- * Will be implemented with the official MongoDB Node.js driver in Phase 3.
- */
-export async function getDatabaseConnection(): Promise<DatabaseConnection> {
+let clientPromise: Promise<MongoClient>;
+
+function initializeMongoClient(): Promise<MongoClient> {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    // In Phase 1, database is not yet connected. Return boundary state.
-    return {
-      isConnected: false,
-      getDbName: () => "unconfigured",
-    };
+    throw new Error(
+      "Database configuration error: MONGODB_URI environment variable is not defined."
+    );
   }
 
-  return {
-    isConnected: true,
-    getDbName: () => "portfolio",
+  const options = {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
   };
+
+  if (process.env.NODE_ENV === "development") {
+    // Cache connection across HMR module reloads in development
+    if (!global._mongoClientPromise) {
+      const client = new MongoClient(uri, options);
+      global._mongoClientPromise = client.connect();
+    }
+    return global._mongoClientPromise;
+  } else {
+    // Standard singleton client promise for production
+    const client = new MongoClient(uri, options);
+    return client.connect();
+  }
+}
+
+/**
+ * Returns the cached MongoDB client instance.
+ */
+export async function getMongoClient(): Promise<MongoClient> {
+  if (!clientPromise) {
+    clientPromise = initializeMongoClient();
+  }
+  return clientPromise;
+}
+
+/**
+ * Returns the portfolio MongoDB database instance ("siddharth_portfolio").
+ */
+export async function getDatabase(): Promise<Db> {
+  const client = await getMongoClient();
+  return client.db(DB_NAME);
+}
+
+/**
+ * Safe connectivity check.
+ * Returns ping latency without exposing credentials or database host info.
+ */
+export async function pingDatabase(): Promise<{ success: boolean; latencyMs: number }> {
+  const start = Date.now();
+  try {
+    const db = await getDatabase();
+    await db.command({ ping: 1 });
+    return {
+      success: true,
+      latencyMs: Date.now() - start,
+    };
+  } catch {
+    console.error("[Database Connection Error]: Ping failed.");
+    return {
+      success: false,
+      latencyMs: Date.now() - start,
+    };
+  }
 }
