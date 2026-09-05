@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Surfaces (Near-black / Graphite) */
+  --color-background: #09090b;
+  --color-surface: #121215;
+  --color-surface-muted: #18181b;
+  --color-surface-subtle: #202024;
+  --color-surface-hover: #27272a;
+
+  /* Borders (Restrained Hairline) */
+  --color-border: #27272a;
+  --color-border-hover: #3f3f46;
+  --color-border-emphasized: #52525b;
+
+  /* Typography (Warm Off-White Hierarchy) */
+  --color-foreground: #fafafa;
+  --color-foreground-secondary: #d4d4d8;
+  --color-foreground-muted: #a1a1aa;
+  --color-foreground-subtle: #71717a;
+
+  /* Electric Blue Accent (Controlled & Intentional) */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-subtle: rgba(59, 130, 246, 0.1);
+  --color-accent-glow: rgba(59, 130, 246, 0.25);
+
+  /* Semantic Feedback States */
+  --color-success: #10b981;
+  --color-success-subtle: rgba(16, 185, 129, 0.1);
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.1);
+  --color-error: #ef4444;
+  --color-error-subtle: rgba(239, 68, 68, 0.1);
+  --color-info: #3b82f6;
+  --color-info-subtle: rgba(59, 130, 246, 0.1);
+}
+
 :root {
   --background: #09090b;
   --foreground: #fafafa;
@@ -8,5 +47,25 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Technical grid pattern utility (subtle 32px hairline grid) */
+.bg-grid-technical {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Fine technical border utility */
+.border-technical {
+  border: 1px solid var(--color-border);
+}
+
+/* Atmospheric lighting accent highlight (controlled electric blue glow) */
+.atmospheric-glow {
+  box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.15);
 }
