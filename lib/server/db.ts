@@ -20,11 +20,16 @@ const DB_NAME = "siddharth_portfolio";
 
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _mongoClientInstance: MongoClient | undefined;
 }
 
 let clientPromise: Promise<MongoClient>;
+let clientInstance: MongoClient;
 
-function initializeMongoClient(): Promise<MongoClient> {
+/**
+ * Returns the synchronous raw MongoClient instance sharing the unified connection pool.
+ */
+export function getRawMongoClient(): MongoClient {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
@@ -40,25 +45,34 @@ function initializeMongoClient(): Promise<MongoClient> {
   };
 
   if (process.env.NODE_ENV === "development") {
-    // Cache connection across HMR module reloads in development
-    if (!global._mongoClientPromise) {
-      const client = new MongoClient(uri, options);
-      global._mongoClientPromise = client.connect();
+    if (!global._mongoClientInstance) {
+      global._mongoClientInstance = new MongoClient(uri, options);
+      global._mongoClientPromise = global._mongoClientInstance.connect();
     }
-    return global._mongoClientPromise;
+    return global._mongoClientInstance;
   } else {
-    // Standard singleton client promise for production
-    const client = new MongoClient(uri, options);
-    return client.connect();
+    if (!clientInstance) {
+      clientInstance = new MongoClient(uri, options);
+      clientPromise = clientInstance.connect();
+    }
+    return clientInstance;
   }
+}
+
+/**
+ * Returns the synchronous raw Db instance sharing the unified connection pool.
+ */
+export function getRawDatabase(): Db {
+  return getRawMongoClient().db(DB_NAME);
 }
 
 /**
  * Returns the cached MongoDB client instance.
  */
 export async function getMongoClient(): Promise<MongoClient> {
-  if (!clientPromise) {
-    clientPromise = initializeMongoClient();
+  getRawMongoClient();
+  if (process.env.NODE_ENV === "development") {
+    return global._mongoClientPromise!;
   }
   return clientPromise;
 }
