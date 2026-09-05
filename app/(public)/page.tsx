@@ -5,7 +5,7 @@ export default function HomePage() {
         Siddharth Varpe
       </h1>
       <p className="mt-2 text-sm text-neutral-400">
-        Phase 0 — Project Initialization verified.
+        Architecture & Application Foundation established. Phase 1 active.
       </p>
     </main>
   );
