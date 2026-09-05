@@ -106,3 +106,11 @@ export async function pingDatabase(): Promise<{ success: boolean; latencyMs: num
     };
   }
 }
+
+// Re-export modular database utilities and repositories
+export * from "./db/collections";
+export * from "./db/indexes";
+export * from "./db/errors";
+export * from "./db/repositories/content";
+export * from "./db/repositories/admin";
+

@@ -100,3 +100,149 @@ export const contactMessageSubmissionSchema = z.object({
   subject: z.string().trim().max(150).optional(),
   message: z.string().trim().min(10, "Message must be at least 10 characters").max(5000, "Message is too long"),
 });
+
+// 6. Hero Mutation Schema
+export const heroMutationSchema = z.object({
+  eyebrow: z.string().trim().min(1).max(100),
+  name: z.string().trim().min(1).max(100),
+  headline: z.string().trim().min(1).max(250),
+  description: z.string().trim().min(10).max(1000),
+  ctaLabel: z.string().trim().min(1).max(50),
+  ctaUrl: z.string().trim().min(1).max(200),
+  supportingText: z.string().trim().max(250).optional(),
+  status: contentStatusSchema.default("published"),
+});
+
+// 7. About Mutation Schema
+export const aboutMutationSchema = z.object({
+  primaryDescription: z.string().trim().min(10).max(3000),
+  supportingDescription: z.string().trim().max(3000).optional(),
+  philosophy: z.string().trim().max(2000).optional(),
+  interests: z.array(z.string().trim().min(1).max(100)).optional(),
+  cards: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1).max(100),
+        description: z.string().trim().min(1).max(500),
+        icon: z.string().trim().max(60).optional(),
+      })
+    )
+    .optional(),
+  order: z.number().int().min(0).default(0),
+  status: contentStatusSchema.default("published"),
+});
+
+// 8. Achievement Mutation Schema
+export const achievementMutationSchema = z.object({
+  title: z.string().trim().min(1).max(150),
+  organization: z.string().trim().min(1).max(150),
+  rank: z.string().trim().max(80).optional(),
+  date: z.string().trim().min(4).max(30),
+  description: z.string().trim().min(10).max(2000),
+  certificateUrl: safeUrlSchema.optional(),
+  verificationUrl: safeUrlSchema.optional(),
+  featured: z.boolean().default(false),
+  order: z.number().int().min(0).default(0),
+  status: contentStatusSchema.default("draft"),
+});
+
+// 9. Certification Mutation Schema
+export const certificationMutationSchema = z.object({
+  name: z.string().trim().min(1).max(150),
+  issuer: z.string().trim().min(1).max(150),
+  date: z.string().trim().min(4).max(30),
+  credentialId: z.string().trim().max(100).optional(),
+  credentialUrl: safeUrlSchema.optional(),
+  certificateUrl: safeUrlSchema.optional(),
+  description: z.string().trim().max(1000).optional(),
+  featured: z.boolean().default(false),
+  order: z.number().int().min(0).default(0),
+  status: contentStatusSchema.default("draft"),
+});
+
+// 10. Metric Mutation Schema
+export const metricMutationSchema = z.object({
+  value: z.string().trim().min(1).max(50),
+  label: z.string().trim().min(1).max(100),
+  supportingText: z.string().trim().max(200).optional(),
+  context: z.string().trim().max(100).optional(),
+  icon: z.string().trim().max(60).optional(),
+  featured: z.boolean().default(false),
+  order: z.number().int().min(0).default(0),
+  status: contentStatusSchema.default("draft"),
+  evidenceNote: z.string().trim().max(500).optional(),
+});
+
+// 11. Contact Settings Mutation Schema
+export const contactSettingsMutationSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(150),
+  linkedinUrl: safeUrlSchema,
+  githubUrl: safeUrlSchema,
+  location: z.string().trim().min(1).max(100),
+  ctaDestination: z.string().trim().min(1).max(200),
+  availabilityNotice: z.string().trim().max(250).optional(),
+});
+
+// 12. SEO Metadata Mutation Schema
+export const seoMetadataMutationSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(10).max(320),
+  author: z.string().trim().min(1).max(100),
+  ogTitle: z.string().trim().min(1).max(120),
+  ogDescription: z.string().trim().min(10).max(320),
+  ogImageUrl: safeUrlSchema.optional(),
+  canonicalUrl: safeUrlSchema,
+  noIndex: z.boolean().default(false),
+});
+
+// 13. Site Content Mutation Schema
+export const siteContentMutationSchema = z.object({
+  footerText: z.string().trim().min(1).max(500),
+  copyright: z.string().trim().min(1).max(200),
+  globalCta: z.object({
+    headline: z.string().trim().min(1).max(200),
+    subheadline: z.string().trim().min(1).max(300),
+    buttonLabel: z.string().trim().min(1).max(60),
+    buttonDestination: z.string().trim().min(1).max(200),
+  }),
+  loadingMessage: z.string().trim().max(100).optional(),
+  emptyStateMessage: z.string().trim().max(200).optional(),
+  notFoundMessage: z.string().trim().max(200).optional(),
+});
+
+// 14. Resume Metadata Mutation Schema (Phase 5 metadata management)
+export const resumeMetadataMutationSchema = z.object({
+  filename: z.string().trim().min(1).max(150),
+  storageUrl: safeUrlSchema,
+  version: z.string().trim().min(1).max(50),
+  active: z.boolean().default(true),
+  archived: z.boolean().default(false),
+  downloadEnabled: z.boolean().default(true),
+  fileSizeBytes: z.number().int().min(0).optional(),
+});
+
+// 15. Media Metadata Mutation Schema (Phase 5 metadata management)
+export const mediaMetadataMutationSchema = z.object({
+  filename: z.string().trim().min(1).max(150),
+  storageUrl: safeUrlSchema,
+  mimeType: z.string().trim().min(1).max(80),
+  sizeBytes: z.number().int().min(0),
+  dimensions: z
+    .object({
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    })
+    .optional(),
+  category: z.enum(["project", "profile", "certificate", "general"]),
+  visibility: z.enum(["public", "private"]).default("public"),
+});
+
+// 16. Contact Message Admin Action Schema
+export const contactMessageActionSchema = z.object({
+  action: z.enum(["mark-read", "mark-unread", "archive", "delete"]),
+});
+
+// 17. Restore Revision Schema
+export const restoreRevisionSchema = z.object({
+  revisionId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid revision ID format"),
+});
