@@ -221,10 +221,11 @@ export const resumeMetadataMutationSchema = z.object({
   fileSizeBytes: z.number().int().min(0).optional(),
 });
 
-// 15. Media Metadata Mutation Schema (Phase 5 metadata management)
+// 15. Media Metadata Mutation Schema (Phase 6 Media Management)
 export const mediaMetadataMutationSchema = z.object({
   filename: z.string().trim().min(1).max(150),
-  storageUrl: safeUrlSchema,
+  storageUrl: z.string().trim().min(1),
+  storageKey: z.string().trim().optional(),
   mimeType: z.string().trim().min(1).max(80),
   sizeBytes: z.number().int().min(0),
   dimensions: z
@@ -233,8 +234,10 @@ export const mediaMetadataMutationSchema = z.object({
       height: z.number().int().positive(),
     })
     .optional(),
-  category: z.enum(["project", "profile", "certificate", "general"]),
+  category: z.enum(["project", "profile", "certificate", "achievement", "resume", "general"]),
   visibility: z.enum(["public", "private"]).default("public"),
+  associatedContentType: z.enum(["profile", "project", "achievement", "certification"]).optional(),
+  associatedContentId: z.string().optional(),
 });
 
 // 16. Contact Message Admin Action Schema

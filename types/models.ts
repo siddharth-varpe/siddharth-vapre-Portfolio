@@ -247,12 +247,15 @@ export interface ContactMessageDocument {
 export interface MediaMetadataDocument extends MongoBaseDocument {
   filename: string;
   storageUrl: string;
+  storageKey?: string;
   mimeType: string;
   sizeBytes: number;
   dimensions?: {
     width: number;
     height: number;
   };
-  category: "project" | "profile" | "certificate" | "general";
+  category: "project" | "profile" | "certificate" | "achievement" | "resume" | "general";
   visibility: "public" | "private";
+  associatedContentType?: "profile" | "project" | "achievement" | "certification";
+  associatedContentId?: string;
 }

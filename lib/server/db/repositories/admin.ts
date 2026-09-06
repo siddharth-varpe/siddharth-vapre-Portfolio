@@ -20,6 +20,7 @@ import {
   getMediaCollection,
 } from "../collections";
 import { withDatabaseErrorHandling } from "../errors";
+import { deleteBlob } from "@/lib/server/storage/blob";
 import type {
   ProfileDocument,
   HeroDocument,
@@ -1211,6 +1212,10 @@ export async function deleteAdminResume(id: string, actor: string): Promise<bool
     const existing = await collection.findOne({ _id: objId });
     if (!existing) return false;
 
+    if (existing.storageUrl) {
+      await deleteBlob(existing.storageUrl);
+    }
+
     await collection.deleteOne({ _id: objId });
     await logAdminActivity({
       event: "delete_resume_metadata",
@@ -1258,12 +1263,84 @@ export async function createAdminMedia(
   }, "Failed to create media metadata");
 }
 
+export async function createAdminMediaWithAssociation(
+  data: Omit<MediaMetadataDocument, "_id" | "createdAt" | "updatedAt">,
+  actor: string
+): Promise<MediaMetadataDocument> {
+  return withDatabaseErrorHandling(async () => {
+    const collection = await getMediaCollection();
+    const now = new Date();
+    const newDoc: MediaMetadataDocument = {
+      ...data,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const res = await collection.insertOne(newDoc);
+
+    // Apply Content Association
+    if (data.associatedContentType === "profile") {
+      const profileCol = await getProfileCollection();
+      await profileCol.updateOne(
+        {},
+        { $set: { photoUrl: data.storageUrl, avatarUrl: data.storageUrl, updatedAt: now } },
+        { upsert: true }
+      );
+    } else if (data.associatedContentType === "project" && data.associatedContentId) {
+      const projectsCol = await getProjectsCollection();
+      await projectsCol.updateOne(
+        { _id: parseObjectId(data.associatedContentId) },
+        {
+          $push: {
+            media: {
+              url: data.storageUrl,
+              type: data.mimeType.startsWith("video/") ? "video" : "image",
+              caption: data.filename,
+            },
+          },
+          $set: { updatedAt: now },
+        }
+      );
+    } else if (data.associatedContentType === "achievement" && data.associatedContentId) {
+      const achieveCol = await getAchievementsCollection();
+      await achieveCol.updateOne(
+        { _id: parseObjectId(data.associatedContentId) },
+        { $set: { certificateUrl: data.storageUrl, updatedAt: now } }
+      );
+    } else if (data.associatedContentType === "certification" && data.associatedContentId) {
+      const certCol = await getCertificationsCollection();
+      await certCol.updateOne(
+        { _id: parseObjectId(data.associatedContentId) },
+        { $set: { certificateUrl: data.storageUrl, updatedAt: now } }
+      );
+    }
+
+    await logAdminActivity({
+      event: "create_media_metadata",
+      category: "media",
+      status: "success",
+      actor,
+      details: {
+        filename: data.filename,
+        category: data.category,
+        associatedContentType: data.associatedContentType,
+        associatedContentId: data.associatedContentId,
+      },
+    });
+
+    return { ...newDoc, _id: res.insertedId };
+  }, "Failed to create media metadata with association");
+}
+
 export async function deleteAdminMedia(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
     const collection = await getMediaCollection();
     const objId = parseObjectId(id);
     const existing = await collection.findOne({ _id: objId });
     if (!existing) return false;
+
+    if (existing.storageUrl) {
+      await deleteBlob(existing.storageUrl);
+    }
 
     await collection.deleteOne({ _id: objId });
     await logAdminActivity({
