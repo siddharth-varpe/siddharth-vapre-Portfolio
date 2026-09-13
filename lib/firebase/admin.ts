@@ -14,7 +14,7 @@ const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
 const storageBucket =
   process.env.FIREBASE_STORAGE_BUCKET ||
   process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-  `${projectId}.appspot.com`;
+  "siddharth-varpe-portfolio.firebasestorage.app";
 
 function formatPrivateKey(key?: string): string | undefined {
   if (!key) return undefined;

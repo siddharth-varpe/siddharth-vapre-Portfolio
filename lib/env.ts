@@ -13,6 +13,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: z.string().optional().default(""),
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().optional().default(""),
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().optional().default(""),
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: z.string().optional().default(""),
   NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY: z.string().optional().default(""),
 });
 
@@ -52,6 +53,8 @@ export const publicEnv: PublicEnv = publicEnvSchema.parse({
     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || "",
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
   NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "",
+
   NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY: process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY || "",
 });
 
