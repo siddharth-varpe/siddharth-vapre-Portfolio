@@ -1,0 +1,31 @@
+# Firebase App Hosting Configuration
+# Next.js Full-Stack Application Runtime
+
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # Public Application URLs & Firebase Config
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://siddharthvarpe.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: siddharth-varpe-portfolio
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: FIREBASE_PROJECT_ID
+    value: siddharth-varpe-portfolio
+    availability:
+      - RUNTIME
+
+  # Production secrets managed via Cloud Secret Manager / App Hosting Secrets
+  # - secret: CONTACT_EMAIL
+  # - secret: RESEND_API_KEY
+  # - secret: TURNSTILE_SECRET_KEY

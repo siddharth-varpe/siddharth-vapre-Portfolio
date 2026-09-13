@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
             <span>•</span>
             <span className="text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              LIVE ATLAS REPLICA SET
+              CLOUD FIRESTORE ACTIVE
             </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -192,7 +192,7 @@ export default async function AdminDashboardPage() {
             <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
               <span className="text-emerald-400 font-semibold">{stats.counts.messagesUnread} unread</span>
               <span>•</span>
-              <span>Atlas permanent store</span>
+              <span>Firestore permanent store</span>
             </div>
           </div>
           <Link

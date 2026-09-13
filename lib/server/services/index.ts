@@ -13,7 +13,7 @@ export interface IEmailService {
 }
 
 /**
- * Interface contract for cloud media/file storage (e.g. Vercel Blob in Phase 6).
+ * Interface contract for cloud media/file storage (Cloud Storage for Firebase).
  */
 export interface IStorageService {
   upload(pathname: string, file: Blob | Buffer, options?: { access?: "public" }): Promise<{ url: string }>;
@@ -28,7 +28,7 @@ export interface IVerificationService {
 }
 
 /**
- * Interface contract for future MongoDB operations (Phase 3).
+ * Interface contract for Cloud Firestore database operations.
  */
 export interface IDatabaseService {
   isConnected(): boolean;

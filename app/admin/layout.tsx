@@ -1,3 +1,14 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Admin Portal | Siddharth Varpe",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+};
+
 import { getServerSession } from "@/lib/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 

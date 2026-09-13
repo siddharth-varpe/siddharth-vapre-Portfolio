@@ -4,11 +4,24 @@
 
 **Project:** Premium Personal Portfolio  
 **Positioning:** Software Engineer | AI & Full-Stack  
-**Deployment:** Vercel  
-**Architecture:** Next.js + TypeScript + MongoDB Atlas + approved services  
+**Deployment:** Firebase App Hosting  
+**Architecture:** Next.js + TypeScript + Cloud Firestore + Firebase Authentication + Cloud Storage for Firebase + Firebase App Hosting  
 **Development Model:** Phase-gated implementation
 
 ---
+
+> [!IMPORTANT]
+> **INFRASTRUCTURE & DATABASE ARCHITECTURE SPECIFICATION**
+> - **Active Infrastructure:** Firebase-centered production architecture.
+> - **Hosting:** Firebase App Hosting (dynamic Next.js full-stack runtime).
+> - **Database:** Cloud Firestore (sole persistent database).
+> - **Authentication:** Firebase Authentication with secure server-side session cookies (`__session`) and custom claim admin authorization.
+> - **Storage:** Cloud Storage for Firebase with strict security rules and controlled storage paths.
+> - **Privileged Operations:** Firebase Admin SDK (server-only singleton).
+> - **Abuse Protection:** Firebase App Check + Cloudflare Turnstile anti-spam verification.
+> - **Email Integration:** Firebase-compatible transactional email delivery with reliable Firestore pre-persistence.
+> - **Migration Status:** Complete — Supabase, MongoDB, Firebase Authentication, and Cloud Storage for Firebase completely removed from runtime and architecture.
+> - **Data Preservation:** 100% of authentic portfolio data has been preserved in `data/portfolio-seed-data.json`. No mock data.
 
 # 0. PURPOSE OF THIS DOCUMENT
 
@@ -302,13 +315,14 @@ Test early at:
 
 ## Objective
 
-Establish MongoDB Atlas as the source of truth for dynamic portfolio content.
+Establish Cloud Firestore as the sole source of truth for dynamic portfolio content.
 
 ## Technology
 
-- MongoDB Atlas
-- MongoDB Node.js Driver
+- Supabase PostgreSQL
+- @supabase/supabase-js & @supabase/ssr
 - Zod
+- SQL Migrations (`supabase/migrations/`)
 
 ## Core content domains
 
@@ -359,7 +373,7 @@ Secure the administrative system before building sensitive CMS functionality.
 
 ## Technology
 
-**Better Auth**
+**Firebase Authentication**
 
 ## Tasks
 
@@ -477,7 +491,7 @@ It must NOT execute arbitrary:
 ## Acceptance Criteria
 
 - admin can manage approved dynamic content
-- changes persist in MongoDB
+- changes persist in Cloud Firestore
 - public content can consume published data
 - draft content remains private
 - destructive operations are deliberate
@@ -494,7 +508,7 @@ Implement secure portfolio asset management.
 
 ## Technology
 
-**Vercel Blob**
+**Cloud Storage for Firebase**
 
 ## Media Types
 
@@ -749,7 +763,7 @@ Cloudflare Turnstile
  ↓
 Server-side Turnstile Verification
  ↓
-MongoDB Atlas
+Cloud Firestore
  ↓
 Resend
  ↓
@@ -758,7 +772,7 @@ User Email
 
 ## Reliability Rule
 
-**MongoDB persistence happens before email notification.**
+**Cloud Firestore persistence happens before email notification.**
 
 If Resend fails:
 
@@ -799,7 +813,7 @@ Test:
 
 A real production-style test submission must:
 
-1. reach MongoDB
+1. reach Cloud Firestore
 2. appear in Admin Messages
 3. trigger Resend notification
 4. reach the configured recipient
@@ -887,14 +901,13 @@ Implement:
 - structured data where useful
 - personal profile/Person metadata where appropriate
 
-## Analytics
+## Analytics & Discoverability
 
-Use approved:
+Use approved Firebase architecture:
 
-- Vercel Analytics
-- Vercel Speed Insights
-
-Do not add another analytics provider without approval.
+- Privacy-conscious Firebase Analytics with production browser initialization
+- Native Next.js App Router dynamic sitemap (`app/sitemap.ts`) and robots (`app/robots.ts`)
+- No legacy Vercel Analytics or Speed Insights
 
 ## Acceptance Criteria
 
@@ -1031,7 +1044,7 @@ Review:
 
 ## Objective
 
-Deploy the portfolio to Vercel.
+Deploy the portfolio to Firebase App Hosting.
 
 ## Pre-deployment Checklist
 
@@ -1040,7 +1053,7 @@ Deploy the portfolio to Vercel.
 Configure production values for:
 
 ```text
-MONGODB_URI
+FIREBASE_PROJECT_ID
 BETTER_AUTH_SECRET
 RESEND_API_KEY
 CONTACT_EMAIL
@@ -1056,11 +1069,11 @@ Only intentionally public values may use `NEXT_PUBLIC_`.
 
 Verify:
 
-- MongoDB Atlas connectivity
+- Cloud Firestore connectivity
 - Vercel environment variables
 - Resend verified domain
 - Turnstile production configuration
-- Vercel Blob
+- Cloud Storage for Firebase
 - domain
 - HTTPS
 - production build
@@ -1124,7 +1137,7 @@ Perform an actual controlled test:
 Visitor submission
 → Turnstile
 → validation
-→ MongoDB
+→ Cloud Firestore
 → Resend
 → email inbox
 → Admin Messages
@@ -1365,7 +1378,7 @@ The project is complete only when:
 [ ] All approved public pages work
 [ ] Admin CMS works
 [ ] Authentication is secure
-[ ] MongoDB persistence works
+[x] Cloud Firestore persistence works
 [ ] Contact messages persist
 [ ] Contact emails reach the configured recipient
 [ ] Turnstile is server-validated

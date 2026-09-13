@@ -1,14 +1,19 @@
+import * as React from "react";
+import { Container, MonoText } from "@/components/ui";
+
 export default function PublicLoading() {
   return (
     <div
       role="status"
       aria-live="polite"
-      className="flex min-h-[50vh] items-center justify-center p-6"
+      className="min-h-[50vh] flex flex-col items-center justify-center py-24"
     >
-      <div className="flex items-center space-x-2 text-neutral-400">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
-        <span className="text-sm font-medium">Loading content...</span>
-      </div>
+      <Container size="reading" className="flex flex-col items-center space-y-4 text-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        <MonoText className="text-xs text-foreground-muted tracking-wider uppercase">
+          Loading Portfolio Data...
+        </MonoText>
+      </Container>
     </div>
   );
 }

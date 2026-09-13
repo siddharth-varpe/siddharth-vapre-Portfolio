@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 interface TypographyProps extends React.HTMLAttributes<HTMLElement> {
-  as?: React.ElementType;
+  as?: keyof React.JSX.IntrinsicElements;
 }
 
 /**
@@ -14,8 +14,9 @@ export function DisplayHeadline({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "h1";
   return (
-    <Component
+    <Comp
       className={cn(
         "text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl",
         className
@@ -23,7 +24,7 @@ export function DisplayHeadline({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -36,8 +37,9 @@ export function PageTitle({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "h1";
   return (
-    <Component
+    <Comp
       className={cn(
         "text-3xl font-semibold tracking-tight text-foreground sm:text-4xl",
         className
@@ -45,7 +47,7 @@ export function PageTitle({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -58,8 +60,9 @@ export function SectionTitle({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "h2";
   return (
-    <Component
+    <Comp
       className={cn(
         "text-2xl font-semibold tracking-tight text-foreground sm:text-3xl",
         className
@@ -67,7 +70,7 @@ export function SectionTitle({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -80,8 +83,9 @@ export function ItemTitle({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "h3";
   return (
-    <Component
+    <Comp
       className={cn(
         "text-lg font-medium tracking-tight text-foreground sm:text-xl",
         className
@@ -89,7 +93,7 @@ export function ItemTitle({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -102,8 +106,9 @@ export function BodyText({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "p";
   return (
-    <Component
+    <Comp
       className={cn(
         "text-base leading-relaxed text-foreground-secondary",
         className
@@ -111,7 +116,7 @@ export function BodyText({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -124,8 +129,9 @@ export function Subtext({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "p";
   return (
-    <Component
+    <Comp
       className={cn(
         "text-sm leading-normal text-foreground-muted",
         className
@@ -133,7 +139,7 @@ export function Subtext({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -146,8 +152,9 @@ export function TechnicalLabel({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "span";
   return (
-    <Component
+    <Comp
       className={cn(
         "font-mono text-xs font-medium uppercase tracking-widest text-accent",
         className
@@ -155,7 +162,7 @@ export function TechnicalLabel({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
@@ -168,8 +175,9 @@ export function MonoText({
   children,
   ...props
 }: TypographyProps) {
+  const Comp = Component as "span";
   return (
-    <Component
+    <Comp
       className={cn(
         "font-mono text-xs text-foreground-muted sm:text-sm",
         className
@@ -177,6 +185,6 @@ export function MonoText({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }

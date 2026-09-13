@@ -10,11 +10,16 @@ export const slugSchema = z
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters, numbers, and single hyphens");
 
 /**
- * Validates MongoDB 24-character hex ObjectId string.
+ * Validates persistent entity string identifiers (UUID, alphanumeric, or legacy hex).
+ * Prepared for Cloud Firestore primary keys.
  */
-export const objectIdSchema = z
+export const idSchema = z
   .string()
-  .regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
+  .min(1, "ID cannot be empty")
+  .max(100, "ID is too long");
+
+// Backwards-compatible alias for existing routes
+export const objectIdSchema = idSchema;
 
 /**
  * Standard pagination query parameters.

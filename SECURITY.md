@@ -8,6 +8,19 @@
 
 ---
 
+> [!IMPORTANT]
+> **INFRASTRUCTURE & DATABASE ARCHITECTURE SPECIFICATION**
+> - **Active Infrastructure:** Firebase-centered production architecture.
+> - **Hosting:** Firebase App Hosting (dynamic Next.js full-stack runtime).
+> - **Database:** Cloud Firestore (sole persistent database).
+> - **Authentication:** Firebase Authentication with secure server-side session cookies (`__session`) and custom claim admin authorization.
+> - **Storage:** Cloud Storage for Firebase with strict security rules and controlled storage paths.
+> - **Privileged Operations:** Firebase Admin SDK (server-only singleton).
+> - **Abuse Protection:** Firebase App Check + Cloudflare Turnstile anti-spam verification.
+> - **Email Integration:** Firebase-compatible transactional email delivery with reliable Firestore pre-persistence.
+> - **Migration Status:** Complete — Supabase, Cloud Firestore, Firebase Authentication, and Cloud Storage for Firebase completely removed from runtime and architecture.
+> - **Data Preservation:** 100% of authentic portfolio data has been preserved in `data/portfolio-seed-data.json`. No mock data.
+
 ## 1. SECURITY MISSION
 
 This project must be built with **security as a first-class requirement**.
@@ -150,7 +163,7 @@ Never allow admin CMS fields to become executable HTML/JavaScript.
 
 ## Stored XSS
 
-Remember that content saved in MongoDB can later become an attack payload.
+Remember that content saved in Cloud Firestore can later become an attack payload.
 
 Therefore:
 
@@ -224,7 +237,7 @@ from the client.
 
 Approved storage:
 
-**Vercel Blob**
+**Cloud Storage for Firebase**
 
 Do not store user uploads on the application server filesystem as permanent storage.
 
@@ -424,7 +437,7 @@ Secrets must never be exposed to the browser.
 
 Sensitive values such as:
 
-- `MONGODB_URI`
+- `FIREBASE_PRIVATE_KEY`
 - `BETTER_AUTH_SECRET`
 - `RESEND_API_KEY`
 - `TURNSTILE_SECRET_KEY`
@@ -464,7 +477,7 @@ These are **temporary development/bootstrap credentials only**.
 Rules:
 
 - password must be securely hashed
-- password must never be stored plaintext in MongoDB
+- password must never be stored plaintext in Cloud Firestore
 - credentials must never be displayed publicly
 - credentials must never appear in client-side code
 - credentials must never appear in production documentation
@@ -556,7 +569,7 @@ For every requested resource:
 3. verify ownership/scope where applicable
 4. only then retrieve or mutate the resource
 
-Never rely on MongoDB `_id` secrecy.
+Never rely on Cloud Firestore `_id` secrecy.
 
 Never assume that a random UUID alone provides authorization.
 
@@ -615,7 +628,7 @@ Never log:
 - authentication tokens
 - session secrets
 - API keys
-- MongoDB credentials
+- Cloud Firestore credentials
 - Resend API keys
 - Turnstile secrets
 - reset tokens
@@ -714,9 +727,9 @@ Do not build custom password hashing if the authentication library already provi
 
 ---
 
-# 26. MONGODB SECURITY
+# 26. CLOUD FIRESTORE & FIREBASE SECURITY
 
-MongoDB Atlas is the source of truth for application data.
+Cloud Firestore is the source of truth for application data.
 
 Rules:
 
@@ -727,10 +740,10 @@ Rules:
 - avoid unsafe dynamic query construction
 - use appropriate indexes
 - do not expose raw database errors
-- do not expose internal MongoDB documents unnecessarily
+- do not expose internal Cloud Firestore documents unnecessarily
 - return only fields required by the client
 
-Do not let users choose arbitrary MongoDB operators or query structures.
+Do not let users choose arbitrary Cloud Firestore operators or query structures.
 
 ---
 
@@ -749,7 +762,7 @@ Required controls:
 7. request-size limits
 8. safe rendering of stored content
 9. safe email construction
-10. MongoDB persistence
+10. Cloud Firestore persistence
 
 Do not put user-controlled values into email HTML without safe encoding.
 
@@ -958,7 +971,7 @@ Never expose an unbounded database query endpoint.
 
 Do not allow users to submit arbitrary database operators.
 
-For example, do not blindly accept a client object and use it directly as a MongoDB query/filter.
+For example, do not blindly accept a client object and use it directly as a Cloud Firestore query/filter.
 
 Explicitly map approved fields:
 
@@ -969,7 +982,7 @@ allowed filter → validated server-side query
 not:
 
 ```text
-user input → MongoDB query
+user input → Cloud Firestore query
 ```
 
 ---
@@ -1058,10 +1071,10 @@ Every external service must be treated as a separate trust boundary.
 
 Current integrations include:
 
-- MongoDB Atlas
+- Cloud Firestore
 - Resend
 - Cloudflare Turnstile
-- Vercel Blob
+- Cloud Storage for Firebase
 - Vercel
 
 For each integration:
@@ -1294,7 +1307,7 @@ When displaying a message:
 - never automatically follow arbitrary links
 - avoid unsafe HTML rendering
 
-Treat the message body as untrusted even though it is stored in MongoDB.
+Treat the message body as untrusted even though it is stored in Cloud Firestore.
 
 ---
 

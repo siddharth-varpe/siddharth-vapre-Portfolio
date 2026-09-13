@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { Eye, EyeOff, Lock, User, AlertCircle, ShieldCheck } from "lucide-react";
-import { authClient } from "@/lib/client/auth";
 import { Input, Label } from "@/components/ui/form-controls";
 import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/client/auth";
 
 interface LoginFormProps {
   returnTo?: string;
@@ -17,9 +17,27 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
+  // Clean URL query parameters if a native browser form submission occurred
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryUser = urlParams.get("username");
+      if (queryUser && !username) {
+        setUsername(queryUser);
+      }
+      if (urlParams.has("password") || urlParams.has("username")) {
+        const cleanUrl = window.location.pathname + (urlParams.get("returnTo") ? `?returnTo=${encodeURIComponent(urlParams.get("returnTo")!)}` : "");
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+  }, [username]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
+    const cleanIdentifier = username.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanIdentifier || !cleanPassword) {
       setErrorMessage("Please enter both username and password.");
       return;
     }
@@ -28,34 +46,27 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
     setErrorMessage(null);
 
     try {
-      const response = await authClient.signIn.username({
-        username: username.trim(),
-        password,
-      });
+      await signIn(cleanIdentifier, cleanPassword);
 
-      if (response.error) {
-        if (response.error.status === 429) {
-          setErrorMessage("Too many login attempts. Please wait 60 seconds before trying again.");
-        } else {
-          // Generic security message to prevent account enumeration
-          setErrorMessage("Invalid credentials. Please verify your username and password.");
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Safe navigation: hard navigation ensures session cookies are recognized by Server Components
+      // Hard redirect to admin dashboard ensures session cookies are recognized by Server Components
       const destination = returnTo && returnTo.startsWith("/admin") ? returnTo : "/admin";
       window.location.href = destination;
     } catch (err: unknown) {
       console.error("[Login submission error]:", err);
-      setErrorMessage("An unexpected authentication error occurred. Please try again.");
+      const msg = err instanceof Error ? err.message : "Authentication failed.";
+      if (msg.toLowerCase().includes("invalid-credential") || msg.toLowerCase().includes("user-not-found") || msg.toLowerCase().includes("wrong-password")) {
+        setErrorMessage("Invalid credentials. Please verify your email/username and password.");
+      } else if (msg.toLowerCase().includes("too-many-requests")) {
+        setErrorMessage("Too many login attempts. Please wait 60 seconds before trying again.");
+      } else {
+        setErrorMessage(msg || "An unexpected authentication error occurred. Please try again.");
+      }
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} action="#" method="post" className="space-y-4">
       {errorMessage && (
         <div
           role="alert"
@@ -68,7 +79,7 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
 
       <div>
         <Label htmlFor="admin-username" required>
-          Username
+          Username or Email
         </Label>
         <div className="relative">
           <Input
@@ -138,7 +149,7 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
       <div className="pt-2 text-center">
         <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-neutral-500">
           <ShieldCheck className="h-3.5 w-3.5 text-emerald-500/70" />
-          <span>Encrypted Session · Better Auth v1.7</span>
+          <span>Encrypted Session · Firebase Authentication</span>
         </div>
       </div>
     </form>

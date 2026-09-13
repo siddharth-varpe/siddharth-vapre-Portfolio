@@ -7,414 +7,84 @@
 **Status:** Approved  
 **Architecture:** Full-Stack Next.js Application  
 **Deployment:** Vercel  
-**Database:** MongoDB Atlas  
-**Primary Language:** TypeScript
-
----
-
-# 1. Stack Philosophy
-
-The portfolio should use a modern, production-oriented TypeScript stack with as few unnecessary technologies as possible.
-
-The architecture must support:
-
-- Premium custom frontend.
-- Mobile-first responsive design.
-- Purposeful 3D.
-- Dynamic CMS-driven content.
-- Secure private admin panel.
-- Persistent contact messages.
-- Reliable email notifications.
-- Cloud media storage.
-- Strong SEO.
-- Accessibility.
-- High performance.
-- Automated testing.
-- Straightforward Vercel deployment.
-
-The portfolio will remain **TypeScript full-stack**.
-
-Python/FastAPI will not be introduced into this project unless a future requirement genuinely justifies a separate service.
-
----
-
-# 2. Core Stack
-
-| Layer | Technology | Purpose |
-|---|---|---|
-| Framework | Next.js | Full-stack web application |
-| Language | TypeScript | Application language and type safety |
-| UI Library | React | Component-based frontend |
-| Styling | Tailwind CSS | Utility-based styling |
-| Admin UI | shadcn/ui | Accessible productivity-oriented primitives |
-| Icons | Lucide React | Consistent interface icons |
-| 3D | Three.js | Web 3D rendering |
-| 3D React Integration | React Three Fiber | React-based Three.js scenes |
-| 3D Utilities | @react-three/drei | Reusable 3D helpers |
-| Animation | Motion | UI and interaction animation |
-| Database | MongoDB Atlas | Persistent cloud database |
-| Database Driver | MongoDB Node.js Driver | Server-side database access |
-| Validation | Zod | Runtime schema validation |
-| Forms | React Hook Form | Form state and validation integration |
-| Authentication | Better Auth | Admin authentication and sessions |
-| Email | Resend | Contact notification emails |
-| Anti-Spam | Cloudflare Turnstile | Contact-form abuse protection |
-| File Storage | Vercel Blob | Persistent media/file storage |
-| Image Optimization | Next/Image | Responsive image delivery |
-| Deployment | Vercel | Production hosting |
-| Version Control | Git + GitHub | Source control |
-| Analytics | Vercel Analytics | Privacy-conscious site analytics |
-| Performance Monitoring | Vercel Speed Insights | Real-user performance monitoring |
-| Unit Testing | Vitest | Unit/integration tests |
-| E2E Testing | Playwright | Browser-level application testing |
-
----
-
-# 3. Framework — Next.js
-
-## Role
-
-Next.js is the primary application framework.
-
-It will handle:
-
-- Public pages.
-- Project pages.
-- Admin routes.
-- Server-side rendering.
-- Static generation where appropriate.
-- Server components.
-- Client components where interaction requires them.
-- API endpoints / server-side request handling.
-- Metadata and SEO.
-- Image optimization.
-- Application routing.
-- Server-side authorization boundaries.
-
-## Architecture Preference
-
-Use the modern Next.js App Router architecture.
-
-Prefer:
-
-- Server Components by default.
-- Client Components only where browser interaction is required.
-- Server-side data access.
-- Route handlers or server actions where appropriate.
-- Incremental/static rendering for content that does not need real-time updates.
-- Dynamic rendering for content that requires current database state.
-
-Avoid turning the entire application into a client-rendered SPA unnecessarily.
-
----
-
-# 4. Language — TypeScript
-
-TypeScript is the single primary programming language.
-
-## Requirements
-
-- Strict TypeScript configuration.
-- Explicit domain types.
-- Typed database models/repositories.
-- Typed API inputs and outputs.
-- Shared validation schemas where practical.
-- Avoid `any` unless there is a documented reason.
-
-TypeScript should cover:
-
-- Frontend components.
-- Server logic.
-- Database access.
-- CMS logic.
-- Validation.
-- Authentication integration.
-- API/route handlers.
-- Utility functions.
-
----
-
-# 5. Frontend — React
-
-React will provide the component architecture.
-
-## Component principles
-
-Components should be:
-
-- Reusable.
-- Composable.
-- Accessible.
-- Focused.
-- Typed.
-- Easy to test.
-
-Avoid excessive abstraction.
-
-A component should not be extracted merely because a piece of markup appears once.
-
----
-
-# 6. Styling — Tailwind CSS
-
-Tailwind CSS will provide the primary styling system.
-
-Use it for:
-
-- Layout.
-- Responsive behavior.
-- Typography.
-- Spacing.
-- Borders.
-- Surfaces.
-- States.
-- Utility styling.
-
-The public website should use a custom design system built on top of Tailwind rather than looking like a default Tailwind/shadcn website.
-
----
-
-# 7. UI Primitives — shadcn/ui
-
-shadcn/ui will primarily be used for the private admin interface and utility/productivity components.
-
-Suitable components include:
-
-- Buttons.
-- Inputs.
-- Selects.
-- Dialogs.
-- Dropdowns.
-- Tabs.
-- Tables.
-- Forms.
-- Toasts.
-- Sheets.
-- Command interfaces.
-
-The public portfolio should not automatically inherit a generic shadcn visual identity.
-
-Public-facing components should be custom-designed to match the Dark Systems / Technical Editorial direction.
-
----
-
-# 8. Icons — Lucide React
-
-Lucide React will provide interface icons.
-
-Use icons consistently for:
-
-- Navigation.
-- Admin actions.
-- Social links.
-- Form actions.
-- Status indicators.
-- Project metadata.
-- CMS controls.
-
-Avoid excessive decorative icon usage.
-
----
-
-# 9. 3D — Three.js
-
-Three.js will provide the underlying WebGL/WebGPU-capable 3D rendering layer.
-
-## Purpose
-
-3D is a differentiating visual system, not the primary content delivery mechanism.
-
-The 3D language should communicate:
-
-- Systems.
-- Architecture.
-- Data.
-- Infrastructure.
-- Connectivity.
-- Engineering.
-- Automation.
-
-## Rules
-
-- Keep 3D lightweight.
-- Lazy-load heavy scenes.
-- Avoid unnecessary geometry.
-- Avoid excessive real-time effects.
-- Avoid unnecessary high-resolution rendering.
-- Provide a non-3D fallback.
-- Respect reduced-motion preferences.
-- Degrade gracefully on weaker devices.
-
-Do not use generic developer-portfolio 3D motifs.
-
----
-
-# 10. React Three Fiber
-
-React Three Fiber will integrate Three.js with the React component model.
-
-Use it for:
-
-- Hero system visualization.
-- Controlled interactive scenes.
-- 3D project/system visualizations where justified.
-
-Keep the 3D implementation isolated from normal content components.
-
-A heavy 3D component should not force the entire page to become a client component.
-
----
-
-# 11. @react-three/drei
-
-Drei will provide reusable helpers for React Three Fiber.
-
-Use it where it meaningfully reduces implementation complexity.
-
-Avoid adding helpers solely for visual novelty.
-
----
-
-# 12. Animation — Motion
-
-Motion will handle:
-
-- Page transitions where appropriate.
-- Reveal animations.
-- Hover interactions.
-- Micro-interactions.
-- Section transitions.
-- Controlled scroll-based effects.
-
-## Rules
-
-Animations must:
-
-- Have a purpose.
-- Be performant.
-- Be subtle.
-- Support reduced-motion preferences.
-- Never block access to content.
-- Never make navigation confusing.
-
-Avoid:
-
-- Constant movement.
-- Excessive parallax.
-- Giant cursor effects.
-- Random particle animation.
-- Animation on every element.
-
----
-
-# 13. Database — MongoDB Atlas
-
-MongoDB Atlas is the persistent cloud database.
-
-It stores:
-
-- Portfolio content.
-- Skills.
-- Projects.
-- Experience.
-- Achievements.
-- Certifications.
-- Metrics.
-- Site configuration.
-- Contact messages.
-- Revision history.
-- Activity logs.
-- Admin/account data where appropriate.
+**Database:** Supabase PostgreSQL (Approved Architecture — Migration Underway; Cloud Firestore
+                    │
+                    ▼
+              contactMessages` — Inbound contact inquiries (persisted before email delivery).
+- `siteSettings` — Global site copyright, branding, and status.
+- `seo` — Meta titles, descriptions, and OpenGraph tags.
+- `media` — Metadata index for Cloud Storage uploads.
+- `revisions` — Audit snapshots of CMS modifications.
+- `activityLogs` — Security and administrative event records.
 
 ## Application Connection
 
-The application will connect from the server using a secure MongoDB connection URI.
+The application connects strictly through the centralized server-side Firebase Admin SDK module (`lib/firebase/admin.ts`) using service credentials or Google Application Default Credentials.
 
-Example environment variable:
+Privileged service credentials never reach the browser.
 
-```env
-MONGODB_URI=
-```
-
-The browser must never receive the MongoDB connection string.
-
-## Important Architecture Rule
-
-Do not use:
+## Architectural Flow
 
 ```text
-Browser → MongoDB
+Visitor / Admin
+      ↓
+Next.js Server Runtime (App Hosting)
+      ↓
+Firebase Admin SDK
+      ↓
+Cloud Firestore (Multi-Region)
 ```
-
-Use:
-
-```text
-Browser
-   ↓
-Next.js Server
-   ↓
-MongoDB Atlas
-```
-
-MongoDB Atlas is the source of truth for dynamic portfolio data and contact submissions.
 
 ---
 
-# 14. MongoDB Node.js Driver
+# 14. Firebase Admin SDK & Server Repositories
 
-The official MongoDB Node.js driver will provide server-side database access.
+The server-side integration layer provides type-safe access to Cloud Firestore through modular repositories (`lib/server/db/repositories/content.ts` and `lib/server/db/repositories/admin.ts`) with domain mappers (`lib/server/db/mappers.ts`).
 
 Responsibilities:
 
-- Connection management.
-- Queries.
-- Inserts.
-- Updates.
-- Deletes/archives.
-- Index interaction.
-- Transactions where genuinely required.
-
-Create a reusable database connection layer so the application does not unnecessarily create new connections for every request.
+- Connection singleton lifecycle.
+- Firestore queries with composite indexes.
+- Batch mutations and atomic operations.
+- Input validation and type casting without `any` types.
+- Soft-delete and archive workflows.
+- Automatic revision snapshots and activity logging.
 
 ---
 
-# 15. Database Collections
+# 15. Firestore Collections & Access Patterns
 
-Initial logical collections:
+Firestore collections use deterministic paths and stable identifiers:
 
 ```text
-users
-profile
-hero
-about
-skills
-experience
-projects
-achievements
-certifications
-metrics
-contactSettings
-contactMessages
-siteSettings
-seo
-media
-revisions
-activityLogs
+profiles (doc: "profile_root")
+hero (doc: "hero_root")
+about (doc: "about_root")
+skills (docs: UUID / deterministic IDs, sorted by order)
+experience (docs: UUID, sorted by order)
+projects (docs: UUID, unique field: slug)
+achievements (docs: UUID, sorted by order)
+certifications (docs: UUID, sorted by order)
+metrics (docs: UUID, sorted by order)
+contactSettings (doc: "contact_settings_root")
+contactMessages (docs: "msg_*", indexed by createdAt)
+siteSettings (doc: "site_content_root")
+seo (doc: "seo_root")
+media (docs: "media_*", indexed by createdAt)
+revisions (docs: "rev_*", indexed by timestamp)
+activityLogs (docs: "act_*", indexed by timestamp)
 ```
-
-The final physical schema may consolidate or split collections where implementation evidence suggests a better model.
 
 ## Required properties
 
-Dynamic content should support:
+Dynamic content documents enforce:
 
-- Stable IDs.
+- Stable document IDs.
 - Slugs where applicable.
-- Publication status.
-- Visibility.
-- Display order.
-- Created timestamp.
-- Updated timestamp.
+- Publication status (`status: "published" | "draft" | "archived"`).
+- Visibility toggles.
+- Display order integers.
+- Created and updated Firestore Timestamps.
 
 ---
 
@@ -460,42 +130,43 @@ Pair React Hook Form with Zod schemas.
 
 ---
 
-# 18. Authentication — Better Auth
+# 18. Authentication — Firebase Authentication
 
-Better Auth will handle private admin authentication/session functionality.
+Firebase Authentication is the authoritative identity provider for administrative access. Better Auth has been completely removed.
 
 Primary purpose:
 
-- Admin login.
-- Session management.
-- Logout.
-- Password management.
-- Protected admin access.
+- Admin login with email/password.
+- Server-verified session management using `__session` cookies.
+- Custom claims authorization (`admin: true`).
+- Secure administrative password updates.
+- Protected admin route guard and API middleware.
 
-## Initial Development Credentials
-
-Temporary seed credentials:
+## Admin Authorization Architecture
 
 ```text
-Username: admin
-Password: admin
+Admin Login (/admin/login)
+      ↓
+Firebase Authentication (ID Token)
+      ↓
+Token Exchange API (/api/auth/session)
+      ↓
+Verify ID Token & Ensure Admin Custom Claim
+      ↓
+Create Firebase Session Cookie (HttpOnly, Secure, SameSite=Lax, Name: "__session")
+      ↓
+Protected Admin Panel (/admin/*)
 ```
 
-These credentials are development/bootstrap credentials only.
-
-Production security must require a secure password and must never expose plaintext credentials.
+A user is NEVER granted admin privileges merely by being authenticated. The `admin: true` custom claim must be present and verified server-side.
 
 ## Security
 
-- Secure password hashing.
-- HTTP-only cookies.
-- Secure cookies in production.
-- Appropriate SameSite settings.
-- Session expiration.
-- Server-side route protection.
-- Server-side authorization.
-- Login rate limiting.
-- Failed-login tracking.
+- Session cookies named `__session` (compatible with Firebase App Hosting and CDN cookie policies).
+- Server-side verification via `adminAuth.verifySessionCookie(cookie, true)` with revocation check.
+- Custom claims verified on all administrative mutations.
+- Passwords managed entirely by Firebase Authentication; never stored in Firestore.
+- Password updates protected by session verification and minimum length validation.
 
 ---
 
@@ -578,33 +249,25 @@ The secret key must remain server-side.
 
 ---
 
-# 21. File Storage — Vercel Blob
+# 21. File Storage — Cloud Storage for Firebase
 
-Vercel Blob will store persistent portfolio files.
+Cloud Storage for Firebase is the media storage infrastructure for all persistent portfolio binary files. Vercel Blob has been completely removed.
 
 Use for:
 
-- Profile photo.
-- Project screenshots.
-- Project media.
-- Certificate images.
-- Resume files.
-- Other approved portfolio assets.
+- Profile photos (`/portfolio/profile/`).
+- Project screenshots & diagrams (`/portfolio/projects/`).
+- Verified resume PDFs (`/portfolio/resume/`).
+- Approved CMS media assets (`/portfolio/media/`).
 
-Do not depend on the Vercel runtime filesystem for persistent application data.
+## Security Rules & Validation
 
-## Upload considerations
-
-Validate:
-
-- File type.
-- MIME type.
-- Extension.
-- File size.
-- File naming.
-- Authorization.
-
-For larger files, prefer direct/client-to-Blob upload patterns where appropriate instead of routing large binary payloads through application functions.
+Storage security rules (`storage.rules`) enforce:
+- Path restrictions: uploads permitted only into defined `/portfolio/{category}/*` directories.
+- MIME validation: images restricted to `image/jpeg`, `image/png`, `image/webp`, `image/gif`, `image/svg+xml`; resumes restricted to `application/pdf`.
+- Size limits: images < 10MB; documents < 15MB.
+- Admin authorization: write and delete operations strictly require `request.auth.token.admin == true`.
+- Metadata tracking: file ID, path, size, MIME type, and category indexed in Firestore `media` collection.
 
 ---
 
@@ -628,31 +291,16 @@ Do not regenerate or alter facial identity.
 
 ---
 
-# 23. Deployment — Vercel
+# 23. Deployment — Firebase App Hosting
 
-Vercel is the production hosting platform.
+Firebase App Hosting is the production hosting platform for the full-stack Next.js application.
 
-Responsibilities:
-
-- Next.js deployment.
-- Server-side functions.
-- Environment variables.
-- Preview deployments.
-- Production deployment.
-- Analytics.
-- Speed Insights.
-
-## Environments
-
-At minimum:
-
-```text
-Development
-Preview
-Production
-```
-
-Sensitive environment variables should be configured separately per environment.
+Configured via `apphosting.yaml`:
+- Full-stack dynamic Next.js runtime with Server-Side Rendering (SSR) and route handlers.
+- Automated GitHub integration with branch-based rollouts.
+- Server external packages optimization for `firebase-admin`.
+- Environment secrets integrated with Google Cloud Secret Manager.
+- High-availability containerized serving with autoscaling.
 
 ---
 
@@ -815,8 +463,8 @@ High-level architecture:
           ┌─────────────────┼─────────────────┐
           │                 │                 │
           ▼                 ▼                 ▼
-    MongoDB Atlas         Resend         Vercel Blob
-    Content + CMS        Email           Media
+    Cloud Firestore      Resend / Email      Cloud Storage
+    Content + CMS        Email Delivery      Media & Assets
           │
           │
           ▼
@@ -837,7 +485,7 @@ Turnstile
    ▼
 Next.js Server
    │
-   ├──────────────► MongoDB Atlas
+   ├──────────────► Cloud Firestore
    │                    │
    │                    ▼
    │              contactMessages
@@ -1024,20 +672,20 @@ This stack is intentionally optimized for the project rather than maximizing the
 ### Next.js + TypeScript
 Provides one language across frontend and backend while supporting SEO, server rendering, API/server functionality, and Vercel deployment.
 
-### MongoDB Atlas
-Provides persistent cloud database storage for dynamic portfolio content and contact messages.
+### Cloud Firestore
+Provides durable, multi-region NoSQL document persistence with expressive queries, composite indexes, and production-grade security rules.
 
-### Vercel Blob
-Provides persistent media storage without depending on ephemeral application filesystems.
+### Firebase Authentication
+Provides hardened identity management, password hashing, and custom claim authorization without self-hosting auth tables or passwords.
+
+### Cloud Storage for Firebase
+Provides scalable, secure object storage for media and documents governed by granular storage security rules.
+
+### Firebase App Hosting
+Provides serverless, containerized Next.js full-stack hosting with native support for SSR, API routes, and automated rollouts.
 
 ### Resend
 Provides a focused transactional email layer for contact notifications.
-
-### Turnstile
-Provides contact-form abuse protection without requiring a full CAPTCHA workflow.
-
-### Better Auth
-Provides a dedicated authentication/session layer for the private CMS.
 
 ### Three.js + React Three Fiber
 Provides the custom 3D capability required by the visual direction without introducing a separate rendering stack.
@@ -1067,17 +715,17 @@ Reason:
 
 Python remains valuable in Siddharth's other software/AI projects, but this portfolio does not need it.
 
-## Supabase
+## MongoDB Atlas
+Completely removed from the application runtime and architecture.
 
-Not required because MongoDB Atlas has already been selected as the persistent database.
+## Supabase PostgreSQL
+Completely removed from the application runtime and architecture. Cloud Firestore is the sole database.
 
-## Firebase
+## Better Auth
+Completely removed. Firebase Authentication is the identity and session provider.
 
-Not required.
-
-## PostgreSQL
-
-Not required for this specific project.
+## Vercel Blob
+Completely removed. Cloud Storage for Firebase handles all media storage.
 
 ## Redis
 
@@ -1145,18 +793,26 @@ Backend / Server
 └── React Hook Form
 
 Database
-├── MongoDB Atlas
-└── MongoDB Node.js Driver
+├── Cloud Firestore
+├── firebase-admin/firestore
+└── @google-cloud/firestore
+
+Storage & Media
+├── Cloud Storage for Firebase
+└── @google-cloud/storage
+
+Authentication
+├── Firebase Authentication
+└── firebase-admin/auth
 
 External Services
-├── Resend
-├── Cloudflare Turnstile
-└── Vercel Blob
+├── Resend (Transactional Email)
+├── Cloudflare Turnstile (Anti-Spam)
+└── Firebase App Check (Abuse Protection)
 
-Deployment / Observability
-├── Vercel
-├── Vercel Analytics
-└── Vercel Speed Insights
+Deployment & Hosting
+├── Firebase App Hosting (Dynamic Next.js SSR)
+└── apphosting.yaml
 
 Development
 ├── Git
@@ -1169,6 +825,6 @@ Development
 
 # 41. Final Architectural Decision
 
-**The portfolio will be built as a TypeScript-first, Next.js full-stack application deployed on Vercel, with MongoDB Atlas as the persistent database, Vercel Blob for media, Resend for contact email delivery, Cloudflare Turnstile for contact-form protection, Better Auth for the private CMS, and Three.js/React Three Fiber for purposeful 3D.**
+**The portfolio is built as a TypeScript-first, Next.js full-stack application hosted on Firebase App Hosting, with Cloud Firestore as the sole persistent database, Firebase Authentication with session cookies and custom claims for admin authorization, Cloud Storage for Firebase for media, Resend for email delivery, and Cloudflare Turnstile + Firebase App Check for comprehensive abuse protection.**
 
 No additional backend language or database will be introduced unless a future requirement demonstrates a real need.

@@ -24,7 +24,7 @@ export default async function AdminMessagesPage() {
         </p>
       </div>
 
-      <MessagesManager initialMessages={JSON.parse(JSON.stringify(messages))} />
+      <MessagesManager initialMessages={JSON.parse(JSON.stringify(messages.items || []))} />
     </div>
   );
 }

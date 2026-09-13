@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  as?: React.ElementType;
+  as?: "div" | "article" | "section" | "aside" | "header" | "footer" | "main";
   size?: "public" | "reading" | "admin" | "full";
 }
 
@@ -22,21 +22,22 @@ export function Container({
 }: ContainerProps) {
   const sizeClasses = {
     reading: "max-w-3xl",
-    public: "max-w-6xl",
+    public: "max-w-screen-2xl",
     admin: "max-w-7xl",
     full: "max-w-full",
   };
 
+  const Comp = Component as "div";
   return (
-    <Component
+    <Comp
       className={cn(
-        "mx-auto w-full px-4 sm:px-6 lg:px-8",
+        "mx-auto w-full px-4 sm:px-6 lg:px-8 xl:px-12",
         sizeClasses[size],
         className
       )}
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }

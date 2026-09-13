@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminSession } from "@/lib/server/auth/session";
-import { getRawDatabase } from "@/lib/server/db";
-import { verifyPassword, hashPassword } from "better-auth/crypto";
+import { adminAuth } from "@/lib/firebase/admin";
+import { markBootstrapPasswordChanged } from "@/lib/server/auth/bootstrap";
 
 const changePasswordSchema = z
   .object({
@@ -19,14 +19,9 @@ const changePasswordSchema = z
   });
 
 /**
- * Protected Admin Route: Change Password.
- *
- * Enforces:
- * 1. Valid authenticated admin session.
- * 2. Strict Zod schema validation (min 8 chars, uppercase, number).
- * 3. Server-side verification of current password hash.
- * 4. Scrypt re-hashing with cryptographic salt.
- * 5. Invalidation of all other sessions to terminate potentially hijacked tokens.
+ * =============================================================================
+ * Protected Admin Route: Change Password (Firebase Authentication)
+ * =============================================================================
  */
 export async function POST(request: NextRequest) {
   const sessionContext = await requireAdminSession({ isApi: true });
@@ -52,55 +47,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { currentPassword, newPassword } = parseResult.data;
-    const userId = sessionContext.user.id;
-    const db = getRawDatabase();
+    const { newPassword } = parseResult.data;
 
-    // Retrieve account record
-    const account = await db.collection("account").findOne({
-      $or: [{ userId: userId }, { accountId: userId }],
-      providerId: "credential",
-    });
-
-    if (!account || !account.password) {
+    try {
+      await adminAuth.updateUser(sessionContext.user.id, {
+        password: newPassword,
+      });
+      await adminAuth.revokeRefreshTokens(sessionContext.user.id);
+      markBootstrapPasswordChanged();
+    } catch (authError) {
+      console.error("[Change Password Firebase Auth Error]:", authError);
       return NextResponse.json(
-        { error: "Account error", message: "Credential account not found" },
-        { status: 404 }
-      );
-    }
-
-    // Verify current password
-    const isCurrentValid = await verifyPassword({
-      password: currentPassword,
-      hash: account.password,
-    });
-
-    if (!isCurrentValid) {
-      return NextResponse.json(
-        { error: "Invalid credentials", message: "Current password is incorrect" },
+        { error: "Authentication error", message: "Failed to update credentials in Firebase Auth" },
         { status: 400 }
       );
     }
-
-    // Hash new password securely
-    const newHashedPassword = await hashPassword(newPassword);
-
-    // Update account record
-    await db.collection("account").updateOne(
-      { _id: account._id },
-      {
-        $set: {
-          password: newHashedPassword,
-          updatedAt: new Date(),
-        },
-      }
-    );
-
-    // Revoke all other sessions for this user to mitigate session hijacking
-    await db.collection("session").deleteMany({
-      $or: [{ userId: userId }, { userId: account.userId }],
-      token: { $ne: sessionContext.session.token },
-    });
 
     return NextResponse.json({
       success: true,

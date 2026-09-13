@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (request.auth.token.admin == true);
+    }
+
+    // -------------------------------------------------------------
+    // PUBLIC CONTENT COLLECTIONS
+    // Public visitors can only read published documents.
+    // Writes are strictly restricted to verified administrators.
+    // -------------------------------------------------------------
+
+    // Singletons
+    match /profiles/{docId} {
+      allow read: if resource.data.status == 'published' || resource.data.status == null || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /hero/{docId} {
+      allow read: if resource.data.status == 'published' || resource.data.status == null || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /about/{docId} {
+      allow read: if resource.data.status == 'published' || resource.data.status == null || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /contactSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /seo/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // List collections
+    match /skills/{skillId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /experience/{expId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /projects/{projId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /achievements/{achId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /certifications/{certId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /metrics/{metricId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /resumes/{resumeId} {
+      allow read: if (resource.data.active == true && resource.data.downloadEnabled == true && resource.data.archived == false) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /media/{mediaId} {
+      allow read: if resource.data.visibility == 'public' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // -------------------------------------------------------------
+    // STRICTLY PRIVATE ADMINISTRATIVE COLLECTIONS
+    // Public visitors cannot read or query.
+    // Only verified administrators can read/query.
+    // Client-side direct writes are denied (handled via Server Firebase Admin SDK).
+    // -------------------------------------------------------------
+
+    match /contactMessages/{messageId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /revisions/{revisionId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /activityLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

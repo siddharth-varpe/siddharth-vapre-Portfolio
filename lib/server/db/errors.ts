@@ -16,7 +16,8 @@ export class DatabaseError extends Error {
  */
 export function handleDatabaseError(error: unknown, fallbackMessage = "Database operation failed"): never {
   if (process.env.NODE_ENV !== "production") {
-    console.error("[Database Error Debug]:", error instanceof Error ? error.message : "Unknown error");
+    const rawMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Database Error Debug]:", rawMsg);
   } else {
     console.error("[Database Error]: Internal database error occurred.");
   }

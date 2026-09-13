@@ -12,6 +12,19 @@
 
 ---
 
+> [!IMPORTANT]
+> **INFRASTRUCTURE & DATABASE ARCHITECTURE SPECIFICATION**
+> - **Active Infrastructure:** Firebase-centered production architecture.
+> - **Hosting:** Firebase App Hosting (dynamic Next.js full-stack runtime).
+> - **Database:** Cloud Firestore (sole persistent database).
+> - **Authentication:** Firebase Authentication with secure server-side session cookies (`__session`) and custom claim admin authorization.
+> - **Storage:** Cloud Storage for Firebase with strict security rules and controlled storage paths.
+> - **Privileged Operations:** Firebase Admin SDK (server-only singleton).
+> - **Abuse Protection:** Firebase App Check + Cloudflare Turnstile anti-spam verification.
+> - **Email Integration:** Firebase-compatible transactional email delivery with reliable Firestore pre-persistence.
+> - **Migration Status:** Complete — Supabase, Cloud Firestore, Firebase Authentication, and Cloud Storage for Firebase completely removed from runtime and architecture.
+> - **Data Preservation:** 100% of authentic portfolio data has been preserved in `data/portfolio-seed-data.json`. No mock data.
+
 # 1. Product Overview
 
 This project is a high-end personal portfolio website for Siddharth Varpe, positioned as a professional proof-of-work platform rather than a conventional résumé website.
@@ -24,7 +37,7 @@ The portfolio must communicate three things quickly:
 
 The public website will present professional identity, experience, projects, technical skills, achievements, certifications, and contact information.
 
-A private admin CMS will allow Siddharth to manage all variable portfolio content without modifying source code. Contact-form submissions will be permanently stored in MongoDB Atlas and exposed through a private admin inbox, while an email notification system will ensure new inquiries can reach Siddharth directly.
+A private admin CMS will allow Siddharth to manage all variable portfolio content without modifying source code. Contact-form submissions are permanently persisted in the portfolio database and exposed through a private admin inbox, while an email notification system ensures new inquiries reach Siddharth directly.
 
 The experience should feel like it was designed and engineered by a senior software engineer: restrained, intentional, fast, accessible, technically credible, and visually distinctive.
 
@@ -53,7 +66,7 @@ The experience should feel like it was designed and engineered by a senior softw
 - Provide draft/published/archived content states.
 - Provide revision history and activity tracking.
 - Provide a secure private admin area.
-- Make deployment and maintenance straightforward on Vercel.
+- Make deployment and maintenance straightforward on Firebase App Hosting.
 
 ## 2.3 Non-Goals
 
@@ -706,12 +719,12 @@ Next.js Server/API
    ↓
 Server Validation
    ↓
-MongoDB Atlas
+Cloud Firestore
    ↓
 Email Notification via Resend
 ```
 
-MongoDB must be treated as the source of truth.
+Cloud Firestore must be treated as the source of truth.
 
 The system should store the message BEFORE attempting email delivery.
 
@@ -1005,9 +1018,9 @@ Requirements:
 
 ## Database
 
-**MongoDB Atlas**
+**Cloud Firestore**
 
-MongoDB Atlas will be the persistent cloud database.
+Cloud Firestore will be the persistent cloud database.
 
 ## Suggested collections
 
@@ -1047,7 +1060,7 @@ Binary media should not depend on the Vercel server filesystem.
 
 Use:
 
-**Vercel Blob**
+**Cloud Storage for Firebase**
 
 for:
 
@@ -1072,7 +1085,7 @@ for transactional contact notifications.
 
 When a visitor submits the contact form:
 
-1. Store submission in MongoDB.
+1. Store submission in Cloud Firestore.
 2. Attempt email notification.
 3. Record delivery status.
 4. Store provider message ID where available.
@@ -1134,8 +1147,8 @@ Additional protections:
 
 ## Database
 
-- MongoDB Atlas.
-- MongoDB Node.js Driver.
+- Cloud Firestore.
+- Firebase Admin SDK / Firestore.
 
 ## Validation / Forms
 
@@ -1144,7 +1157,7 @@ Additional protections:
 
 ## Authentication
 
-- Better Auth.
+- Firebase Authentication.
 
 ## Email
 
@@ -1156,7 +1169,7 @@ Additional protections:
 
 ## Storage
 
-- Vercel Blob.
+- Cloud Storage for Firebase.
 
 ## Images
 
@@ -1190,7 +1203,7 @@ Python/FastAPI should NOT be introduced into this portfolio solely because Siddh
 Expected server configuration:
 
 ```env
-MONGODB_URI=
+FIREBASE_PROJECT_ID=
 BETTER_AUTH_SECRET=
 RESEND_API_KEY=
 CONTACT_EMAIL=
@@ -1235,7 +1248,7 @@ Rules:
 - Database credentials only on the server.
 - Least-privilege database user.
 - Secure connection string.
-- No direct browser-to-MongoDB writes.
+- No direct browser-to-Cloud Firestore writes.
 - Appropriate Atlas network/security configuration.
 
 ---
@@ -1389,13 +1402,13 @@ The contact system is considered successful only when all of the following work:
 1. Visitor submits a valid form.
 2. Server validates the request.
 3. Turnstile is verified server-side.
-4. Message is stored in MongoDB Atlas.
+4. Message is stored in Cloud Firestore.
 5. Admin can view the message.
 6. Email notification is attempted.
 7. Email delivery status is tracked.
 8. A temporary email failure does not destroy the message.
 
-MongoDB is the permanent source of truth.
+Cloud Firestore is the permanent source of truth.
 
 ---
 
@@ -1584,10 +1597,10 @@ Vercel
  ├── Analytics
  └── Speed Insights
 
-MongoDB Atlas
+Cloud Firestore
  └── Persistent application database
 
-Vercel Blob
+Cloud Storage for Firebase
  └── Media storage
 
 Resend
@@ -1624,7 +1637,7 @@ Production deployment must use secure environment variables and verified externa
           ┌─────────────────┼─────────────────┐
           │                 │                 │
           ▼                 ▼                 ▼
-   MongoDB Atlas          Resend        Vercel Blob
+   Cloud Firestore          Resend        Cloud Storage for Firebase
    Content + Messages     Email          Media
           │
           │
@@ -1641,7 +1654,7 @@ Cloudflare Turnstile
 Server Validation
         │
         ▼
-MongoDB → Email Notification
+Cloud Firestore → Email Notification
 ```
 
 ---
@@ -1666,7 +1679,7 @@ The product will be considered successful when:
 - No critical security issues.
 - Strong Core Web Vitals.
 - Reliable contact submission.
-- Persistent MongoDB storage.
+- Persistent Cloud Firestore storage.
 - Secure admin authentication.
 - CMS changes appear correctly on the public site.
 
@@ -1731,9 +1744,9 @@ The first production-ready version must include:
 
 ### Infrastructure
 
-- MongoDB Atlas.
+- Cloud Firestore.
 - Vercel.
-- Vercel Blob.
+- Cloud Storage for Firebase.
 - Resend.
 - Cloudflare Turnstile.
 - Environment-variable based secrets.
@@ -1769,7 +1782,7 @@ Future additions must not compromise the core portfolio experience.
 3. Do not hardcode dynamic portfolio content.
 4. Do not invent project information.
 5. Do not expose server secrets to the browser.
-6. Do not connect the browser directly to MongoDB.
+6. Do not connect the browser directly to Cloud Firestore.
 7. Do not treat email as the source of truth for contact submissions.
 8. Do not store persistent portfolio data on the Vercel filesystem.
 9. Do not use 3D purely as decoration.
@@ -1791,9 +1804,9 @@ The project is ready for production when:
 
 - [ ] Public routes are implemented.
 - [ ] Admin routes are protected.
-- [ ] MongoDB Atlas is connected.
+- [ ] Cloud Firestore is connected.
 - [ ] Content is loaded from the CMS/database where intended.
-- [ ] Contact submissions persist in MongoDB.
+- [ ] Contact submissions persist in Cloud Firestore.
 - [ ] Contact notifications are delivered through Resend.
 - [ ] Email failures do not lose contact submissions.
 - [ ] Turnstile server verification works.
@@ -1835,6 +1848,6 @@ The metrics demonstrate impact.
 
 The admin CMS keeps the product maintainable.
 
-MongoDB Atlas preserves the content and contact history.
+Cloud Firestore preserves the content and contact history.
 
 The overall system should remain simple enough to maintain while being sophisticated enough to represent a serious software engineer.

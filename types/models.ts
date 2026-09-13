@@ -1,14 +1,7 @@
-import type { ObjectId } from "mongodb";
-import type { ContentStatus } from "./common";
+import type { ContentStatus, BaseEntity } from "./common";
 
-/**
- * Base database document with MongoDB ObjectId and UTC timestamps.
- */
-export interface MongoBaseDocument {
-  _id?: ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Deprecated alias for transition compatibility
+export type MongoBaseDocument = BaseEntity;
 
 // 1. Profile Domain
 export interface ProfileDocument extends MongoBaseDocument {
@@ -19,6 +12,7 @@ export interface ProfileDocument extends MongoBaseDocument {
   email: string;
   phone?: string;
   photoUrl?: string;
+  avatarUrl?: string;
   availability: string;
   tagline: string;
 }
@@ -107,6 +101,7 @@ export interface ProjectDocument extends MongoBaseDocument {
     caption?: string;
     type: "image" | "video";
   }[];
+  coverImage?: string;
   featured: boolean;
   status: ContentStatus;
   order: number;
@@ -204,7 +199,8 @@ export interface SiteContentDocument extends MongoBaseDocument {
 
 // 14. Revisions Domain
 export interface RevisionDocument {
-  _id?: ObjectId;
+  id?: string;
+  _id?: string;
   contentType: string;
   contentId: string;
   action: "create" | "update" | "delete" | "publish" | "archive";
@@ -216,7 +212,8 @@ export interface RevisionDocument {
 
 // 15. Activity Log Domain
 export interface ActivityLogDocument {
-  _id?: ObjectId;
+  id?: string;
+  _id?: string;
   event: string;
   category: "auth" | "content" | "media" | "security" | "system";
   status: "success" | "failure" | "warning";
@@ -229,7 +226,8 @@ export interface ActivityLogDocument {
 
 // 16. Contact Messages Domain
 export interface ContactMessageDocument {
-  _id?: ObjectId;
+  id?: string;
+  _id?: string;
   name: string;
   email: string;
   subject?: string;
@@ -238,6 +236,8 @@ export interface ContactMessageDocument {
   emailDeliveryStatus: "pending" | "sent" | "failed" | "skipped";
   emailMessageId?: string;
   turnstileVerified: boolean;
+  ipHash?: string;
+  userAgent?: string;
   createdAt: Date;
   readAt?: Date;
   archivedAt?: Date;

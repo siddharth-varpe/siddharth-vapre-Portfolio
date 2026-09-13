@@ -154,7 +154,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
           title="No case studies found"
           description={
             statusFilter === "all"
-              ? "No engineering case studies have been registered in MongoDB Atlas yet."
+              ? "No engineering case studies have been registered in the database yet."
               : `No projects currently in "${statusFilter}" status.`
           }
           action={{

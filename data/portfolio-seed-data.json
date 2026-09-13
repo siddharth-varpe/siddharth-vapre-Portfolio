@@ -1,0 +1,649 @@
+{
+  "version": "1.0.0",
+  "exportedAt": "2026-09-08T17:52:40.591Z",
+  "profile": {
+    "name": "Siddharth Varpe",
+    "title": "Software Engineer | AI & Full-Stack",
+    "tagline": "Building Real Solutions with Code, AI and Impact.",
+    "summary": "Full-Stack Software Engineer with experience building production-grade CRM and inventory systems. Skilled in JavaScript, React.js, Node.js, Python, PostgreSQL, and REST APIs, with hands-on AI-powered application development.",
+    "location": "Pune, Maharashtra, India",
+    "email": "siddharth.varpe0@gmail.com",
+    "phone": "+91 9021653893",
+    "photoUrl": "/images/siddharth-hero.png",
+    "avatarUrl": null,
+    "availability": "Available for Software Engineering roles"
+  },
+  "hero": {
+    "eyebrow": "SOFTWARE ENGINEER",
+    "name": "Siddharth Varpe",
+    "headline": "Building Real Solutions with Code, AI and Impact.",
+    "description": "Software engineer with experience building production-grade CRM and inventory systems. Specializing in high-throughput full-stack applications, distributed architectures, and AI integrations.",
+    "badge": "Available for Software Engineering roles",
+    "tagline": "Software Engineer | AI & Full-Stack",
+    "primaryCtaText": "View My Work",
+    "primaryCtaLink": "/projects",
+    "secondaryCtaText": "Download Resume",
+    "secondaryCtaLink": "/api/resume/download",
+    "status": "published"
+  },
+  "about": {
+    "primaryDescription": "Full-Stack Software Engineer with experience building production-grade CRM and inventory systems. Skilled in JavaScript, React.js, Node.js, Python, PostgreSQL, and REST APIs, with hands-on AI-powered application development.",
+    "supportingDescription": "Collaborative team player with a track record of delivering measurable business outcomes through engineering and system design. Experienced in transforming operational bottlenecks into automated, high-throughput digital workflows.",
+    "philosophy": "Building Real Solutions with Code, AI and Impact — prioritizing architectural simplicity, reliability, and measurable business value.",
+    "interests": [
+      "Full-Stack Web Development",
+      "Artificial Intelligence",
+      "Cybersecurity"
+    ],
+    "cards": [
+      {
+        "title": "Production Systems",
+        "description": "Engineered scalable platforms handling 10,000+ transactions, 1,000+ SKUs, and 3,000+ customer records with 99.9% data reliability."
+      },
+      {
+        "title": "AI Integration & Prompt Engineering",
+        "description": "1st and 2nd rank university award-winner in Prompt Engineering, designing advanced prompts and automated LLM-assisted workflows."
+      },
+      {
+        "title": "Full-Stack Architecture",
+        "description": "Building resilient end-to-end applications with React, Next.js, Node.js, Python FastAPI, PostgreSQL, and WebSockets."
+      }
+    ],
+    "order": 1,
+    "status": "published"
+  },
+  "metrics": [
+    {
+      "id": "metric-1",
+      "value": "2,000–3,000+",
+      "label": "Customer Records Managed",
+      "supportingText": "Full-stack production CRM across 11 modules",
+      "context": "CRM — SR Enterprises",
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "metric-2",
+      "value": "~90%",
+      "label": "Data Retrieval Speedup",
+      "supportingText": "24/7 searchable history eliminating record-loss risk",
+      "context": "SR Enterprises",
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "metric-3",
+      "value": "10,000+",
+      "label": "Inventory Transactions",
+      "supportingText": "High-frequency tracking across 1,000+ SKUs",
+      "context": "Inventory Management Platform",
+      "featured": true,
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "id": "metric-4",
+      "value": "65–75%",
+      "label": "Manual Operations Reduced",
+      "supportingText": "20+ automated event workflows with WebSocket sync",
+      "context": "Opstech Solution",
+      "featured": true,
+      "order": 4,
+      "status": "published"
+    }
+  ],
+  "experience": [
+    {
+      "id": "exp-1",
+      "company": "Opstech Solution Pvt. Ltd.",
+      "role": "Software Developer Intern",
+      "employmentType": "Internship",
+      "location": "Pune, Maharashtra, India",
+      "startDate": "Jun 2026",
+      "endDate": "Oct 2026",
+      "current": false,
+      "description": "Engineered and deployed production-grade full-stack CRM and inventory control platforms delivering measurable operational efficiency.",
+      "responsibilities": [
+        "Engineered and deployed a full-stack CRM managing 2,000–3,000+ customer records across 11 modules, reducing data retrieval time by ~90% and manual data entry by ~65%.",
+        "Built a scalable inventory management platform supporting 1,000+ SKUs and 10,000+ transactions with 20+ automated workflows, cutting manual operations by 65–75% and stock retrieval time by 80–90%."
+      ],
+      "technologies": [
+        "React.js",
+        "Node.js",
+        "JavaScript",
+        "Python",
+        "FastAPI",
+        "PostgreSQL",
+        "REST APIs",
+        "WebSockets"
+      ],
+      "metrics": [
+        "2,000–3,000+ records managed",
+        "10,000+ transactions",
+        "~90% faster retrieval",
+        "65–75% manual reduction"
+      ],
+      "order": 1,
+      "status": "published"
+    }
+  ],
+  "skills": [
+    {
+      "id": "sk-1",
+      "name": "React.js",
+      "category": "Frontend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "sk-2",
+      "name": "Next.js",
+      "category": "Frontend",
+      "level": "Proficient",
+      "years": 1,
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "sk-3",
+      "name": "JavaScript",
+      "category": "Frontend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": true,
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "id": "sk-4",
+      "name": "HTML5 & CSS3",
+      "category": "Frontend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": false,
+      "order": 4,
+      "status": "published"
+    },
+    {
+      "id": "sk-5",
+      "name": "Bootstrap & Flexbox",
+      "category": "Frontend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": false,
+      "order": 5,
+      "status": "published"
+    },
+    {
+      "id": "sk-6",
+      "name": "Node.js",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "sk-7",
+      "name": "Python",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "sk-8",
+      "name": "PostgreSQL",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": true,
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "id": "sk-9",
+      "name": "FastAPI",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 1,
+      "featured": true,
+      "order": 4,
+      "status": "published"
+    },
+    {
+      "id": "sk-10",
+      "name": "REST APIs",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": false,
+      "order": 5,
+      "status": "published"
+    },
+    {
+      "id": "sk-11",
+      "name": "WebSockets",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 1,
+      "featured": false,
+      "order": 6,
+      "status": "published"
+    },
+    {
+      "id": "sk-12",
+      "name": "SQL & DBMS",
+      "category": "Backend",
+      "level": "Proficient",
+      "years": 2,
+      "featured": false,
+      "order": 7,
+      "status": "published"
+    },
+    {
+      "id": "sk-13",
+      "name": "Prompt Engineering",
+      "category": "AI & ML",
+      "description": "1st & 2nd Rank University Competition Winner",
+      "level": "Advanced",
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "sk-14",
+      "name": "LLM Tooling & Agents",
+      "category": "AI & ML",
+      "description": "Claude, Gemini, ChatGPT, Antigravity, Copilot",
+      "level": "Proficient",
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "sk-15",
+      "name": "AI-Assisted Prototyping",
+      "category": "AI & ML",
+      "description": "Rapid MVP generation (~60% build time reduction)",
+      "level": "Proficient",
+      "featured": false,
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "id": "sk-16",
+      "name": "Git & GitHub",
+      "category": "Tools & Systems",
+      "level": "Proficient",
+      "years": 2,
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "sk-17",
+      "name": "Postman",
+      "category": "Tools & Systems",
+      "level": "Proficient",
+      "years": 2,
+      "featured": false,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "sk-18",
+      "name": "VS Code & Linux",
+      "category": "Tools & Systems",
+      "level": "Proficient",
+      "years": 2,
+      "featured": false,
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "id": "sk-19",
+      "name": "System Design (Basics)",
+      "category": "Tools & Systems",
+      "level": "Familiar",
+      "featured": false,
+      "order": 4,
+      "status": "published"
+    },
+    {
+      "id": "sk-20",
+      "name": "Data Structures & Algorithms",
+      "category": "Tools & Systems",
+      "level": "Proficient",
+      "featured": false,
+      "order": 5,
+      "status": "published"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach-1",
+      "title": "Prompt Engineering – 1st Rank",
+      "organization": "Ajeenkya DY Patil University",
+      "rank": "1st Rank",
+      "date": "2025",
+      "description": "Secured 1st rank by crafting precise, context-aware prompts maximizing LLM output quality across diverse problem statements in a university-level competition.",
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "ach-2",
+      "title": "Prompt Engineering – 2nd Rank",
+      "organization": "Technovanza 2025, ADYPSOE",
+      "rank": "2nd Rank",
+      "date": "2025",
+      "description": "Achieved 2nd rank at Technovanza 2025 (ADYPSOE) designing advanced prompts for automation, code generation, and content creation use cases.",
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "cert-1",
+      "name": "UI/UX Design Certification",
+      "issuer": "NxtWave CCBP 4.0",
+      "date": "2025",
+      "description": "Trained in UI/UX principles, wireframing, user-centered design, and web application prototyping.",
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "cert-2",
+      "name": "Responsive Web Design Certification",
+      "issuer": "NxtWave CCBP 4.0",
+      "date": "2025",
+      "description": "Certified in flexible layouts, CSS media queries, Bootstrap grid, and mobile-first development.",
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "cert-3",
+      "name": "Database Management System (DBMS) Certification",
+      "issuer": "NxtWave CCBP 4.0",
+      "date": "2025",
+      "description": "Trained in SQL querying, schema design, normalization, and relational database administration.",
+      "featured": true,
+      "order": 3,
+      "status": "published"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "title": "CRM — SR Enterprises",
+      "slug": "crm-sr-enterprises",
+      "shortDescription": "End-to-end custom enterprise CRM platform built for high-throughput customer data management and automated operational workflows.",
+      "fullDescription": "Production-grade CRM platform engineered to replace fragmented spreadsheets and manual administrative tasks. Built with 11 core modules managing 2,000–3,000+ verified customer records with role-based access control, workflow automation, and relational data integrity.",
+      "category": "Enterprise Solution",
+      "year": "2024",
+      "role": "Lead Full-Stack Engineer",
+      "problem": "Operational bottlenecks from manual customer record tracking across spreadsheets, risking record loss and slow retrieval latency during peak business inquiries.",
+      "objective": "Architect a high-performance, centralized CRM platform supporting multi-module operations, role-based security, and sub-second record access.",
+      "solution": "Engineered a modular full-stack web application with React and Node.js REST APIs backed by PostgreSQL relational schemas and automated audit trails.",
+      "architectureSummary": "Client-server architecture with React frontend, stateless Node.js REST API layer, and normalized PostgreSQL relational database.",
+      "implementation": [
+        "Architected 11 core enterprise modules including customer directory, lead pipeline, communication logs, and billing workflows",
+        "Implemented strict Role-Based Access Control (RBAC) separating administrative and operational staff permissions",
+        "Engineered indexed PostgreSQL queries for instantaneous customer record searching and filtering",
+        "Designed responsive mobile-ready interface enabling field staff access across all device form factors"
+      ],
+      "decisions": [
+        "Chosen PostgreSQL for relational ACID transactions and strict schema integrity over unconstrained documents",
+        "Implemented normalized relational schemas to prevent data anomalies across customer and transaction tables",
+        "Adopted stateless REST API patterns for reliable horizontal scaling"
+      ],
+      "challenges": [
+        "Migrating legacy unformatted spreadsheets into a normalized relational schema without data loss",
+        "Enforcing role-based authorization guards across 11 interconnected modules"
+      ],
+      "impact": [
+        "Approximately 90% faster customer record retrieval compared to legacy spreadsheet searching",
+        "Approximately 65% reduction in manual data entry through workflow automation",
+        "Approximately 90% lower risk of record loss and duplicate data entries"
+      ],
+      "metrics": [
+        "2,000–3,000+ Customer Records",
+        "11 Core Modules",
+        "~90% Faster Record Retrieval",
+        "~65% Less Manual Data Entry"
+      ],
+      "technologies": [
+        "React",
+        "Node.js",
+        "PostgreSQL",
+        "REST APIs",
+        "JavaScript",
+        "Tailwind CSS"
+      ],
+      "coverImage": "/uploads/blob/portfolio/project/card-crm-laptop@2x.png",
+      "media": [
+        {
+          "url": "/uploads/blob/portfolio/project/1788715622610-126ed882-crm-sr-enterprises-dashboard.png",
+          "caption": "CRM — SR Enterprises Operational Dashboard & Customer Pipeline",
+          "type": "image"
+        }
+      ],
+      "featured": true,
+      "order": 1,
+      "status": "published"
+    },
+    {
+      "id": "proj-2",
+      "title": "Inventory Management Platform",
+      "slug": "inventory-management-platform",
+      "shortDescription": "High-throughput inventory control and stock tracking enterprise application with automated workflows and audit logging.",
+      "fullDescription": "Enterprise-grade inventory platform engineered to manage 1,000+ active SKUs and 10,000+ historical stock transactions. Built with Python, FastAPI, React, and PostgreSQL, featuring 20+ automated business workflows including purchase/sales pipelines, stock adjustments, invoice generation, low-stock notifications, and inventory analytics.",
+      "category": "Full-Stack Systems",
+      "year": "2024",
+      "role": "Backend & Systems Architect",
+      "problem": "Warehouse inventory counts suffered discrepancy and stockout incidents caused by manual tracking, slow catalog search, and lack of transaction-level audit logs.",
+      "objective": "Build an automated inventory tracking solution with high-frequency stock reconciliation, automated reorder thresholds, and low-latency catalog search.",
+      "solution": "Engineered a reactive full-stack platform using React and Python FastAPI with PostgreSQL transaction management and automated threshold alerts.",
+      "architectureSummary": "FastAPI asynchronous microservice architecture with PostgreSQL relational persistence, indexed SKU catalogs, and automated workflow triggers.",
+      "implementation": [
+        "Engineered 20+ automated inventory workflows including purchase order processing, sales tracking, and stock reconciliations",
+        "Designed catalog indexing supporting instant filtering across 1,000+ active SKUs",
+        "Implemented automated low-stock alerting triggers to prevent operational stockouts",
+        "Built automated invoice generation and transactional audit trails"
+      ],
+      "decisions": [
+        "Selected Python FastAPI for asynchronous I/O performance and native OpenAPI documentation",
+        "Enforced strict database transaction boundaries to prevent concurrent stock decrement race conditions",
+        "Implemented relational audit logging for every SKU adjustment"
+      ],
+      "challenges": [
+        "Handling concurrent stock adjustments during peak warehouse fulfillment without inventory count drift",
+        "Optimizing multi-criteria SKU queries across large transaction histories"
+      ],
+      "impact": [
+        "Approximately 80–90% faster stock retrieval across entire catalog",
+        "Approximately 70% fewer manual warehouse operational steps",
+        "Approximately 75% fewer stock-entry errors through automated validation"
+      ],
+      "metrics": [
+        "1,000+ Active SKUs",
+        "10,000+ Stock Transactions",
+        "20+ Automated Workflows",
+        "80–90% Faster Stock Retrieval"
+      ],
+      "technologies": [
+        "React",
+        "Python",
+        "FastAPI",
+        "PostgreSQL",
+        "REST APIs",
+        "Tailwind CSS"
+      ],
+      "coverImage": "/uploads/blob/portfolio/project/1788715627670-8ce575a1-stockmanager-enterprise-dashboard.png",
+      "media": [
+        {
+          "url": "/uploads/blob/portfolio/project/1788715627670-8ce575a1-stockmanager-enterprise-dashboard.png",
+          "caption": "StockManager Enterprise Inventory Dashboard & Warehouse Analytics",
+          "type": "image"
+        }
+      ],
+      "featured": true,
+      "order": 2,
+      "status": "published"
+    },
+    {
+      "id": "proj-3",
+      "title": "Campus Buddy – AI Campus Management System",
+      "slug": "campus-buddy",
+      "shortDescription": "AI-powered campus platform with timetable management, event notifications, admin workflows, and 24/7 student chatbot.",
+      "fullDescription": "Engineered an AI-powered campus management platform with automated timetable scheduling, event notifications, administrative workflows, and a 24/7 interactive student inquiry chatbot powered by Google Gemini API. Built as a rapid prototype in under 2 weeks with ~60% build time reduction.",
+      "category": "AI & Full-Stack",
+      "year": "2025",
+      "role": "Full-Stack & AI Engineer",
+      "problem": "Fragmented student scheduling, manual announcement distribution, and delayed administrative inquiry resolution across campus departments.",
+      "objective": "Unify campus schedules and automate student inquiry workflows with an AI conversational assistant and administrative broadcasting tools.",
+      "solution": "Integrated Next.js and TypeScript frontend with Gemini API conversational assistant, responsive scheduling calendars, and notification channels.",
+      "architectureSummary": "Next.js App Router full-stack web application integrated with Google Gemini API for generative AI conversational inquiry processing.",
+      "implementation": [
+        "Integrated Google Gemini API for 24/7 automated student query resolution with domain-tailored prompt engineering",
+        "Created modular timetable scheduling calendar with responsive course views",
+        "Implemented administrative broadcast notification channels for immediate campus alert distribution"
+      ],
+      "decisions": [
+        "Used Gemini API with structured system prompts to guarantee factual timetable and inquiry responses without hallucinations",
+        "Adopted Next.js App Router for rapid component-driven delivery within a 2-week prototyping deadline"
+      ],
+      "challenges": [
+        "Structuring prompt context window to ensure accurate schedule answers within token constraints"
+      ],
+      "impact": [
+        "Delivered complete operational prototype in under 2 weeks",
+        "Approximately 60% reduction in prototyping build time",
+        "24/7 automated inquiry support for student body"
+      ],
+      "metrics": [
+        "<2 Weeks to Prototype",
+        "~60% Build Time Reduction",
+        "24/7 Automated Inquiry Support"
+      ],
+      "technologies": [
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS",
+        "Gemini API",
+        "React",
+        "REST APIs"
+      ],
+      "coverImage": "/uploads/blob/portfolio/project/card-campus-buddy@2x.png",
+      "media": [
+        {
+          "url": "/uploads/blob/portfolio/project/card-campus-buddy@2x.png",
+          "caption": "Campus Buddy Mobile & Web Student Assistant Interface",
+          "type": "image"
+        }
+      ],
+      "githubUrl": "https://github.com/siddharth-varpe/collegestudentbuddy-campusbuddy",
+      "liveDemoUrl": "https://collegestudentbuddy-campusbuddy-dzg.vercel.app/",
+      "featured": true,
+      "order": 3,
+      "status": "published"
+    },
+    {
+      "id": "proj-4",
+      "title": "Portfolio Website",
+      "slug": "portfolio-website",
+      "shortDescription": "High-performance personal engineering portfolio engineered with Next.js 15, Dark Systems technical editorial design, and durable CMS state.",
+      "fullDescription": "Production personal portfolio engineered with Next.js 15 App Router, React 19, TypeScript, and Tailwind CSS. Built with the Dark Systems / Technical Editorial design system, verified metrics ribbons, authenticated admin CMS with RBAC, PostgreSQL persistence, and Vercel Blob storage.",
+      "category": "Web Platform",
+      "year": "2025",
+      "role": "Full-Stack Architect & Frontend Engineer",
+      "problem": "Need for an authentic, high-fidelity proof-of-work engineering platform with durable CMS data architecture, verified metrics, zero fake telemetry, and responsive editorial visual identity.",
+      "objective": "Deliver a fast, accessible, secure web portfolio with strict phase-gated data models, zero layout shift, and authentic proof-of-work case studies.",
+      "solution": "Engineered a Next.js 15 architecture backed by Supabase PostgreSQL, Better-Auth security boundaries, and modular component architecture.",
+      "architectureSummary": "Next.js 15 App Router with server-side data fetching, Supabase PostgreSQL persistence, Better-Auth authentication, and Vercel Blob media storage.",
+      "implementation": [
+        "Designed and implemented the Dark Systems / Technical Editorial design system with custom engineering grid",
+        "Built authenticated admin CMS with role-based access control and audit logging",
+        "Implemented dynamic case-study rendering with responsive reading typography and media galleries",
+        "Created automated verification test suites for route integrity and data assertions"
+      ],
+      "decisions": [
+        "Enforced strict content truthfulness: zero fake telemetry, verified links only",
+        "Used React Server Components for optimal above-the-fold delivery and zero client-side database credentials",
+        "Locked design tokens into reusable UI primitives (Container, DisplayHeadline, BodyText, Badge)"
+      ],
+      "challenges": [
+        "Integrating authentic cinematic photograph with seamless dark atmosphere and responsive breakpoint scaling without face cropping"
+      ],
+      "impact": [
+        "Sub-second initial page load with 100% static route pre-rendering",
+        "Zero horizontal overflow across all mobile, tablet, and desktop viewports",
+        "Strict public/private security separation preventing draft content leaks"
+      ],
+      "metrics": [
+        "100% Responsive Architecture",
+        "<1s Initial Page Load",
+        "14 Static Pre-rendered Routes"
+      ],
+      "technologies": [
+        "Next.js 15",
+        "React 19",
+        "TypeScript",
+        "Tailwind CSS",
+        "PostgreSQL",
+        "Vercel Blob"
+      ],
+      "coverImage": "/uploads/blob/portfolio/hero-composition-visual@2x.png",
+      "featured": true,
+      "order": 4,
+      "status": "published"
+    }
+  ],
+  "contact_settings": {
+    "receiverEmail": "siddharth.varpe0@gmail.com",
+    "notificationsEnabled": true,
+    "autoReplyEnabled": false,
+    "rateLimitMax": 5,
+    "rateLimitWindowMinutes": 60
+  },
+  "resumes": [
+    {
+      "id": "res-1",
+      "filename": "siddharth_varpe_resume.pdf",
+      "url": "/uploads/blob/portfolio/resume/1788715628782-8ca4c9c3-siddharth_varpe_resume.pdf",
+      "version": "1.0",
+      "active": true
+    }
+  ],
+  "seo": {
+    "title": "Siddharth Varpe | Software Engineer | AI & Full-Stack",
+    "description": "Personal portfolio of Siddharth Varpe — Full-Stack Software Engineer specializing in production-grade CRM and inventory systems, distributed architectures, and AI-assisted engineering.",
+    "keywords": [
+      "Software Engineer",
+      "Full-Stack Developer",
+      "Next.js",
+      "React",
+      "Node.js",
+      "Python",
+      "PostgreSQL",
+      "Siddharth Varpe"
+    ]
+  },
+  "site_content": {
+    "brandName": "Siddharth Varpe",
+    "tagline": "Building Real Solutions with Code, AI and Impact."
+  }
+}

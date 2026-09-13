@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       access: "public",
     });
 
-    // 3. Persist in MongoDB
+    // 3. Persist in Database
     try {
       const createdResume = await createAdminResume(
         {

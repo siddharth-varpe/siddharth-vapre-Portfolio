@@ -1,88 +1,76 @@
 import "server-only";
-import { getRawDatabase } from "@/lib/server/db";
-import { auth } from "./index";
-import { verifyPassword } from "better-auth/crypto";
+import { adminAuth } from "@/lib/firebase/admin";
 
-export const BOOTSTRAP_ADMIN_USERNAME = "admin";
-export const BOOTSTRAP_ADMIN_EMAIL = "admin@siddharthvarpe.com";
-export const BOOTSTRAP_ADMIN_DEFAULT_PASSWORD = "admin";
+export const BOOTSTRAP_ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+export const BOOTSTRAP_ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@siddharthvarpe.com";
+export const BOOTSTRAP_ADMIN_DEFAULT_PASSWORD = process.env.ADMIN_PASSWORD || "admin123456";
 
 /**
- * Idempotently initializes the initial admin bootstrap account.
- *
- * Checks MongoDB Atlas `user` collection.
- * - If admin exists, takes NO action (preserves updated production passwords).
- * - If absent, creates the account with hashed credentials using Better Auth.
- *
- * Plaintext passwords are NEVER stored in the database.
+ * =============================================================================
+ * Idempotently initializes the authoritative admin account in Firebase Authentication.
+ * Sets the admin custom claim { admin: true } required by Firestore & Storage rules.
+ * =============================================================================
  */
+
+let adminBootstrapped = false;
+let adminUsingDefaultPassword = true;
+
 export async function ensureBootstrapAdmin(): Promise<{
   created: boolean;
   message: string;
 }> {
-  const db = getRawDatabase();
-  const existingAdmin = await db.collection("user").findOne({
-    username: BOOTSTRAP_ADMIN_USERNAME,
-  });
-
-  if (existingAdmin) {
+  if (adminBootstrapped) {
     return {
       created: false,
-      message: "Admin account already exists. Bootstrap skipped.",
+      message: "Admin account already initialized.",
     };
   }
 
   try {
-    await auth.api.signUpEmail({
-      body: {
-        email: BOOTSTRAP_ADMIN_EMAIL,
-        password: BOOTSTRAP_ADMIN_DEFAULT_PASSWORD,
-        name: "Siddharth Varpe",
-        username: BOOTSTRAP_ADMIN_USERNAME,
-      },
-    });
+    let user;
+    try {
+      user = await adminAuth.getUserByEmail(BOOTSTRAP_ADMIN_EMAIL);
+    } catch (err: unknown) {
+      const authErr = err as { code?: string };
+      if (authErr.code === "auth/user-not-found") {
+        user = await adminAuth.createUser({
+          email: BOOTSTRAP_ADMIN_EMAIL,
+          password: BOOTSTRAP_ADMIN_DEFAULT_PASSWORD,
+          displayName: "Siddharth Varpe",
+          emailVerified: true,
+        });
+        console.info("[Firebase Auth Bootstrap]: Created initial admin account:", BOOTSTRAP_ADMIN_EMAIL);
+      } else {
+        throw err;
+      }
+    }
 
-    console.info("[Auth Bootstrap]: Initial admin bootstrap account created successfully.");
+    // Ensure admin custom claim is set
+    if (!user.customClaims?.admin) {
+      await adminAuth.setCustomUserClaims(user.uid, { admin: true });
+      console.info("[Firebase Auth Bootstrap]: Assigned { admin: true } custom claim to admin user.");
+    }
 
+    adminBootstrapped = true;
     return {
       created: true,
-      message: "Admin bootstrap account created successfully.",
+      message: "Admin account verified and authorized with custom claims.",
     };
-  } catch (error) {
-    console.error("[Auth Bootstrap Error]: Failed to create bootstrap account", error);
-    throw error;
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.warn("[Firebase Auth Bootstrap Note]:", errMsg);
+    return {
+      created: false,
+      message: `Bootstrap note: ${errMsg}`,
+    };
   }
 }
 
-/**
- * Checks whether the current admin account is still using the default bootstrap password ("admin").
- * Used to display a prominent warning banner in the admin interface until changed.
- */
-export async function isUsingBootstrapPassword(userId: string): Promise<boolean> {
-  try {
-    const db = getRawDatabase();
-    // Better Auth stores userId either as ObjectId or string in account collection
-    const account = await db.collection("account").findOne({
-      $or: [
-        { userId: userId },
-        { accountId: userId },
-      ],
-      providerId: "credential",
-    });
+export async function isUsingBootstrapPassword(userId?: string): Promise<boolean> {
+  void userId;
+  return adminUsingDefaultPassword;
+}
 
-    if (!account || !account.password) {
-      return false;
-    }
-
-    // Verify if password matches default "admin"
-    const isDefault = await verifyPassword({
-      password: BOOTSTRAP_ADMIN_DEFAULT_PASSWORD,
-      hash: account.password,
-    });
-
-    return isDefault;
-  } catch (error) {
-    console.error("[Auth Bootstrap Check Error]:", error);
-    return false;
-  }
+export function markBootstrapPasswordChanged(): void {
+  adminUsingDefaultPassword = false;
 }

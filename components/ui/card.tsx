@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  as?: React.ElementType;
+  as?: "div" | "article" | "section" | "aside" | "header" | "footer";
   hoverable?: boolean;
 }
 
@@ -17,8 +17,9 @@ export function Card({
   children,
   ...props
 }: CardProps) {
+  const Comp = Component as "div";
   return (
-    <Component
+    <Comp
       className={cn(
         "rounded-lg border border-border bg-surface p-6 text-foreground",
         hoverable &&
@@ -28,7 +29,7 @@ export function Card({
       {...props}
     >
       {children}
-    </Component>
+    </Comp>
   );
 }
 
