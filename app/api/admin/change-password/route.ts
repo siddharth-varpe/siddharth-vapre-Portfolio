@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminSession } from "@/lib/server/auth/session";
-import { adminAuth } from "@/lib/firebase/admin";
+import { auth } from "@/lib/server/auth";
 import { markBootstrapPasswordChanged } from "@/lib/server/auth/bootstrap";
 
 const changePasswordSchema = z
@@ -20,7 +20,11 @@ const changePasswordSchema = z
 
 /**
  * =============================================================================
- * Protected Admin Route: Change Password (Firebase Authentication)
+ * [SUPABASE POSTGRESQL MIGRATION POINT]
+ * =============================================================================
+ * Protected Admin Route: Change Password.
+ * Direct MongoDB database access removed.
+ * Uses Better Auth's standard changePassword API.
  * =============================================================================
  */
 export async function POST(request: NextRequest) {
@@ -47,18 +51,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { newPassword } = parseResult.data;
+    const { currentPassword, newPassword } = parseResult.data;
 
     try {
-      await adminAuth.updateUser(sessionContext.user.id, {
-        password: newPassword,
+      await auth.api.changePassword({
+        body: {
+          currentPassword,
+          newPassword,
+          revokeOtherSessions: true,
+        },
+        headers: request.headers,
       });
-      await adminAuth.revokeRefreshTokens(sessionContext.user.id);
       markBootstrapPasswordChanged();
     } catch (authError) {
-      console.error("[Change Password Firebase Auth Error]:", authError);
+      console.error("[Change Password Auth API Error]:", authError);
       return NextResponse.json(
-        { error: "Authentication error", message: "Failed to update credentials in Firebase Auth" },
+        { error: "Authentication error", message: "Failed to verify current password or update credentials" },
         { status: 400 }
       );
     }

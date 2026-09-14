@@ -1,4 +1,3 @@
-import type { ContentStatus } from "@/types/common";
 import type {
   ProfileDocument,
   HeroDocument,
@@ -18,519 +17,646 @@ import type {
   ActivityLogDocument,
   MediaMetadataDocument,
 } from "@/types/models";
+import type {
+  ProfileRow,
+  HeroRow,
+  AboutRow,
+  SkillRow,
+  ExperienceRow,
+  ProjectRow,
+  AchievementRow,
+  CertificationRow,
+  MetricRow,
+  ContactSettingsRow,
+  ResumeRow,
+  MediaRow,
+  SeoRow,
+  SiteContentRow,
+  ContactMessageRow,
+  RevisionRow,
+  ActivityLogRow,
+} from "@/lib/supabase/types";
 
-function toDate(val: unknown, fallback?: Date): Date {
-  if (!val) return fallback || new Date();
-  if (
-    typeof val === "object" &&
-    val !== null &&
-    "toDate" in val &&
-    typeof (val as { toDate: () => unknown }).toDate === "function"
-  ) {
-    const res = (val as { toDate: () => unknown }).toDate();
-    if (res instanceof Date) return res;
-  }
-  if (val instanceof Date) return val;
-  if (typeof val === "string" || typeof val === "number") {
-    const d = new Date(val);
-    if (!isNaN(d.getTime())) return d;
-  }
-  return fallback || new Date();
-}
-
-export function normalizeFirestoreDates<T>(obj: unknown): T {
-  if (!obj || typeof obj !== "object") return obj as T;
-  if (
-    "toDate" in obj &&
-    typeof (obj as { toDate: () => unknown }).toDate === "function"
-  ) {
-    return (obj as { toDate: () => unknown }).toDate() as T;
-  }
-  if (obj instanceof Date) return obj as unknown as T;
-
-  if (Array.isArray(obj)) {
-    return obj.map((item) => normalizeFirestoreDates(item)) as unknown as T;
-  }
-
-  const record = obj as Record<string, unknown>;
-  const result: Record<string, unknown> = {};
-  for (const key of Object.keys(record)) {
-    result[key] = normalizeFirestoreDates(record[key]);
-  }
-  return result as T;
-}
-
-function parseNorm(data: unknown): Record<string, unknown> {
-  return (normalizeFirestoreDates<Record<string, unknown>>(data || {}) || {}) as Record<string, unknown>;
-}
+/**
+ * =============================================================================
+ * Supabase PostgreSQL to Domain Model Mappers
+ * =============================================================================
+ * Translates snake_case PostgreSQL records to application camelCase domain models
+ * and vice-versa with strong types.
+ * =============================================================================
+ */
 
 // 1. Profile
-export function mapProfileFromDb(data: unknown, docId: string = "profile_root"): ProfileDocument {
-  const norm = parseNorm(data);
+export function mapProfileFromDb(row: ProfileRow): ProfileDocument {
   return {
-    id: docId,
-    _id: docId,
-    name: (norm.name as string) || "Siddharth Varpe",
-    title: (norm.title as string) || "Founding Full Stack & AI Systems Engineer",
-    summary: (norm.summary as string) || "",
-    location: (norm.location as string) || "Pune, India",
-    email: (norm.email as string) || "siddharth.varpe0@gmail.com",
-    phone: norm.phone as string | undefined,
-    photoUrl: norm.photoUrl as string | undefined,
-    avatarUrl: norm.avatarUrl as string | undefined,
-    availability: (norm.availability as string) || "available",
-    tagline: (norm.tagline as string) || "",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    name: row.name,
+    title: row.title,
+    summary: row.summary,
+    location: row.location,
+    email: row.email,
+    phone: row.phone || undefined,
+    photoUrl: row.photo_url || undefined,
+    avatarUrl: row.avatar_url || undefined,
+    availability: (row.availability as "available" | "limited" | "unavailable") || "available",
+    tagline: row.tagline || "",
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapProfileToDb(doc: Partial<ProfileDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.name !== undefined) result.name = doc.name;
+  if (doc.title !== undefined) result.title = doc.title;
+  if (doc.summary !== undefined) result.summary = doc.summary;
+  if (doc.location !== undefined) result.location = doc.location;
+  if (doc.email !== undefined) result.email = doc.email;
+  if (doc.phone !== undefined) result.phone = doc.phone;
+  if (doc.photoUrl !== undefined) result.photo_url = doc.photoUrl;
+  if (doc.avatarUrl !== undefined) result.avatar_url = doc.avatarUrl;
+  if (doc.availability !== undefined) result.availability = doc.availability;
+  if (doc.tagline !== undefined) result.tagline = doc.tagline;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
 // 2. Hero
-export function mapHeroFromDb(data: unknown, docId: string = "hero_root"): HeroDocument {
-  const norm = parseNorm(data);
+export function mapHeroFromDb(row: HeroRow): HeroDocument {
   return {
-    id: docId,
-    _id: docId,
-    eyebrow: (norm.eyebrow as string) || "",
-    name: (norm.name as string) || "Siddharth Varpe",
-    headline: (norm.headline as string) || "",
-    description: (norm.description as string) || "",
-    ctaLabel: (norm.ctaLabel as string) || "Explore Projects",
-    ctaUrl: (norm.ctaUrl as string) || "#projects",
-    supportingText: norm.supportingText as string | undefined,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    eyebrow: row.eyebrow,
+    name: row.name,
+    headline: row.headline,
+    description: row.description,
+    ctaLabel: row.cta_label,
+    ctaUrl: row.cta_url,
+    supportingText: row.supporting_text || undefined,
+    status: row.status,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapHeroToDb(doc: Partial<HeroDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.eyebrow !== undefined) result.eyebrow = doc.eyebrow;
+  if (doc.name !== undefined) result.name = doc.name;
+  if (doc.headline !== undefined) result.headline = doc.headline;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.ctaLabel !== undefined) result.cta_label = doc.ctaLabel;
+  if (doc.ctaUrl !== undefined) result.cta_url = doc.ctaUrl;
+  if (doc.supportingText !== undefined) result.supporting_text = doc.supportingText;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
 // 3. About
-export function mapAboutFromDb(data: unknown, docId: string = "about_root"): AboutDocument {
-  const norm = parseNorm(data);
+export function mapAboutFromDb(row: AboutRow): AboutDocument {
   return {
-    id: docId,
-    _id: docId,
-    primaryDescription: (norm.primaryDescription as string) || "",
-    supportingDescription: norm.supportingDescription as string | undefined,
-    philosophy: norm.philosophy as string | undefined,
-    interests: Array.isArray(norm.interests) ? (norm.interests as string[]) : [],
-    cards: Array.isArray(norm.cards) ? (norm.cards as AboutDocument["cards"]) : [],
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    primaryDescription: row.primary_description || "",
+    supportingDescription: row.supporting_description || undefined,
+    philosophy: row.philosophy || undefined,
+    interests: row.interests || undefined,
+    cards: row.cards || undefined,
+    order: row.order ?? 0,
+    status: row.status,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapAboutToDb(doc: Partial<AboutDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.primaryDescription !== undefined) result.primary_description = doc.primaryDescription;
+  if (doc.supportingDescription !== undefined) result.supporting_description = doc.supportingDescription;
+  if (doc.philosophy !== undefined) result.philosophy = doc.philosophy;
+  if (doc.interests !== undefined) result.interests = doc.interests;
+  if (doc.cards !== undefined) result.cards = doc.cards;
+  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 4. Skills
-export function mapSkillFromDb(data: unknown, docId: string): SkillDocument {
-  const norm = parseNorm(data);
+// 4. Skill
+export function mapSkillFromDb(row: SkillRow): SkillDocument {
   return {
-    id: docId,
-    _id: docId,
-    name: (norm.name as string) || "",
-    category: (norm.category as SkillDocument["category"]) || "Backend",
-    description: norm.description as string | undefined,
-    icon: norm.icon as string | undefined,
-    level: (norm.level as SkillDocument["level"]) || "Proficient",
-    years: norm.years as number | undefined,
-    featured: Boolean(norm.featured),
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    name: row.name,
+    category: row.category,
+    description: row.description || undefined,
+    icon: row.icon || undefined,
+    level: row.level || undefined,
+    years: row.years || undefined,
+    featured: Boolean(row.featured),
+    order: row.order ?? 0,
+    status: row.status,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapSkillToDb(doc: Partial<SkillDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.name !== undefined) result.name = doc.name;
+  if (doc.category !== undefined) result.category = doc.category;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.icon !== undefined) result.icon = doc.icon;
+  if (doc.level !== undefined) result.level = doc.level;
+  if (doc.years !== undefined) result.years = doc.years;
+  if (doc.featured !== undefined) result.featured = doc.featured;
+  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
 // 5. Experience
-export function mapExperienceFromDb(data: unknown, docId: string): ExperienceDocument {
-  const norm = parseNorm(data);
+export function mapExperienceFromDb(row: ExperienceRow): ExperienceDocument {
   return {
-    id: docId,
-    _id: docId,
-    company: (norm.company as string) || "",
-    role: (norm.role as string) || "",
-    employmentType: (norm.employmentType as ExperienceDocument["employmentType"]) || "Full-time",
-    location: (norm.location as string) || "",
-    startDate: (norm.startDate as string) || "",
-    endDate: norm.endDate as string | undefined,
-    current: Boolean(norm.current),
-    description: (norm.description as string) || "",
-    responsibilities: Array.isArray(norm.responsibilities) ? (norm.responsibilities as string[]) : [],
-    achievements: Array.isArray(norm.achievements) ? (norm.achievements as string[]) : [],
-    technologies: Array.isArray(norm.technologies) ? (norm.technologies as string[]) : [],
-    metrics: Array.isArray(norm.metrics) ? (norm.metrics as string[]) : [],
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    role: row.role,
+    company: row.company,
+    employmentType: row.employment_type || "Full-time",
+    location: row.location || "",
+    startDate: row.start_date,
+    endDate: row.end_date || undefined,
+    current: Boolean(row.current),
+    description: row.description || "",
+    responsibilities: row.responsibilities || [],
+    achievements: row.achievements || undefined,
+    technologies: row.technologies || [],
+    metrics: row.metrics || undefined,
+    order: row.order ?? 0,
+    status: row.status,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapExperienceToDb(doc: Partial<ExperienceDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.role !== undefined) result.role = doc.role;
+  if (doc.company !== undefined) result.company = doc.company;
+  if (doc.location !== undefined) result.location = doc.location;
+  if (doc.employmentType !== undefined) result.employment_type = doc.employmentType;
+  if (doc.startDate !== undefined) result.start_date = doc.startDate;
+  if (doc.endDate !== undefined) result.end_date = doc.endDate;
+  if (doc.current !== undefined) result.current = doc.current;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.responsibilities !== undefined) result.responsibilities = doc.responsibilities;
+  if (doc.achievements !== undefined) result.achievements = doc.achievements;
+  if (doc.technologies !== undefined) result.technologies = doc.technologies;
+  if (doc.metrics !== undefined) result.metrics = doc.metrics;
+  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 6. Projects
-export function mapProjectFromDb(data: unknown, docId: string): ProjectDocument {
-  const norm = parseNorm(data);
+// 6. Project
+export function mapProjectFromDb(row: ProjectRow): ProjectDocument {
   return {
-    id: docId,
-    _id: docId,
-    title: (norm.title as string) || "",
-    slug: (norm.slug as string) || "",
-    shortDescription: (norm.shortDescription as string) || "",
-    fullDescription: (norm.fullDescription as string) || "",
-    category: (norm.category as string) || "Full-Stack System",
-    year: (norm.year as string) || "2026",
-    role: (norm.role as string) || "Lead Architect",
-    problem: (norm.problem as string) || "",
-    objective: (norm.objective as string) || "",
-    solution: (norm.solution as string) || "",
-    architectureSummary: (norm.architectureSummary as string) || "",
-    implementation: Array.isArray(norm.implementation) ? (norm.implementation as string[]) : [],
-    decisions: Array.isArray(norm.decisions) ? (norm.decisions as string[]) : [],
-    challenges: Array.isArray(norm.challenges) ? (norm.challenges as string[]) : [],
-    impact: Array.isArray(norm.impact) ? (norm.impact as string[]) : [],
-    metrics: Array.isArray(norm.metrics) ? (norm.metrics as string[]) : [],
-    technologies: Array.isArray(norm.technologies) ? (norm.technologies as string[]) : [],
-    githubUrl: norm.githubUrl as string | undefined,
-    liveDemoUrl: norm.liveDemoUrl as string | undefined,
-    media: norm.media as ProjectDocument["media"],
-    coverImage: norm.coverImage as string | undefined,
-    featured: Boolean(norm.featured),
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    title: row.title,
+    slug: row.slug,
+    shortDescription: row.short_description || row.summary || "",
+    fullDescription: row.full_description || "",
+    category: row.category || "Full Stack",
+    year: row.year || new Date().getFullYear().toString(),
+    role: row.role || "Lead Engineer",
+    problem: row.problem || "",
+    objective: row.objective || "",
+    solution: row.solution || "",
+    architectureSummary: row.architecture_summary || row.architecture_overview || "",
+    implementation: row.implementation || [],
+    decisions: row.decisions || [],
+    challenges: row.challenges || [],
+    impact: row.impact || row.outcomes || [],
+    metrics: row.metrics || [],
+    technologies: row.technologies || row.tech_stack || [],
+    githubUrl: row.github_url || undefined,
+    liveDemoUrl: row.live_demo_url || row.live_url || row.demo_url || undefined,
+    media: row.media || undefined,
+    coverImage: row.cover_image || row.cover_image_url || undefined,
+    featured: Boolean(row.featured),
+    status: row.status,
+    order: row.order ?? 0,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapProjectToDb(doc: Partial<ProjectDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.title !== undefined) result.title = doc.title;
+  if (doc.slug !== undefined) result.slug = doc.slug;
+  if (doc.shortDescription !== undefined) {
+    result.short_description = doc.shortDescription;
+    result.summary = doc.shortDescription;
+  }
+  if (doc.fullDescription !== undefined) result.full_description = doc.fullDescription;
+  if (doc.category !== undefined) result.category = doc.category;
+  if (doc.year !== undefined) result.year = doc.year;
+  if (doc.role !== undefined) result.role = doc.role;
+  if (doc.problem !== undefined) result.problem = doc.problem;
+  if (doc.objective !== undefined) result.objective = doc.objective;
+  if (doc.solution !== undefined) result.solution = doc.solution;
+  if (doc.architectureSummary !== undefined) {
+    result.architecture_summary = doc.architectureSummary;
+    result.architecture_overview = doc.architectureSummary;
+  }
+  if (doc.implementation !== undefined) result.implementation = doc.implementation;
+  if (doc.decisions !== undefined) result.decisions = doc.decisions;
+  if (doc.challenges !== undefined) result.challenges = doc.challenges;
+  if (doc.impact !== undefined) {
+    result.impact = doc.impact;
+    result.outcomes = doc.impact;
+  }
+  if (doc.metrics !== undefined) result.metrics = doc.metrics;
+  if (doc.technologies !== undefined) {
+    result.technologies = doc.technologies;
+    result.tech_stack = doc.technologies;
+  }
+  if (doc.githubUrl !== undefined) result.github_url = doc.githubUrl;
+  if (doc.liveDemoUrl !== undefined) {
+    result.live_demo_url = doc.liveDemoUrl;
+    result.live_url = doc.liveDemoUrl;
+  }
+  if (doc.media !== undefined) result.media = doc.media;
+  if (doc.coverImage !== undefined) {
+    result.cover_image = doc.coverImage;
+    result.cover_image_url = doc.coverImage;
+  }
+  if (doc.featured !== undefined) result.featured = doc.featured;
+  if (doc.status !== undefined) result.status = doc.status;
+  if (doc.order !== undefined) result.order = doc.order;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 7. Achievements
-export function mapAchievementFromDb(data: unknown, docId: string): AchievementDocument {
-  const norm = parseNorm(data);
+// 7. Achievement
+export function mapAchievementFromDb(row: AchievementRow): AchievementDocument {
   return {
-    id: docId,
-    _id: docId,
-    title: (norm.title as string) || "",
-    organization: (norm.organization as string) || (norm.issuer as string) || "",
-    rank: norm.rank as string | undefined,
-    date: (norm.date as string) || "",
-    description: (norm.description as string) || "",
-    certificateUrl: (norm.certificateUrl as string) || (norm.awardUrl as string) || undefined,
-    verificationUrl: norm.verificationUrl as string | undefined,
-    featured: Boolean(norm.featured),
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    title: row.title,
+    organization: row.organization,
+    rank: row.rank || undefined,
+    date: row.date || row.year || "",
+    description: row.description || "",
+    certificateUrl: row.certificate_url || undefined,
+    verificationUrl: row.verification_url || undefined,
+    featured: Boolean(row.featured),
+    order: row.order ?? row.display_order ?? 0,
+    status: row.status || "published",
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapAchievementToDb(doc: Partial<AchievementDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.title !== undefined) result.title = doc.title;
+  if (doc.organization !== undefined) result.organization = doc.organization;
+  if (doc.rank !== undefined) result.rank = doc.rank;
+  if (doc.date !== undefined) result.date = doc.date;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.certificateUrl !== undefined) result.certificate_url = doc.certificateUrl;
+  if (doc.verificationUrl !== undefined) result.verification_url = doc.verificationUrl;
+  if (doc.featured !== undefined) result.featured = doc.featured;
+  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 8. Certifications
-export function mapCertificationFromDb(data: unknown, docId: string): CertificationDocument {
-  const norm = parseNorm(data);
+// 8. Certification
+export function mapCertificationFromDb(row: CertificationRow): CertificationDocument {
   return {
-    id: docId,
-    _id: docId,
-    name: (norm.name as string) || "",
-    issuer: (norm.issuer as string) || "",
-    date: (norm.date as string) || (norm.issueDate as string) || "",
-    credentialId: norm.credentialId as string | undefined,
-    credentialUrl: norm.credentialUrl as string | undefined,
-    certificateUrl: norm.certificateUrl as string | undefined,
-    description: norm.description as string | undefined,
-    featured: Boolean(norm.featured),
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    name: row.name,
+    issuer: row.issuer,
+    date: row.date || row.issue_date || "",
+    credentialId: row.credential_id || undefined,
+    credentialUrl: row.credential_url || undefined,
+    certificateUrl: row.certificate_url || undefined,
+    description: row.description || undefined,
+    featured: Boolean(row.featured),
+    order: row.order ?? row.display_order ?? 0,
+    status: row.status || "published",
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapCertificationToDb(doc: Partial<CertificationDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.name !== undefined) result.name = doc.name;
+  if (doc.issuer !== undefined) result.issuer = doc.issuer;
+  if (doc.date !== undefined) result.date = doc.date;
+  if (doc.credentialId !== undefined) result.credential_id = doc.credentialId;
+  if (doc.credentialUrl !== undefined) result.credential_url = doc.credentialUrl;
+  if (doc.certificateUrl !== undefined) result.certificate_url = doc.certificateUrl;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.featured !== undefined) result.featured = doc.featured;
+  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 9. Metrics
-export function mapMetricFromDb(data: unknown, docId: string): MetricDocument {
-  const norm = parseNorm(data);
+// 9. Metric
+export function mapMetricFromDb(row: MetricRow): MetricDocument {
   return {
-    id: docId,
-    _id: docId,
-    label: (norm.label as string) || "",
-    value: (norm.value as string) || "",
-    supportingText: (norm.supportingText as string) || (norm.description as string) || undefined,
-    context: norm.context as string | undefined,
-    icon: norm.icon as string | undefined,
-    evidenceNote: norm.evidenceNote as string | undefined,
-    featured: Boolean(norm.featured),
-    order: (norm.order as number) ?? 0,
-    status: (norm.status as ContentStatus) || "published",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    label: row.label,
+    value: row.value,
+    supportingText: row.supporting_text || undefined,
+    context: row.context || undefined,
+    icon: row.icon || undefined,
+    evidenceNote: row.evidence_note || undefined,
+    featured: Boolean(row.featured),
+    order: row.order ?? row.display_order ?? 0,
+    status: row.status,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapMetricToDb(doc: Partial<MetricDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.label !== undefined) result.label = doc.label;
+  if (doc.value !== undefined) result.value = doc.value;
+  if (doc.supportingText !== undefined) result.supporting_text = doc.supportingText;
+  if (doc.context !== undefined) result.context = doc.context;
+  if (doc.icon !== undefined) result.icon = doc.icon;
+  if (doc.evidenceNote !== undefined) result.evidence_note = doc.evidenceNote;
+  if (doc.featured !== undefined) result.featured = doc.featured;
+  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.status !== undefined) result.status = doc.status;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
 // 10. Contact Settings
-export function mapContactSettingsFromDb(
-  data: unknown,
-  docId: string = "contact_settings_root"
-): ContactSettingsDocument {
-  const norm = parseNorm(data);
+export function mapContactSettingsFromDb(row: ContactSettingsRow): ContactSettingsDocument {
   return {
-    id: docId,
-    _id: docId,
-    email: (norm.email as string) || (norm.receiverEmail as string) || "siddharth.varpe0@gmail.com",
-    linkedinUrl: (norm.linkedinUrl as string) || "https://linkedin.com/in/siddharth-varpe",
-    githubUrl: (norm.githubUrl as string) || "https://github.com/Siddharth-Varpe",
-    location: (norm.location as string) || "Pune, India",
-    ctaDestination: (norm.ctaDestination as string) || "mailto:siddharth.varpe0@gmail.com",
-    availabilityNotice: (norm.availabilityNotice as string) || "Available for high-impact founding & principal roles",
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    email: row.email || row.recipient_email || "",
+    linkedinUrl: row.linkedin_url || "",
+    githubUrl: row.github_url || "",
+    location: row.location || "",
+    ctaDestination: row.cta_destination || "",
+    availabilityNotice: row.availability_notice || undefined,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapContactSettingsToDb(doc: Partial<ContactSettingsDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.email !== undefined) {
+    result.email = doc.email;
+    result.recipient_email = doc.email;
+  }
+  if (doc.linkedinUrl !== undefined) result.linkedin_url = doc.linkedinUrl;
+  if (doc.githubUrl !== undefined) result.github_url = doc.githubUrl;
+  if (doc.location !== undefined) result.location = doc.location;
+  if (doc.ctaDestination !== undefined) result.cta_destination = doc.ctaDestination;
+  if (doc.availabilityNotice !== undefined) result.availability_notice = doc.availabilityNotice;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 11. Resumes
-export function mapResumeFromDb(data: unknown, docId: string): ResumeMetadataDocument {
-  const norm = parseNorm(data);
+// 11. Resume
+export function mapResumeFromDb(row: ResumeRow): ResumeMetadataDocument {
   return {
-    id: docId,
-    _id: docId,
-    filename: (norm.filename as string) || "Siddharth_Varpe_Resume.pdf",
-    storageUrl: (norm.storageUrl as string) || "/resume.pdf",
-    version: (norm.version as string) || "1.0",
-    uploadTimestamp: toDate(norm.uploadTimestamp || norm.uploadedAt),
-    active: Boolean(norm.active),
-    archived: Boolean(norm.archived),
-    downloadEnabled: norm.downloadEnabled !== undefined ? Boolean(norm.downloadEnabled) : true,
-    fileSizeBytes: (norm.fileSizeBytes as number) || (norm.sizeBytes as number) || undefined,
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    filename: row.filename,
+    storageUrl: row.storage_url,
+    version: row.version,
+    uploadTimestamp: new Date(row.upload_timestamp || row.uploaded_at || row.created_at || Date.now()),
+    active: Boolean(row.active),
+    archived: Boolean(row.archived),
+    downloadEnabled: Boolean(row.download_enabled),
+    fileSizeBytes: row.size_bytes || row.file_size_bytes || undefined,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapResumeToDb(doc: Partial<ResumeMetadataDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.filename !== undefined) result.filename = doc.filename;
+  if (doc.storageUrl !== undefined) result.storage_url = doc.storageUrl;
+  if (doc.version !== undefined) result.version = doc.version;
+  if (doc.uploadTimestamp !== undefined) {
+    result.upload_timestamp = doc.uploadTimestamp.toISOString();
+    result.uploaded_at = doc.uploadTimestamp.toISOString();
+  }
+  if (doc.active !== undefined) result.active = doc.active;
+  if (doc.archived !== undefined) result.archived = doc.archived;
+  if (doc.downloadEnabled !== undefined) result.download_enabled = doc.downloadEnabled;
+  if (doc.fileSizeBytes !== undefined) result.size_bytes = doc.fileSizeBytes;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 12. Media
-export function mapMediaFromDb(data: unknown, docId: string): MediaMetadataDocument {
-  const norm = parseNorm(data);
+// 12. SEO
+export function mapSeoFromDb(row: SeoRow): SeoMetadataDocument {
   return {
-    id: docId,
-    _id: docId,
-    filename: (norm.filename as string) || "asset.png",
-    storageUrl: (norm.storageUrl as string) || "",
-    storageKey: norm.storageKey as string | undefined,
-    mimeType: (norm.mimeType as string) || "image/png",
-    sizeBytes: (norm.sizeBytes as number) || 0,
-    category: (norm.category as MediaMetadataDocument["category"]) || "general",
-    visibility: (norm.visibility as MediaMetadataDocument["visibility"]) || "public",
-    associatedContentType: norm.associatedContentType as MediaMetadataDocument["associatedContentType"],
-    associatedContentId: norm.associatedContentId as string | undefined,
-    dimensions: norm.dimensions as MediaMetadataDocument["dimensions"],
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
-  };
-}
-
-export function mapMediaToDb(doc: Partial<MediaMetadataDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
-  return result;
-}
-
-// 13. SEO
-export function mapSeoFromDb(data: unknown, docId: string = "seo_root"): SeoMetadataDocument {
-  const norm = parseNorm(data);
-  return {
-    id: docId,
-    _id: docId,
-    title: (norm.title as string) || "Siddharth Varpe | Founding Full Stack & AI Systems Engineer",
-    description: (norm.description as string) || "Portfolio of Siddharth Varpe — Production Full Stack & AI Systems Engineer.",
-    author: (norm.author as string) || "Siddharth Varpe",
-    ogTitle: (norm.ogTitle as string) || (norm.title as string) || "",
-    ogDescription: (norm.ogDescription as string) || (norm.description as string) || "",
-    ogImageUrl: norm.ogImageUrl as string | undefined,
-    canonicalUrl: (norm.canonicalUrl as string) || "https://siddharthvarpe.com",
-    noIndex: Boolean(norm.noIndex),
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    id: row.id,
+    _id: row.id,
+    title: row.title,
+    description: row.description,
+    author: row.author,
+    ogTitle: row.og_title || row.title,
+    ogDescription: row.og_description || row.description,
+    ogImageUrl: row.og_image_url || undefined,
+    canonicalUrl: row.canonical_url,
+    noIndex: Boolean(row.no_index),
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapSeoToDb(doc: Partial<SeoMetadataDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.title !== undefined) result.title = doc.title;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.author !== undefined) result.author = doc.author;
+  if (doc.ogTitle !== undefined) result.og_title = doc.ogTitle;
+  if (doc.ogDescription !== undefined) result.og_description = doc.ogDescription;
+  if (doc.ogImageUrl !== undefined) result.og_image_url = doc.ogImageUrl;
+  if (doc.canonicalUrl !== undefined) result.canonical_url = doc.canonicalUrl;
+  if (doc.noIndex !== undefined) result.no_index = doc.noIndex;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 14. Site Content
-export function mapSiteContentFromDb(
-  data: unknown,
-  docId: string = "site_content_root"
-): SiteContentDocument {
-  const norm = parseNorm(data);
+// 13. Site Content
+export function mapSiteContentFromDb(row: SiteContentRow): SiteContentDocument {
   return {
-    id: docId,
-    _id: docId,
-    footerText: (norm.footerText as string) || "Designed & engineered with Next.js and Cloud Firestore.",
-    copyright: (norm.copyright as string) || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
-    globalCta: (norm.globalCta as SiteContentDocument["globalCta"]) || {
-      headline: "Have an architectural challenge or founding opportunity?",
-      subheadline: "Let's connect and discuss building resilient systems together.",
-      buttonLabel: "Initiate Conversation",
-      buttonDestination: "#contact",
+    id: row.id,
+    _id: row.id,
+    footerText: row.footer_text,
+    copyright: row.copyright,
+    globalCta: row.global_cta || {
+      headline: "",
+      subheadline: "",
+      buttonLabel: "",
+      buttonDestination: "",
     },
-    loadingMessage: norm.loadingMessage as string | undefined,
-    emptyStateMessage: norm.emptyStateMessage as string | undefined,
-    notFoundMessage: norm.notFoundMessage as string | undefined,
-    createdAt: toDate(norm.createdAt),
-    updatedAt: toDate(norm.updatedAt),
+    loadingMessage: row.loading_message || undefined,
+    emptyStateMessage: row.empty_state_message || undefined,
+    notFoundMessage: row.not_found_message || undefined,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
   };
 }
 
 export function mapSiteContentToDb(doc: Partial<SiteContentDocument>): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...doc };
-  delete result.id;
-  delete result._id;
-  result.updatedAt = new Date();
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.footerText !== undefined) result.footer_text = doc.footerText;
+  if (doc.copyright !== undefined) result.copyright = doc.copyright;
+  if (doc.globalCta !== undefined) result.global_cta = doc.globalCta;
+  if (doc.loadingMessage !== undefined) result.loading_message = doc.loadingMessage;
+  if (doc.emptyStateMessage !== undefined) result.empty_state_message = doc.emptyStateMessage;
+  if (doc.notFoundMessage !== undefined) result.not_found_message = doc.notFoundMessage;
+  result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 15. Contact Message
-export function mapContactMessageFromDb(data: unknown, docId: string): ContactMessageDocument {
-  const norm = parseNorm(data);
+// 14. Contact Message
+export function mapContactMessageFromDb(row: ContactMessageRow): ContactMessageDocument {
   return {
-    id: docId,
-    _id: docId,
-    name: (norm.name as string) || "",
-    email: (norm.email as string) || "",
-    subject: norm.subject as string | undefined,
-    message: (norm.message as string) || "",
-    status: (norm.status as ContactMessageDocument["status"]) || "unread",
-    emailDeliveryStatus: (norm.emailDeliveryStatus as ContactMessageDocument["emailDeliveryStatus"]) || "pending",
-    emailMessageId: norm.emailMessageId as string | undefined,
-    turnstileVerified: Boolean(norm.turnstileVerified),
-    ipHash: norm.ipHash as string | undefined,
-    userAgent: norm.userAgent as string | undefined,
-    createdAt: toDate(norm.createdAt),
-    readAt: norm.readAt ? toDate(norm.readAt) : undefined,
-    archivedAt: norm.archivedAt ? toDate(norm.archivedAt) : undefined,
+    id: row.id,
+    _id: row.id,
+    name: row.name,
+    email: row.email,
+    subject: row.subject || undefined,
+    message: row.message,
+    status: row.status,
+    emailDeliveryStatus: row.email_delivery_status,
+    emailMessageId: row.email_message_id || undefined,
+    turnstileVerified: Boolean(row.turnstile_verified),
+    ipHash: row.ip_hash || undefined,
+    userAgent: row.user_agent || undefined,
+    createdAt: new Date(row.created_at || Date.now()),
+    readAt: row.read_at ? new Date(row.read_at) : undefined,
+    archivedAt: row.archived_at ? new Date(row.archived_at) : undefined,
   };
 }
 
-// 16. Revision
-export function mapRevisionFromDb(data: unknown, docId: string): RevisionDocument {
-  const norm = parseNorm(data);
+export function mapContactMessageToDb(doc: Partial<ContactMessageDocument>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.name !== undefined) result.name = doc.name;
+  if (doc.email !== undefined) result.email = doc.email;
+  if (doc.subject !== undefined) result.subject = doc.subject;
+  if (doc.message !== undefined) result.message = doc.message;
+  if (doc.status !== undefined) result.status = doc.status;
+  if (doc.emailDeliveryStatus !== undefined) result.email_delivery_status = doc.emailDeliveryStatus;
+  if (doc.emailMessageId !== undefined) result.email_message_id = doc.emailMessageId;
+  if (doc.turnstileVerified !== undefined) result.turnstile_verified = doc.turnstileVerified;
+  if (doc.ipHash !== undefined) result.ip_hash = doc.ipHash;
+  if (doc.userAgent !== undefined) result.user_agent = doc.userAgent;
+  if (doc.readAt !== undefined) result.read_at = doc.readAt ? doc.readAt.toISOString() : null;
+  if (doc.archivedAt !== undefined) result.archived_at = doc.archivedAt ? doc.archivedAt.toISOString() : null;
+  return result;
+}
+
+// 15. Revision
+export function mapRevisionFromDb(row: RevisionRow): RevisionDocument {
   return {
-    id: docId,
-    _id: docId,
-    contentType: (norm.contentType as string) || (norm.entity as string) || "",
-    contentId: (norm.contentId as string) || (norm.entityId as string) || "",
-    action: (norm.action as RevisionDocument["action"]) || "update",
-    previousState: norm.previousState as Record<string, unknown> | undefined,
-    newState: norm.newState as Record<string, unknown> | undefined,
-    actor: (norm.actor as string) || (norm.author as string) || "admin",
-    timestamp: toDate(norm.timestamp),
+    id: row.id,
+    _id: row.id,
+    contentType: row.content_type,
+    contentId: row.content_id,
+    action: row.action,
+    previousState: row.previous_state || undefined,
+    newState: row.new_state || undefined,
+    actor: row.actor,
+    timestamp: new Date(row.timestamp || Date.now()),
   };
 }
 
-// 17. Activity Log
-export function mapActivityLogFromDb(data: unknown, docId: string): ActivityLogDocument {
-  const norm = parseNorm(data);
+// 16. Activity Log
+export function mapActivityLogFromDb(row: ActivityLogRow): ActivityLogDocument {
   return {
-    id: docId,
-    _id: docId,
-    event: (norm.event as string) || (norm.action as string) || "",
-    category: (norm.category as ActivityLogDocument["category"]) || "content",
-    status: (norm.status as ActivityLogDocument["status"]) || "success",
-    actor: (norm.actor as string) || (norm.adminUid as string) || (norm.adminEmail as string) || "admin",
-    ipAddressMasked: (norm.ipAddressMasked as string) || (norm.ipHash as string) || undefined,
-    userAgent: norm.userAgent as string | undefined,
-    details: (norm.details as Record<string, unknown>) || {},
-    timestamp: toDate(norm.timestamp),
+    id: row.id,
+    _id: row.id,
+    event: row.event,
+    category: row.category,
+    status: row.status,
+    actor: row.actor,
+    ipAddressMasked: row.ip_address_masked || undefined,
+    userAgent: row.user_agent || undefined,
+    details: row.details || undefined,
+    timestamp: new Date(row.timestamp || Date.now()),
   };
+}
+
+// 17. Media
+export function mapMediaFromDb(row: MediaRow): MediaMetadataDocument {
+  return {
+    id: row.id,
+    _id: row.id,
+    filename: row.filename,
+    storageUrl: row.storage_url,
+    storageKey: row.storage_key || undefined,
+    mimeType: row.mime_type,
+    sizeBytes: row.size_bytes,
+    dimensions: row.dimensions || undefined,
+    category: row.category,
+    visibility: row.visibility,
+    associatedContentType: row.associated_content_type || undefined,
+    associatedContentId: row.associated_content_id || undefined,
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
+  };
+}
+
+export function mapMediaToDb(doc: Partial<MediaMetadataDocument>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.filename !== undefined) result.filename = doc.filename;
+  if (doc.storageUrl !== undefined) result.storage_url = doc.storageUrl;
+  if (doc.storageKey !== undefined) result.storage_key = doc.storageKey;
+  if (doc.mimeType !== undefined) result.mime_type = doc.mimeType;
+  if (doc.sizeBytes !== undefined) result.size_bytes = doc.sizeBytes;
+  if (doc.dimensions !== undefined) result.dimensions = doc.dimensions;
+  if (doc.category !== undefined) result.category = doc.category;
+  if (doc.visibility !== undefined) result.visibility = doc.visibility;
+  if (doc.associatedContentType !== undefined) result.associated_content_type = doc.associatedContentType;
+  if (doc.associatedContentId !== undefined) result.associated_content_id = doc.associatedContentId;
+  result.updated_at = new Date().toISOString();
+  return result;
 }

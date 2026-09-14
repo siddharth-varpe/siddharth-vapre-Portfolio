@@ -1,8 +1,8 @@
 import "server-only";
 import { withDatabaseErrorHandling } from "../errors";
-import { adminDb } from "@/lib/firebase/admin";
-import { deleteFileFromStorage } from "@/lib/firebase/storage";
-import type { Query, QueryDocumentSnapshot } from "firebase-admin/firestore";
+import { getStore } from "../store";
+import { deleteBlob } from "@/lib/server/storage/blob";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
 import {
   mapProfileFromDb,
   mapProfileToDb,
@@ -75,12 +75,89 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-export function sanitizePagination(params?: PaginationParams): { page: number; limit: number; offset: number } {
+export function sanitizePagination(params?: PaginationParams): { page: number; limit: number; skip: number } {
   const page = Math.max(1, Math.floor(params?.page ?? DEFAULT_PAGE));
   const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(params?.limit ?? DEFAULT_LIMIT)));
-  const offset = (page - 1) * limit;
-  return { page, limit, offset };
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
 }
+
+function generateId(prefix: string): string {
+  return `${prefix}_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+}
+
+// -----------------------------------------------------------------------------
+// AUDITING & REVISION HELPERS
+// -----------------------------------------------------------------------------
+
+export async function logAdminActivity(
+  activity: Omit<ActivityLogDocument, "_id" | "id" | "timestamp">
+): Promise<void> {
+  return withDatabaseErrorHandling(async () => {
+    const store = getStore();
+    const id = generateId("log");
+    const timestamp = new Date();
+    const doc: ActivityLogDocument = {
+      ...activity,
+      id,
+      _id: id,
+      timestamp,
+    };
+    store.activityLogs.unshift(doc);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbRow = {
+        id,
+        event: doc.event,
+        category: doc.category,
+        status: doc.status,
+        actor: doc.actor,
+        ip_address_masked: doc.ipAddressMasked || null,
+        user_agent: doc.userAgent || null,
+        details: doc.details || null,
+        timestamp: timestamp.toISOString(),
+      };
+      await supabase.from("activity_logs").insert(dbRow);
+    }
+  }, "Failed to record activity log");
+}
+
+export async function recordRevision(
+  revision: Omit<RevisionDocument, "_id" | "id" | "timestamp">
+): Promise<void> {
+  return withDatabaseErrorHandling(async () => {
+    const store = getStore();
+    const id = generateId("rev");
+    const timestamp = new Date();
+    const doc: RevisionDocument = {
+      ...revision,
+      id,
+      _id: id,
+      timestamp,
+    };
+    store.revisions.unshift(doc);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbRow = {
+        id,
+        content_type: doc.contentType,
+        content_id: doc.contentId,
+        action: doc.action,
+        previous_state: doc.previousState || null,
+        new_state: doc.newState || null,
+        actor: doc.actor,
+        timestamp: timestamp.toISOString(),
+      };
+      await supabase.from("revisions").insert(dbRow);
+    }
+  }, "Failed to record content revision");
+}
+
+// -----------------------------------------------------------------------------
+// DASHBOARD STATS AGGREGATION
+// -----------------------------------------------------------------------------
 
 export interface DashboardStats {
   counts: {
@@ -94,117 +171,30 @@ export interface DashboardStats {
     achievements: number;
     certifications: number;
     metrics: number;
-    resumes: number;
-    media: number;
     messagesTotal: number;
     messagesUnread: number;
   };
   recentActivity: ActivityLogDocument[];
   recentRevisions: RevisionDocument[];
-  latestRevision: string | null;
+  lastUpdated: string | null;
 }
-
-// ---------------------------------------------------------------------------
-// Audit & Revision Logging
-// ---------------------------------------------------------------------------
-
-export async function logAdminActivity(
-  event: string,
-  category: "auth" | "content" | "media" | "security" | "system" = "content",
-  status: "success" | "failure" | "warning" = "success",
-  actor: string = "admin",
-  details: Record<string, unknown> = {},
-  ipAddressMasked?: string,
-  userAgent?: string
-): Promise<void> {
-  try {
-    const id = `log_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const logDoc: ActivityLogDocument = {
-      id,
-      _id: id,
-      event,
-      category,
-      status,
-      actor,
-      ipAddressMasked,
-      userAgent,
-      details,
-      timestamp: new Date(),
-    };
-    await adminDb.collection("activityLogs").doc(id).set(logDoc);
-  } catch (err) {
-    console.warn("[Activity Log Error]: Failed to persist activity log to Firestore:", err);
-  }
-}
-
-export async function recordRevision(
-  contentType: string,
-  contentId: string,
-  previousState: Record<string, unknown> | null | undefined,
-  newState: Record<string, unknown> | null | undefined,
-  actor: string = "admin",
-  action: "create" | "update" | "delete" | "publish" | "archive" = "update"
-): Promise<void> {
-  try {
-    const id = `rev_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const revDoc: RevisionDocument = {
-      id,
-      _id: id,
-      contentType,
-      contentId,
-      action,
-      previousState: previousState ? (JSON.parse(JSON.stringify(previousState)) as Record<string, unknown>) : undefined,
-      newState: (newState ? JSON.parse(JSON.stringify(newState)) : {}) as Record<string, unknown>,
-      actor,
-      timestamp: new Date(),
-    };
-    await adminDb.collection("revisions").doc(id).set(revDoc);
-  } catch (err) {
-    console.warn("[Revision Error]: Failed to record revision to Firestore:", err);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Dashboard Statistics
-// ---------------------------------------------------------------------------
 
 export async function getAdminDashboardStats(): Promise<DashboardStats> {
   return withDatabaseErrorHandling(async () => {
-    // 1. Projects Breakdown
-    const projectsSnap = await adminDb.collection("projects").get();
-    const projects = projectsSnap.docs.map((d: QueryDocumentSnapshot) => d.data());
-    const projectsTotal = projects.length;
-    const projectsPublished = projects.filter((p: Record<string, unknown>) => p.status === "published").length;
-    const projectsDraft = projects.filter((p: Record<string, unknown>) => p.status === "draft").length;
-    const projectsArchived = projects.filter((p: Record<string, unknown>) => p.status === "archived").length;
-    const projectsFeatured = projects.filter((p: Record<string, unknown>) => p.featured === true).length;
+    const store = getStore();
 
-    // 2. Collection counts
-    const [skillsSnap, expSnap, achSnap, certSnap, metricSnap, resumeSnap, mediaSnap, msgSnap] =
-      await Promise.all([
-        adminDb.collection("skills").count().get(),
-        adminDb.collection("experience").count().get(),
-        adminDb.collection("achievements").count().get(),
-        adminDb.collection("certifications").count().get(),
-        adminDb.collection("metrics").count().get(),
-        adminDb.collection("resumes").count().get(),
-        adminDb.collection("media").count().get(),
-        adminDb.collection("contactMessages").get(),
-      ]);
+    const projectsTotal = store.projects.length;
+    const projectsPublished = store.projects.filter((p) => p.status === "published").length;
+    const projectsDraft = store.projects.filter((p) => p.status === "draft").length;
+    const projectsArchived = store.projects.filter((p) => p.status === "archived").length;
+    const projectsFeatured = store.projects.filter((p) => p.featured === true).length;
 
-    const messages = msgSnap.docs.map((d: QueryDocumentSnapshot) => d.data());
-    const messagesTotal = messages.length;
-    const messagesUnread = messages.filter((m: Record<string, unknown>) => m.status === "unread").length;
+    const messagesTotal = store.contactMessages.length;
+    const messagesUnread = store.contactMessages.filter((m) => m.status === "unread").length;
 
-    // 3. Recent Activity & Revisions
-    const [activitySnap, revisionSnap] = await Promise.all([
-      adminDb.collection("activityLogs").orderBy("timestamp", "desc").limit(5).get(),
-      adminDb.collection("revisions").orderBy("timestamp", "desc").limit(5).get(),
-    ]);
-
-    const recentActivity = activitySnap.docs.map((d: QueryDocumentSnapshot) => mapActivityLogFromDb(d.data(), d.id));
-    const recentRevisions = revisionSnap.docs.map((d: QueryDocumentSnapshot) => mapRevisionFromDb(d.data(), d.id));
-    const latestRevision = recentRevisions[0]?.timestamp?.toISOString() ?? null;
+    const recentActivity = store.activityLogs.slice(0, 5);
+    const recentRevisions = store.revisions.slice(0, 5);
+    const latestRevision = store.revisions[0]?.timestamp?.toISOString() ?? null;
 
     return {
       counts: {
@@ -213,1042 +203,1876 @@ export async function getAdminDashboardStats(): Promise<DashboardStats> {
         projectsDraft,
         projectsArchived,
         projectsFeatured,
-        skills: skillsSnap.data().count,
-        experience: expSnap.data().count,
-        achievements: achSnap.data().count,
-        certifications: certSnap.data().count,
-        metrics: metricSnap.data().count,
-        resumes: resumeSnap.data().count,
-        media: mediaSnap.data().count,
+        skills: store.skills.length,
+        experience: store.experience.length,
+        achievements: store.achievements.length,
+        certifications: store.certifications.length,
+        metrics: store.metrics.length,
         messagesTotal,
         messagesUnread,
       },
       recentActivity,
       recentRevisions,
-      latestRevision,
+      lastUpdated: latestRevision,
     };
-  }, "Failed to retrieve admin dashboard stats from Cloud Firestore");
+  }, "Failed to compile admin dashboard metrics");
 }
 
-// ---------------------------------------------------------------------------
-// 1. Profile Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 1. PROFILE
+// -----------------------------------------------------------------------------
 
-export async function getAdminProfile(): Promise<ProfileDocument> {
+export async function getAdminProfile(): Promise<ProfileDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("profiles").doc("profile_root").get();
-    if (snap.exists) {
-      return mapProfileFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("profiles").select("*").limit(1).maybeSingle();
+      if (!error && data) {
+        return mapProfileFromDb(data);
+      }
     }
-    return mapProfileFromDb({}, "profile_root");
-  }, "Failed to retrieve admin profile");
+    const store = getStore();
+    return store.profile || null;
+  }, "Failed to retrieve profile");
 }
 
 export async function updateAdminProfile(
-  data: Partial<ProfileDocument>,
-  author: string = "admin"
+  data: Omit<ProfileDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<ProfileDocument> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("profiles").doc("profile_root");
-    const prevSnap = await ref.get();
-    const prevData = prevSnap.exists ? prevSnap.data() : null;
+    const store = getStore();
+    const existing = store.profile;
+    const now = new Date();
 
-    const payload = mapProfileToDb(data);
-    await ref.set(payload, { merge: true });
+    const updated: ProfileDocument = {
+      ...existing,
+      ...data,
+      id: existing?.id || "profile_root",
+      _id: existing?._id || "profile_root",
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+    };
+    store.profile = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapProfileFromDb(updatedSnap.data(), updatedSnap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapProfileToDb(updated);
+      await supabase.from("profiles").upsert({ id: updated.id, ...dbPayload });
+    }
 
-    await recordRevision("profile", "profile_root", prevData, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("profile_update", "content", "success", author, { updatedFields: Object.keys(data) });
+    await recordRevision({
+      contentType: "profile",
+      contentId: updated.id!,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_profile",
+      category: "content",
+      status: "success",
+      actor,
+      details: { fields: Object.keys(data) },
+    });
 
     return updated;
   }, "Failed to update profile");
 }
 
-// ---------------------------------------------------------------------------
-// 2. Hero Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 2. HERO
+// -----------------------------------------------------------------------------
 
-export async function getAdminHero(): Promise<HeroDocument> {
+export async function getAdminHero(): Promise<HeroDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("hero").doc("hero_root").get();
-    if (snap.exists) {
-      return mapHeroFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("heroes").select("*").limit(1).maybeSingle();
+      if (!error && data) {
+        return mapHeroFromDb(data);
+      }
     }
-    return mapHeroFromDb({}, "hero_root");
+    const store = getStore();
+    return store.hero || null;
   }, "Failed to retrieve hero section");
 }
 
 export async function updateAdminHero(
-  data: Partial<HeroDocument>,
-  author: string = "admin"
+  data: Omit<HeroDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<HeroDocument> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("hero").doc("hero_root");
-    const prevSnap = await ref.get();
-    const prevData = prevSnap.exists ? prevSnap.data() : null;
+    const store = getStore();
+    const existing = store.hero;
+    const now = new Date();
 
-    const payload = mapHeroToDb(data);
-    await ref.set(payload, { merge: true });
+    const updated: HeroDocument = {
+      ...existing,
+      ...data,
+      id: existing?.id || "hero_root",
+      _id: existing?._id || "hero_root",
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+    };
+    store.hero = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapHeroFromDb(updatedSnap.data(), updatedSnap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapHeroToDb(updated);
+      await supabase.from("heroes").upsert({ id: updated.id, ...dbPayload });
+    }
 
-    await recordRevision("hero", "hero_root", prevData, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("hero_update", "content", "success", author, { updatedFields: Object.keys(data) });
+    await recordRevision({
+      contentType: "hero",
+      contentId: updated.id!,
+      action: data.status && data.status !== existing?.status ? (data.status === "published" ? "publish" : "update") : "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_hero",
+      category: "content",
+      status: "success",
+      actor,
+      details: { fields: Object.keys(data) },
+    });
 
     return updated;
   }, "Failed to update hero section");
 }
 
-// ---------------------------------------------------------------------------
-// 3. About Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 3. ABOUT
+// -----------------------------------------------------------------------------
 
-export async function getAdminAbout(): Promise<AboutDocument> {
+export async function getAdminAbout(): Promise<AboutDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("about").doc("about_root").get();
-    if (snap.exists) {
-      return mapAboutFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("abouts").select("*").limit(1).maybeSingle();
+      if (!error && data) {
+        return mapAboutFromDb(data);
+      }
     }
-    return mapAboutFromDb({}, "about_root");
+    const store = getStore();
+    return store.about || null;
   }, "Failed to retrieve about section");
 }
 
 export async function updateAdminAbout(
-  data: Partial<AboutDocument>,
-  author: string = "admin"
+  data: Omit<AboutDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<AboutDocument> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("about").doc("about_root");
-    const prevSnap = await ref.get();
-    const prevData = prevSnap.exists ? prevSnap.data() : null;
+    const store = getStore();
+    const existing = store.about;
+    const now = new Date();
 
-    const payload = mapAboutToDb(data);
-    await ref.set(payload, { merge: true });
+    const updated: AboutDocument = {
+      ...existing,
+      ...data,
+      id: existing?.id || "about_root",
+      _id: existing?._id || "about_root",
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+    };
+    store.about = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapAboutFromDb(updatedSnap.data(), updatedSnap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapAboutToDb(updated);
+      await supabase.from("abouts").upsert({ id: updated.id, ...dbPayload });
+    }
 
-    await recordRevision("about", "about_root", prevData, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("about_update", "content", "success", author, { updatedFields: Object.keys(data) });
+    await recordRevision({
+      contentType: "about",
+      contentId: updated.id!,
+      action: data.status && data.status !== existing?.status ? (data.status === "published" ? "publish" : "update") : "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_about",
+      category: "content",
+      status: "success",
+      actor,
+      details: { fields: Object.keys(data) },
+    });
 
     return updated;
   }, "Failed to update about section");
 }
 
-// ---------------------------------------------------------------------------
-// 4. Skills Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 4. SKILLS
+// -----------------------------------------------------------------------------
 
 export async function getAdminSkills(category?: SkillDocument["category"]): Promise<SkillDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    let query: Query = adminDb.collection("skills");
-    if (category) {
-      query = query.where("category", "==", category);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase.from("skills").select("*").order("order", { ascending: true });
+      if (category) {
+        query = query.eq("category", category);
+      }
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data.map(mapSkillFromDb);
+      }
     }
-    const snap = await query.orderBy("order", "asc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapSkillFromDb(doc.data(), doc.id));
+    const store = getStore();
+    if (category) {
+      return store.skills.filter((s) => s.category === category).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+    return store.skills.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, "Failed to retrieve skills");
 }
 
 export async function createAdminSkill(
-  data: Omit<SkillDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<SkillDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<SkillDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `skill_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapSkillToDb(data),
+    const store = getStore();
+    const id = generateId("skill");
+    const now = new Date();
+
+    const doc: SkillDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.skills.push(doc);
 
-    await adminDb.collection("skills").doc(id).set(payload);
-    const created = mapSkillFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapSkillToDb(doc);
+      await supabase.from("skills").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("skill", id, null, payload, author, "create");
-    await logAdminActivity("skill_create", "content", "success", author, { name: data.name });
+    await recordRevision({
+      contentType: "skill",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_skill",
+      category: "content",
+      status: "success",
+      actor,
+      details: { name: doc.name, category: doc.category },
+    });
 
-    return created;
+    return doc;
   }, "Failed to create skill");
 }
 
 export async function updateAdminSkill(
   id: string,
   data: Partial<SkillDocument>,
-  author: string = "admin"
-): Promise<SkillDocument> {
+  actor: string
+): Promise<SkillDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("skills").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Skill with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.skills.findIndex((s) => s.id === id || s._id === id);
+    if (idx === -1) return null;
 
-    const payload = mapSkillToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.skills[idx];
+    const updated: SkillDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.skills[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapSkillFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapSkillToDb(updated);
+      await supabase.from("skills").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("skill", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("skill_update", "content", "success", author, { name: updated.name });
+    await recordRevision({
+      contentType: "skill",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_skill",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, name: updated.name },
+    });
 
     return updated;
   }, "Failed to update skill");
 }
 
-export async function deleteAdminSkill(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminSkill(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("skills").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.skills.findIndex((s) => s.id === id || s._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await recordRevision("skill", id, snap.data() || null, {}, author, "delete");
-    await logAdminActivity("skill_delete", "content", "success", author, { name: snap.data()?.name });
+    const existing = store.skills[idx];
+    store.skills.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("skills").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "skill",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_skill",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, name: existing.name },
+    });
+
     return true;
   }, "Failed to delete skill");
 }
 
-// ---------------------------------------------------------------------------
-// 5. Experience Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 5. EXPERIENCE
+// -----------------------------------------------------------------------------
 
 export async function getAdminExperience(): Promise<ExperienceDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("experience").orderBy("order", "asc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapExperienceFromDb(doc.data(), doc.id));
-  }, "Failed to retrieve experience records");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("experiences").select("*").order("order", { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data.map(mapExperienceFromDb);
+      }
+    }
+    const store = getStore();
+    return store.experience.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, "Failed to retrieve experience items");
 }
 
 export async function createAdminExperience(
-  data: Omit<ExperienceDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<ExperienceDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<ExperienceDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `exp_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapExperienceToDb(data),
+    const store = getStore();
+    const id = generateId("exp");
+    const now = new Date();
+
+    const doc: ExperienceDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.experience.push(doc);
 
-    await adminDb.collection("experience").doc(id).set(payload);
-    const created = mapExperienceFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapExperienceToDb(doc);
+      await supabase.from("experiences").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("experience", id, null, payload, author, "create");
-    await logAdminActivity("experience_create", "content", "success", author, { role: data.role, company: data.company });
+    await recordRevision({
+      contentType: "experience",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_experience",
+      category: "content",
+      status: "success",
+      actor,
+      details: { role: doc.role, company: doc.company },
+    });
 
-    return created;
+    return doc;
   }, "Failed to create experience record");
 }
 
 export async function updateAdminExperience(
   id: string,
   data: Partial<ExperienceDocument>,
-  author: string = "admin"
-): Promise<ExperienceDocument> {
+  actor: string
+): Promise<ExperienceDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("experience").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Experience record with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.experience.findIndex((e) => e.id === id || e._id === id);
+    if (idx === -1) return null;
 
-    const payload = mapExperienceToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.experience[idx];
+    const updated: ExperienceDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.experience[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapExperienceFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapExperienceToDb(updated);
+      await supabase.from("experiences").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("experience", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("experience_update", "content", "success", author, { role: updated.role, company: updated.company });
+    await recordRevision({
+      contentType: "experience",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_experience",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, company: updated.company },
+    });
 
     return updated;
   }, "Failed to update experience record");
 }
 
-export async function deleteAdminExperience(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminExperience(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("experience").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.experience.findIndex((e) => e.id === id || e._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await recordRevision("experience", id, snap.data() || null, {}, author, "delete");
-    await logAdminActivity("experience_delete", "content", "success", author, { role: snap.data()?.role });
+    const existing = store.experience[idx];
+    store.experience.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("experiences").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "experience",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_experience",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, company: existing.company },
+    });
+
     return true;
   }, "Failed to delete experience record");
 }
 
-// ---------------------------------------------------------------------------
-// 6. Projects Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 6. PROJECTS
+// -----------------------------------------------------------------------------
 
-export async function getAdminProjects(
-  params?: PaginationParams & { status?: ContentStatus; search?: string }
-): Promise<PaginatedResult<ProjectDocument>> {
+export async function getAdminProjects(options?: {
+  status?: ContentStatus;
+  featuredOnly?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResult<ProjectDocument>> {
   return withDatabaseErrorHandling(async () => {
-    const { page, limit, offset } = sanitizePagination(params);
-
-    let query: Query = adminDb.collection("projects");
-    if (params?.status) {
-      query = query.where("status", "==", params.status);
+    const { page, limit, skip } = sanitizePagination(options);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase.from("projects").select("*", { count: "exact" }).order("order", { ascending: true });
+      if (options?.status) {
+        query = query.eq("status", options.status);
+      }
+      if (options?.featuredOnly) {
+        query = query.eq("featured", true);
+      }
+      if (options?.search) {
+        query = query.or(`title.ilike.%${options.search}%,short_description.ilike.%${options.search}%`);
+      }
+      query = query.range(skip, skip + limit - 1);
+      const { data, count, error } = await query;
+      if (!error && data) {
+        const total = count ?? data.length;
+        return {
+          items: data.map(mapProjectFromDb),
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit) || 1,
+        };
+      }
     }
 
-    const countSnap = await query.count().get();
-    const total = countSnap.data().count;
-
-    const snap = await query.orderBy("order", "asc").offset(offset).limit(limit).get();
-    let items = snap.docs.map((doc: QueryDocumentSnapshot) => mapProjectFromDb(doc.data(), doc.id));
-
-    if (params?.search) {
-      const q = params.search.toLowerCase();
-      items = items.filter(
-        (p: ProjectDocument) => p.title.toLowerCase().includes(q) || p.shortDescription.toLowerCase().includes(q)
+    const store = getStore();
+    let filtered = [...store.projects];
+    if (options?.status) {
+      filtered = filtered.filter((p) => p.status === options.status);
+    }
+    if (options?.featuredOnly) {
+      filtered = filtered.filter((p) => p.featured === true);
+    }
+    if (options?.search) {
+      const q = options.search.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          (p.shortDescription && p.shortDescription.toLowerCase().includes(q)) ||
+          (p.fullDescription && p.fullDescription.toLowerCase().includes(q))
       );
     }
+    filtered.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    const totalPages = Math.ceil(total / limit) || 1;
-    return { items, total, page, limit, totalPages };
-  }, "Failed to retrieve admin projects");
+    const total = filtered.length;
+    const items = filtered.slice(skip, skip + limit);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }, "Failed to retrieve projects");
 }
 
 export async function getAdminProjectById(id: string): Promise<ProjectDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("projects").doc(id).get();
-    if (!snap.exists) return null;
-    return mapProjectFromDb(snap.data(), snap.id);
-  }, `Failed to retrieve project ${id}`);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("projects").select("*").eq("id", id).maybeSingle();
+      if (!error && data) {
+        return mapProjectFromDb(data);
+      }
+    }
+    const store = getStore();
+    return store.projects.find((p) => p.id === id || p._id === id) || null;
+  }, "Failed to retrieve project details");
 }
 
 export async function createAdminProject(
-  data: Omit<ProjectDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<ProjectDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<ProjectDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `proj_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapProjectToDb(data),
+    const store = getStore();
+    const id = generateId("proj");
+    const now = new Date();
+
+    const doc: ProjectDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.projects.push(doc);
 
-    await adminDb.collection("projects").doc(id).set(payload);
-    const created = mapProjectFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapProjectToDb(doc);
+      await supabase.from("projects").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("project", id, null, payload, author, "create");
-    await logAdminActivity("project_create", "content", "success", author, { title: data.title, slug: data.slug });
+    await recordRevision({
+      contentType: "project",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_project",
+      category: "content",
+      status: "success",
+      actor,
+      details: { title: doc.title, slug: doc.slug },
+    });
 
-    return created;
+    return doc;
   }, "Failed to create project");
 }
 
 export async function updateAdminProject(
   id: string,
   data: Partial<ProjectDocument>,
-  author: string = "admin"
-): Promise<ProjectDocument> {
+  actor: string
+): Promise<ProjectDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("projects").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Project with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.projects.findIndex((p) => p.id === id || p._id === id);
+    if (idx === -1) return null;
 
-    const payload = mapProjectToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.projects[idx];
+    const updated: ProjectDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.projects[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapProjectFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapProjectToDb(updated);
+      await supabase.from("projects").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("project", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("project_update", "content", "success", author, { title: updated.title });
+    await recordRevision({
+      contentType: "project",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_project",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, title: updated.title },
+    });
 
     return updated;
   }, "Failed to update project");
 }
 
-export async function deleteAdminProject(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminProject(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("projects").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.projects.findIndex((p) => p.id === id || p._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await recordRevision("project", id, snap.data() || null, {}, author, "delete");
-    await logAdminActivity("project_delete", "content", "success", author, { title: snap.data()?.title });
+    const existing = store.projects[idx];
+    store.projects.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("projects").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "project",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_project",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, title: existing.title },
+    });
+
     return true;
   }, "Failed to delete project");
 }
 
-// ---------------------------------------------------------------------------
-// 7. Achievements Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 7. ACHIEVEMENTS
+// -----------------------------------------------------------------------------
 
 export async function getAdminAchievements(): Promise<AchievementDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("achievements").orderBy("order", "asc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapAchievementFromDb(doc.data(), doc.id));
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("achievements").select("*").order("order", { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data.map(mapAchievementFromDb);
+      }
+    }
+    const store = getStore();
+    return store.achievements.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, "Failed to retrieve achievements");
 }
 
 export async function createAdminAchievement(
-  data: Omit<AchievementDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<AchievementDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<AchievementDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `ach_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapAchievementToDb(data),
+    const store = getStore();
+    const id = generateId("ach");
+    const now = new Date();
+
+    const doc: AchievementDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.achievements.push(doc);
 
-    await adminDb.collection("achievements").doc(id).set(payload);
-    const created = mapAchievementFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapAchievementToDb(doc);
+      await supabase.from("achievements").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("achievement", id, null, payload, author, "create");
-    await logAdminActivity("achievement_create", "content", "success", author, { title: data.title });
+    await recordRevision({
+      contentType: "achievement",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_achievement",
+      category: "content",
+      status: "success",
+      actor,
+      details: { title: doc.title },
+    });
 
-    return created;
+    return doc;
   }, "Failed to create achievement");
 }
 
 export async function updateAdminAchievement(
   id: string,
   data: Partial<AchievementDocument>,
-  author: string = "admin"
-): Promise<AchievementDocument> {
+  actor: string
+): Promise<AchievementDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("achievements").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Achievement with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.achievements.findIndex((a) => a.id === id || a._id === id);
+    if (idx === -1) return null;
 
-    const payload = mapAchievementToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.achievements[idx];
+    const updated: AchievementDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.achievements[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapAchievementFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapAchievementToDb(updated);
+      await supabase.from("achievements").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("achievement", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("achievement_update", "content", "success", author, { title: updated.title });
+    await recordRevision({
+      contentType: "achievement",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_achievement",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, title: updated.title },
+    });
 
     return updated;
   }, "Failed to update achievement");
 }
 
-export async function deleteAdminAchievement(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminAchievement(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("achievements").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.achievements.findIndex((a) => a.id === id || a._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await recordRevision("achievement", id, snap.data() || null, {}, author, "delete");
-    await logAdminActivity("achievement_delete", "content", "success", author, { title: snap.data()?.title });
+    const existing = store.achievements[idx];
+    store.achievements.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("achievements").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "achievement",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_achievement",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, title: existing.title },
+    });
+
     return true;
   }, "Failed to delete achievement");
 }
 
-// ---------------------------------------------------------------------------
-// 8. Certifications Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 8. CERTIFICATIONS
+// -----------------------------------------------------------------------------
 
 export async function getAdminCertifications(): Promise<CertificationDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("certifications").orderBy("order", "asc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapCertificationFromDb(doc.data(), doc.id));
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("certifications").select("*").order("order", { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data.map(mapCertificationFromDb);
+      }
+    }
+    const store = getStore();
+    return store.certifications.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, "Failed to retrieve certifications");
 }
 
 export async function createAdminCertification(
-  data: Omit<CertificationDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<CertificationDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<CertificationDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `cert_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapCertificationToDb(data),
+    const store = getStore();
+    const id = generateId("cert");
+    const now = new Date();
+
+    const doc: CertificationDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.certifications.push(doc);
 
-    await adminDb.collection("certifications").doc(id).set(payload);
-    const created = mapCertificationFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapCertificationToDb(doc);
+      await supabase.from("certifications").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("certification", id, null, payload, author, "create");
-    await logAdminActivity("certification_create", "content", "success", author, { name: data.name });
+    await recordRevision({
+      contentType: "certification",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_certification",
+      category: "content",
+      status: "success",
+      actor,
+      details: { name: doc.name, issuer: doc.issuer },
+    });
 
-    return created;
+    return doc;
   }, "Failed to create certification");
 }
 
 export async function updateAdminCertification(
   id: string,
   data: Partial<CertificationDocument>,
-  author: string = "admin"
-): Promise<CertificationDocument> {
+  actor: string
+): Promise<CertificationDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("certifications").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Certification with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.certifications.findIndex((c) => c.id === id || c._id === id);
+    if (idx === -1) return null;
 
-    const payload = mapCertificationToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.certifications[idx];
+    const updated: CertificationDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.certifications[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapCertificationFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapCertificationToDb(updated);
+      await supabase.from("certifications").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("certification", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("certification_update", "content", "success", author, { name: updated.name });
+    await recordRevision({
+      contentType: "certification",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_certification",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, name: updated.name },
+    });
 
     return updated;
   }, "Failed to update certification");
 }
 
-export async function deleteAdminCertification(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminCertification(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("certifications").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.certifications.findIndex((c) => c.id === id || c._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await recordRevision("certification", id, snap.data() || null, {}, author, "delete");
-    await logAdminActivity("certification_delete", "content", "success", author, { name: snap.data()?.name });
+    const existing = store.certifications[idx];
+    store.certifications.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("certifications").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "certification",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_certification",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, name: existing.name },
+    });
+
     return true;
   }, "Failed to delete certification");
 }
 
-// ---------------------------------------------------------------------------
-// 9. Metrics Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 9. METRICS
+// -----------------------------------------------------------------------------
 
 export async function getAdminMetrics(): Promise<MetricDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("metrics").orderBy("order", "asc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapMetricFromDb(doc.data(), doc.id));
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("metrics").select("*").order("order", { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data.map(mapMetricFromDb);
+      }
+    }
+    const store = getStore();
+    return store.metrics.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, "Failed to retrieve metrics");
 }
 
 export async function createAdminMetric(
-  data: Omit<MetricDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<MetricDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<MetricDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `metric_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapMetricToDb(data),
+    const store = getStore();
+    const id = generateId("met");
+    const now = new Date();
+
+    const doc: MetricDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.metrics.push(doc);
 
-    await adminDb.collection("metrics").doc(id).set(payload);
-    const created = mapMetricFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapMetricToDb(doc);
+      await supabase.from("metrics").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("metric", id, null, payload, author, "create");
-    await logAdminActivity("metric_create", "content", "success", author, { label: data.label, value: data.value });
+    await recordRevision({
+      contentType: "metric",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_metric",
+      category: "content",
+      status: "success",
+      actor,
+      details: { label: doc.label, value: doc.value },
+    });
 
-    return created;
+    return doc;
   }, "Failed to create metric");
 }
 
 export async function updateAdminMetric(
   id: string,
   data: Partial<MetricDocument>,
-  author: string = "admin"
-): Promise<MetricDocument> {
+  actor: string
+): Promise<MetricDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("metrics").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Metric with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.metrics.findIndex((m) => m.id === id || m._id === id);
+    if (idx === -1) return null;
 
-    const payload = mapMetricToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.metrics[idx];
+    const updated: MetricDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.metrics[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapMetricFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapMetricToDb(updated);
+      await supabase.from("metrics").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("metric", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("metric_update", "content", "success", author, { label: updated.label });
+    await recordRevision({
+      contentType: "metric",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_metric",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, label: updated.label },
+    });
 
     return updated;
   }, "Failed to update metric");
 }
 
-export async function deleteAdminMetric(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminMetric(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("metrics").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.metrics.findIndex((m) => m.id === id || m._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await recordRevision("metric", id, snap.data() || null, {}, author, "delete");
-    await logAdminActivity("metric_delete", "content", "success", author, { label: snap.data()?.label });
+    const existing = store.metrics[idx];
+    store.metrics.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("metrics").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "metric",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_metric",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, label: existing.label },
+    });
+
     return true;
   }, "Failed to delete metric");
 }
 
-// ---------------------------------------------------------------------------
-// 10. Contact Settings Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 10. CONTACT SETTINGS
+// -----------------------------------------------------------------------------
 
-export async function getAdminContactSettings(): Promise<ContactSettingsDocument> {
+export async function getAdminContactSettings(): Promise<ContactSettingsDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("contactSettings").doc("contact_settings_root").get();
-    if (snap.exists) {
-      return mapContactSettingsFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("contact_settings").select("*").limit(1).maybeSingle();
+      if (!error && data) {
+        return mapContactSettingsFromDb(data);
+      }
     }
-    return mapContactSettingsFromDb({}, "contact_settings_root");
+    const store = getStore();
+    return store.contactSettings || null;
   }, "Failed to retrieve contact settings");
 }
 
 export async function updateAdminContactSettings(
-  data: Partial<ContactSettingsDocument>,
-  author: string = "admin"
+  data: Omit<ContactSettingsDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<ContactSettingsDocument> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("contactSettings").doc("contact_settings_root");
-    const prevSnap = await ref.get();
-    const prevData = prevSnap.exists ? prevSnap.data() : null;
+    const store = getStore();
+    const existing = store.contactSettings;
+    const now = new Date();
 
-    const payload = mapContactSettingsToDb(data);
-    await ref.set(payload, { merge: true });
+    const updated: ContactSettingsDocument = {
+      ...existing,
+      ...data,
+      id: existing?.id || "contact_settings_root",
+      _id: existing?._id || "contact_settings_root",
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+    };
+    store.contactSettings = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapContactSettingsFromDb(updatedSnap.data(), updatedSnap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapContactSettingsToDb(updated);
+      await supabase.from("contact_settings").upsert({ id: updated.id, ...dbPayload });
+    }
 
-    await recordRevision("contactSettings", "contact_settings_root", prevData, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("contact_settings_update", "content", "success", author, { updatedFields: Object.keys(data) });
+    await recordRevision({
+      contentType: "contact_settings",
+      contentId: updated.id!,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_contact_settings",
+      category: "content",
+      status: "success",
+      actor,
+      details: { fields: Object.keys(data) },
+    });
 
     return updated;
   }, "Failed to update contact settings");
 }
 
-// ---------------------------------------------------------------------------
-// 11. Resumes Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 11. RESUMES
+// -----------------------------------------------------------------------------
 
 export async function getAdminResumes(): Promise<ResumeMetadataDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("resumes").orderBy("createdAt", "desc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapResumeFromDb(doc.data(), doc.id));
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("resumes").select("*").order("uploaded_at", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data.map(mapResumeFromDb);
+      }
+    }
+    const store = getStore();
+    return store.resumes.sort((a, b) => new Date(b.uploadTimestamp).getTime() - new Date(a.uploadTimestamp).getTime());
   }, "Failed to retrieve resumes");
 }
 
 export async function createAdminResume(
-  data: {
-    filename: string;
-    storageUrl: string;
-    version: string;
-    active?: boolean;
-    archived?: boolean;
-    downloadEnabled?: boolean;
-    fileSizeBytes?: number;
-    storagePath?: string;
+  data: Omit<ResumeMetadataDocument, "_id" | "id" | "createdAt" | "updatedAt" | "uploadTimestamp"> & {
+    uploadTimestamp?: Date;
   },
-  author: string = "admin"
+  actor: string
 ): Promise<ResumeMetadataDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `resume_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      filename: data.filename,
-      storageUrl: data.storageUrl,
-      storagePath: data.storagePath,
-      version: data.version,
-      active: data.active !== undefined ? Boolean(data.active) : true,
-      archived: Boolean(data.archived),
-      downloadEnabled: data.downloadEnabled !== undefined ? Boolean(data.downloadEnabled) : true,
-      fileSizeBytes: data.fileSizeBytes,
+    const store = getStore();
+    const id = generateId("res");
+    const now = new Date();
+
+    if (data.active) {
+      store.resumes.forEach((r) => {
+        r.active = false;
+      });
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        await supabase.from("resumes").update({ active: false }).neq("id", id);
+      }
+    }
+
+    const doc: ResumeMetadataDocument = {
+      ...data,
       id,
       _id: id,
-      uploadTimestamp: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      uploadTimestamp: data.uploadTimestamp || now,
+      createdAt: now,
+      updatedAt: now,
     };
+    store.resumes.unshift(doc);
 
-    await adminDb.collection("resumes").doc(id).set(payload);
-    const created = mapResumeFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapResumeToDb(doc);
+      await supabase.from("resumes").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("resume", id, null, payload, author, "create");
-    await logAdminActivity("resume_create", "media", "success", author, { filename: data.filename, version: data.version });
+    await recordRevision({
+      contentType: "resume",
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "upload_resume",
+      category: "content",
+      status: "success",
+      actor,
+      details: { filename: doc.filename, version: doc.version },
+    });
 
-    return created;
-  }, "Failed to create resume metadata");
+    return doc;
+  }, "Failed to create resume record");
 }
 
 export async function updateAdminResume(
   id: string,
   data: Partial<ResumeMetadataDocument>,
-  author: string = "admin"
-): Promise<ResumeMetadataDocument> {
+  actor: string
+): Promise<ResumeMetadataDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("resumes").doc(id);
-    const prevSnap = await ref.get();
-    if (!prevSnap.exists) throw new Error(`Resume with ID ${id} not found.`);
+    const store = getStore();
+    const idx = store.resumes.findIndex((r) => r.id === id || r._id === id);
+    if (idx === -1) return null;
 
-    if (data.active === true) {
-      const allActive = await adminDb.collection("resumes").where("active", "==", true).get();
-      const batch = adminDb.batch();
-      for (const doc of allActive.docs) {
-        if (doc.id !== id) {
-          batch.update(doc.ref, { active: false, updatedAt: new Date() });
-        }
+    if (data.active) {
+      store.resumes.forEach((r) => {
+        if (r.id !== id && r._id !== id) r.active = false;
+      });
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        await supabase.from("resumes").update({ active: false }).neq("id", id);
       }
-      await batch.commit();
     }
 
-    const payload = mapResumeToDb(data);
-    await ref.set(payload, { merge: true });
+    const existing = store.resumes[idx];
+    const updated: ResumeMetadataDocument = {
+      ...existing,
+      ...data,
+      updatedAt: new Date(),
+    };
+    store.resumes[idx] = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapResumeFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapResumeToDb(updated);
+      await supabase.from("resumes").update(dbPayload).eq("id", id);
+    }
 
-    await recordRevision("resume", id, prevSnap.data() || null, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("resume_update", "media", "success", author, { filename: updated.filename, active: updated.active });
+    await recordRevision({
+      contentType: "resume",
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_resume",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, version: updated.version },
+    });
 
     return updated;
-  }, "Failed to update resume metadata");
+  }, "Failed to update resume record");
 }
 
-export async function deleteAdminResume(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminResume(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("resumes").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.resumes.findIndex((r) => r.id === id || r._id === id);
+    if (idx === -1) return false;
 
-    const resumeData = snap.data();
-    if (resumeData?.storagePath || resumeData?.storageUrl) {
-      await deleteFileFromStorage(resumeData.storagePath || resumeData.storageUrl);
+    const existing = store.resumes[idx];
+    if (existing.storageUrl) {
+      try {
+        await deleteBlob(existing.storageUrl);
+      } catch (err) {
+        console.error("Failed to delete blob from storage:", err);
+      }
     }
 
-    await ref.delete();
-    await recordRevision("resume", id, resumeData || null, {}, author, "delete");
-    await logAdminActivity("resume_delete", "media", "success", author, { filename: resumeData?.filename });
+    store.resumes.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("resumes").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "resume",
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_resume",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, filename: existing.filename },
+    });
+
     return true;
-  }, "Failed to delete resume");
+  }, "Failed to delete resume record");
 }
 
-// ---------------------------------------------------------------------------
-// 12. Media Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 12. MEDIA
+// -----------------------------------------------------------------------------
 
 export async function getAdminMedia(): Promise<MediaMetadataDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("media").orderBy("createdAt", "desc").get();
-    return snap.docs.map((doc: QueryDocumentSnapshot) => mapMediaFromDb(doc.data(), doc.id));
-  }, "Failed to retrieve media records");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("media").select("*").order("created_at", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data.map(mapMediaFromDb);
+      }
+    }
+    const store = getStore();
+    return store.media;
+  }, "Failed to retrieve media library");
 }
 
 export async function createAdminMedia(
-  data: Omit<MediaMetadataDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<MediaMetadataDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<MediaMetadataDocument> {
   return withDatabaseErrorHandling(async () => {
-    const id = `media_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const payload = {
-      ...mapMediaToDb(data),
+    const store = getStore();
+    const id = generateId("med");
+    const now = new Date();
+
+    const doc: MediaMetadataDocument = {
+      ...data,
       id,
       _id: id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
+    store.media.unshift(doc);
 
-    await adminDb.collection("media").doc(id).set(payload);
-    const created = mapMediaFromDb(payload, id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapMediaToDb(doc);
+      await supabase.from("media").insert({ id, ...dbPayload });
+    }
 
-    await recordRevision("media", id, null, payload, author, "create");
-    await logAdminActivity("media_create", "media", "success", author, { filename: data.filename, category: data.category });
+    await logAdminActivity({
+      event: "upload_media",
+      category: "media",
+      status: "success",
+      actor,
+      details: { id, filename: doc.filename, mimeType: doc.mimeType },
+    });
 
-    return created;
-  }, "Failed to create media record");
+    return doc;
+  }, "Failed to create media metadata");
 }
 
 export async function createAdminMediaWithAssociation(
-  data: Omit<MediaMetadataDocument, "id" | "_id" | "createdAt" | "updatedAt">,
-  author: string = "admin"
+  data: Omit<MediaMetadataDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<MediaMetadataDocument> {
-  return createAdminMedia(data, author);
+  return await createAdminMedia(data, actor);
 }
 
-export async function deleteAdminMedia(id: string, author: string = "admin"): Promise<boolean> {
+export async function deleteAdminMedia(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("media").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.media.findIndex((m) => m.id === id || m._id === id);
+    if (idx === -1) return false;
 
-    const mediaData = snap.data();
-    if (mediaData?.storagePath || mediaData?.storageUrl) {
-      await deleteFileFromStorage(mediaData.storagePath || mediaData.storageUrl);
+    const existing = store.media[idx];
+    if (existing.storageKey) {
+      try {
+        await deleteBlob(existing.storageKey);
+      } catch (err) {
+        console.error("Failed to delete blob from Vercel storage:", err);
+      }
     }
 
-    await ref.delete();
-    await recordRevision("media", id, mediaData || null, {}, author, "delete");
-    await logAdminActivity("media_delete", "media", "success", author, { filename: mediaData?.filename });
+    store.media.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("media").delete().eq("id", id);
+    }
+
+    await logAdminActivity({
+      event: "delete_media",
+      category: "media",
+      status: "success",
+      actor,
+      details: { id, filename: existing.filename },
+    });
+
     return true;
-  }, "Failed to delete media record");
+  }, "Failed to delete media asset");
 }
 
-// ---------------------------------------------------------------------------
-// 13. SEO Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 13. SEO METADATA
+// -----------------------------------------------------------------------------
 
-export async function getAdminSeo(): Promise<SeoMetadataDocument> {
+export async function getAdminSeo(): Promise<SeoMetadataDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("seo").doc("seo_root").get();
-    if (snap.exists) {
-      return mapSeoFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("seo").select("*").limit(1).maybeSingle();
+      if (!error && data) {
+        return mapSeoFromDb(data);
+      }
     }
-    return mapSeoFromDb({}, "seo_root");
-  }, "Failed to retrieve SEO metadata");
+    const store = getStore();
+    return store.seo || null;
+  }, "Failed to retrieve SEO configuration");
 }
 
 export async function updateAdminSeo(
-  data: Partial<SeoMetadataDocument>,
-  author: string = "admin"
+  data: Omit<SeoMetadataDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<SeoMetadataDocument> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("seo").doc("seo_root");
-    const prevSnap = await ref.get();
-    const prevData = prevSnap.exists ? prevSnap.data() : null;
+    const store = getStore();
+    const existing = store.seo;
+    const now = new Date();
 
-    const payload = mapSeoToDb(data);
-    await ref.set(payload, { merge: true });
+    const updated: SeoMetadataDocument = {
+      ...existing,
+      ...data,
+      id: existing?.id || "seo_root",
+      _id: existing?._id || "seo_root",
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+    };
+    store.seo = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapSeoFromDb(updatedSnap.data(), updatedSnap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapSeoToDb(updated);
+      await supabase.from("seo").upsert({ id: updated.id, ...dbPayload });
+    }
 
-    await recordRevision("seo", "seo_root", prevData, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("seo_update", "content", "success", author, { title: updated.title });
+    await recordRevision({
+      contentType: "seo",
+      contentId: updated.id!,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_seo",
+      category: "content",
+      status: "success",
+      actor,
+      details: { fields: Object.keys(data) },
+    });
 
     return updated;
-  }, "Failed to update SEO metadata");
+  }, "Failed to update SEO configuration");
 }
 
-// ---------------------------------------------------------------------------
-// 14. Site Content Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 14. SITE CONTENT
+// -----------------------------------------------------------------------------
 
-export async function getAdminSiteContent(): Promise<SiteContentDocument> {
+export async function getAdminSiteContent(): Promise<SiteContentDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("siteContent").doc("site_content_root").get();
-    if (snap.exists) {
-      return mapSiteContentFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase.from("site_content").select("*").limit(1).maybeSingle();
+      if (!error && data) {
+        return mapSiteContentFromDb(data);
+      }
     }
-    return mapSiteContentFromDb({}, "site_content_root");
-  }, "Failed to retrieve site content");
+    const store = getStore();
+    return store.siteContent || null;
+  }, "Failed to retrieve site content elements");
 }
 
 export async function updateAdminSiteContent(
-  data: Partial<SiteContentDocument>,
-  author: string = "admin"
+  data: Omit<SiteContentDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
 ): Promise<SiteContentDocument> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("siteContent").doc("site_content_root");
-    const prevSnap = await ref.get();
-    const prevData = prevSnap.exists ? prevSnap.data() : null;
+    const store = getStore();
+    const existing = store.siteContent;
+    const now = new Date();
 
-    const payload = mapSiteContentToDb(data);
-    await ref.set(payload, { merge: true });
+    const updated: SiteContentDocument = {
+      ...existing,
+      ...data,
+      id: existing?.id || "site_content_root",
+      _id: existing?._id || "site_content_root",
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+    };
+    store.siteContent = updated;
 
-    const updatedSnap = await ref.get();
-    const updated = mapSiteContentFromDb(updatedSnap.data(), updatedSnap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapSiteContentToDb(updated);
+      await supabase.from("site_content").upsert({ id: updated.id, ...dbPayload });
+    }
 
-    await recordRevision("siteContent", "site_content_root", prevData, updatedSnap.data() || {}, author, "update");
-    await logAdminActivity("site_content_update", "content", "success", author, { updatedFields: Object.keys(data) });
+    await recordRevision({
+      contentType: "site_content",
+      contentId: updated.id!,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_site_content",
+      category: "content",
+      status: "success",
+      actor,
+      details: { fields: Object.keys(data) },
+    });
 
     return updated;
   }, "Failed to update site content");
 }
 
-// ---------------------------------------------------------------------------
-// 15. Contact Messages Domain
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 15. CONTACT MESSAGES
+// -----------------------------------------------------------------------------
 
-export async function getAdminContactMessages(
-  params?: PaginationParams & { status?: "unread" | "read" | "archived" }
-): Promise<PaginatedResult<ContactMessageDocument>> {
+export async function getAdminContactMessages(options?: {
+  status?: ContactMessageDocument["status"];
+  page?: number;
+  limit?: number;
+}): Promise<PaginatedResult<ContactMessageDocument>> {
   return withDatabaseErrorHandling(async () => {
-    const { page, limit, offset } = sanitizePagination(params);
-
-    let query: Query = adminDb.collection("contactMessages");
-    if (params?.status) {
-      query = query.where("status", "==", params.status);
+    const { page, limit, skip } = sanitizePagination(options);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase.from("contact_messages").select("*", { count: "exact" }).order("created_at", { ascending: false });
+      if (options?.status) {
+        query = query.eq("status", options.status);
+      }
+      query = query.range(skip, skip + limit - 1);
+      const { data, count, error } = await query;
+      if (!error && data) {
+        const total = count ?? data.length;
+        return {
+          items: data.map(mapContactMessageFromDb),
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit) || 1,
+        };
+      }
     }
 
-    const countSnap = await query.count().get();
-    const total = countSnap.data().count;
+    const store = getStore();
+    let filtered = [...store.contactMessages];
+    if (options?.status) {
+      filtered = filtered.filter((m) => m.status === options.status);
+    }
+    const total = filtered.length;
+    const items = filtered.slice(skip, skip + limit);
 
-    const snap = await query.orderBy("createdAt", "desc").offset(offset).limit(limit).get();
-    const items = snap.docs.map((doc: QueryDocumentSnapshot) => mapContactMessageFromDb(doc.data(), doc.id));
-    const totalPages = Math.ceil(total / limit) || 1;
-
-    return { items, total, page, limit, totalPages };
-  }, "Failed to retrieve contact messages");
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }, "Failed to retrieve contact inquiries");
 }
 
 export async function updateContactMessageStatus(
   id: string,
-  actionOrStatus: "unread" | "read" | "archived" | "archive" | "mark-read" | "mark-unread",
-  actor: string = "admin"
+  action: "mark-read" | "mark-unread" | "archive",
+  actor: string
 ): Promise<ContactMessageDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("contactMessages").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return null;
+    const store = getStore();
+    const msg = store.contactMessages.find((m) => m.id === id || m._id === id);
+    if (!msg) return null;
 
-    let status: "unread" | "read" | "archived" = "unread";
-    if (actionOrStatus === "archive" || actionOrStatus === "archived") status = "archived";
-    else if (actionOrStatus === "mark-read" || actionOrStatus === "read") status = "read";
-    else if (actionOrStatus === "mark-unread" || actionOrStatus === "unread") status = "unread";
+    const now = new Date();
+    const dbUpdate: Record<string, unknown> = {};
 
-    const updateData: Record<string, unknown> = {
-      status,
-      updatedAt: new Date(),
-    };
-    if (status === "read") updateData.readAt = new Date();
-    if (status === "archived") updateData.archivedAt = new Date();
+    if (action === "mark-read") {
+      msg.status = "read";
+      msg.readAt = now;
+      dbUpdate.status = "read";
+      dbUpdate.read_at = now.toISOString();
+    } else if (action === "mark-unread") {
+      msg.status = "unread";
+      msg.readAt = undefined;
+      dbUpdate.status = "unread";
+      dbUpdate.read_at = null;
+    } else if (action === "archive") {
+      msg.status = "archived";
+      msg.archivedAt = now;
+      dbUpdate.status = "archived";
+      dbUpdate.archived_at = now.toISOString();
+    }
 
-    await ref.update(updateData);
-    const updatedSnap = await ref.get();
-    const updated = mapContactMessageFromDb(updatedSnap.data(), id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("contact_messages").update(dbUpdate).eq("id", id);
+    }
 
-    await logAdminActivity("message_status_update", "content", "success", actor, { messageId: id, status });
-    return updated;
+    await logAdminActivity({
+      event: `message_${action}`,
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, sender: msg.name, action },
+    });
+
+    return msg;
   }, "Failed to update contact message status");
 }
 
-export async function deleteContactMessage(id: string, actor: string = "admin"): Promise<boolean> {
+export async function deleteContactMessage(id: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const ref = adminDb.collection("contactMessages").doc(id);
-    const snap = await ref.get();
-    if (!snap.exists) return false;
+    const store = getStore();
+    const idx = store.contactMessages.findIndex((m) => m.id === id || m._id === id);
+    if (idx === -1) return false;
 
-    await ref.delete();
-    await logAdminActivity("message_delete", "content", "success", actor, { messageId: id });
+    const existing = store.contactMessages[idx];
+    store.contactMessages.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("contact_messages").delete().eq("id", id);
+    }
+
+    await logAdminActivity({
+      event: "delete_contact_message",
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, sender: existing.name },
+    });
+
     return true;
   }, "Failed to delete contact message");
 }
 
-// ---------------------------------------------------------------------------
-// 16. Revisions Domain
-// ---------------------------------------------------------------------------
+export const updateAdminContactMessageStatus = updateContactMessageStatus;
+export const deleteAdminContactMessage = deleteContactMessage;
+
+// -----------------------------------------------------------------------------
+// 16. REVISIONS & RESTORATION
+// -----------------------------------------------------------------------------
 
 export async function getAdminRevisions(
   contentId?: string,
-  params?: PaginationParams
+  options?: PaginationParams
 ): Promise<PaginatedResult<RevisionDocument>> {
   return withDatabaseErrorHandling(async () => {
-    const { page, limit, offset } = sanitizePagination(params);
+    const { page, limit, skip } = sanitizePagination(options);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase.from("revisions").select("*", { count: "exact" }).order("timestamp", { ascending: false });
+      if (contentId) {
+        query = query.eq("content_id", contentId);
+      }
+      query = query.range(skip, skip + limit - 1);
+      const { data, count, error } = await query;
+      if (!error && data) {
+        const total = count ?? data.length;
+        return {
+          items: data.map(mapRevisionFromDb),
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit) || 1,
+        };
+      }
+    }
 
-    let query: Query = adminDb.collection("revisions");
+    const store = getStore();
+    let filtered = [...store.revisions];
     if (contentId) {
-      query = query.where("contentId", "==", contentId);
+      filtered = filtered.filter((r) => r.contentId === contentId);
     }
 
-    const countSnap = await query.count().get();
-    const total = countSnap.data().count;
+    const total = filtered.length;
+    const items = filtered.slice(skip, skip + limit);
 
-    const snap = await query.orderBy("timestamp", "desc").offset(offset).limit(limit).get();
-    const items = snap.docs.map((doc: QueryDocumentSnapshot) => mapRevisionFromDb(doc.data(), doc.id));
-    const totalPages = Math.ceil(total / limit) || 1;
-
-    return { items, total, page, limit, totalPages };
-  }, "Failed to retrieve revisions");
-}
-
-export async function restoreRevision(
-  revisionId: string,
-  author: string = "admin"
-): Promise<void> {
-  return withDatabaseErrorHandling(async () => {
-    const revRef = adminDb.collection("revisions").doc(revisionId);
-    const revSnap = await revRef.get();
-    if (!revSnap.exists) throw new Error("Revision not found");
-
-    const rev = revSnap.data() as RevisionDocument;
-    if (!rev.previousState) {
-      throw new Error("Cannot restore revision: previous state is empty");
-    }
-
-    const collectionMap: Record<string, string> = {
-      profile: "profiles",
-      hero: "hero",
-      about: "about",
-      skill: "skills",
-      experience: "experience",
-      project: "projects",
-      achievement: "achievements",
-      certification: "certifications",
-      metric: "metrics",
-      contactSettings: "contactSettings",
-      seo: "seo",
-      siteContent: "siteContent",
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
     };
-
-    const collectionName = collectionMap[rev.contentType];
-    if (!collectionName) {
-      throw new Error(`Unsupported entity for revision restoration: ${rev.contentType}`);
-    }
-
-    const targetRef = adminDb.collection(collectionName).doc(rev.contentId);
-    const currentSnap = await targetRef.get();
-    const currentState = currentSnap.exists ? currentSnap.data() : null;
-
-    // Restore previous state
-    await targetRef.set(rev.previousState, { merge: false });
-
-    // Record revision for the restore action
-    await recordRevision(
-      rev.contentType,
-      rev.contentId,
-      currentState,
-      rev.previousState,
-      author,
-      "update"
-    );
-
-    await logAdminActivity(
-      "revision_restore",
-      "content",
-      "success",
-      author,
-      { restoredFromRevisionId: revisionId, contentType: rev.contentType, contentId: rev.contentId }
-    );
-  }, `Failed to restore revision ${revisionId}`);
+  }, "Failed to retrieve document revisions");
 }
 
-// ---------------------------------------------------------------------------
-// 17. Activity Logs Domain
-// ---------------------------------------------------------------------------
-
-export async function getAdminActivityLogs(
-  params?: PaginationParams & { category?: string }
-): Promise<PaginatedResult<ActivityLogDocument>> {
+export async function restoreRevision(revisionId: string, actor: string): Promise<boolean> {
   return withDatabaseErrorHandling(async () => {
-    const { page, limit, offset } = sanitizePagination(params);
-
-    let query: Query = adminDb.collection("activityLogs");
-    if (params?.category) {
-      query = query.where("category", "==", params.category);
+    const store = getStore();
+    const revision = store.revisions.find((r) => r.id === revisionId || r._id === revisionId);
+    if (!revision) {
+      throw new Error("Revision record not found");
     }
 
-    const countSnap = await query.count().get();
-    const total = countSnap.data().count;
+    const stateToRestore = revision.previousState || revision.newState;
+    if (!stateToRestore) {
+      throw new Error("Revision does not contain valid state data to restore");
+    }
 
-    const snap = await query.orderBy("timestamp", "desc").offset(offset).limit(limit).get();
-    const items = snap.docs.map((doc: QueryDocumentSnapshot) => mapActivityLogFromDb(doc.data(), doc.id));
-    const totalPages = Math.ceil(total / limit) || 1;
+    const cleanState = { ...stateToRestore };
+    delete cleanState._id;
+    delete cleanState.id;
+    delete cleanState.createdAt;
+    cleanState.updatedAt = new Date();
 
-    return { items, total, page, limit, totalPages };
-  }, "Failed to retrieve activity logs");
+    switch (revision.contentType) {
+      case "profile":
+        Object.assign(store.profile, cleanState);
+        break;
+      case "hero":
+        Object.assign(store.hero, cleanState);
+        break;
+      case "about":
+        Object.assign(store.about, cleanState);
+        break;
+      case "skill": {
+        const item = store.skills.find((s) => s.id === revision.contentId || s._id === revision.contentId);
+        if (item) Object.assign(item, cleanState);
+        break;
+      }
+      case "experience": {
+        const item = store.experience.find((e) => e.id === revision.contentId || e._id === revision.contentId);
+        if (item) Object.assign(item, cleanState);
+        break;
+      }
+      case "project": {
+        const item = store.projects.find((p) => p.id === revision.contentId || p._id === revision.contentId);
+        if (item) Object.assign(item, cleanState);
+        break;
+      }
+      case "achievement": {
+        const item = store.achievements.find((a) => a.id === revision.contentId || a._id === revision.contentId);
+        if (item) Object.assign(item, cleanState);
+        break;
+      }
+      case "certification": {
+        const item = store.certifications.find((c) => c.id === revision.contentId || c._id === revision.contentId);
+        if (item) Object.assign(item, cleanState);
+        break;
+      }
+      case "metric": {
+        const item = store.metrics.find((m) => m.id === revision.contentId || m._id === revision.contentId);
+        if (item) Object.assign(item, cleanState);
+        break;
+      }
+      case "contact_settings":
+        Object.assign(store.contactSettings, cleanState);
+        break;
+      case "seo":
+        Object.assign(store.seo, cleanState);
+        break;
+      case "site_content":
+        Object.assign(store.siteContent, cleanState);
+        break;
+      default:
+        throw new Error(`Unsupported content type for revision restoration: ${revision.contentType}`);
+    }
+
+    await recordRevision({
+      contentType: revision.contentType,
+      contentId: revision.contentId,
+      action: "update",
+      newState: cleanState,
+      actor,
+    });
+    await logAdminActivity({
+      event: "restore_revision",
+      category: "content",
+      status: "success",
+      actor,
+      details: { revisionId, contentType: revision.contentType, contentId: revision.contentId },
+    });
+
+    return true;
+  }, "Failed to restore content revision");
+}
+
+// -----------------------------------------------------------------------------
+// 17. ACTIVITY AUDIT LOGS
+// -----------------------------------------------------------------------------
+
+export async function getAdminActivityLogs(options?: {
+  page?: number;
+  limit?: number;
+  category?: ActivityLogDocument["category"];
+}): Promise<PaginatedResult<ActivityLogDocument>> {
+  return withDatabaseErrorHandling(async () => {
+    const { page, limit, skip } = sanitizePagination(options);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase.from("activity_logs").select("*", { count: "exact" }).order("timestamp", { ascending: false });
+      if (options?.category) {
+        query = query.eq("category", options.category);
+      }
+      query = query.range(skip, skip + limit - 1);
+      const { data, count, error } = await query;
+      if (!error && data) {
+        const total = count ?? data.length;
+        return {
+          items: data.map(mapActivityLogFromDb),
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit) || 1,
+        };
+      }
+    }
+
+    const store = getStore();
+    let filtered = [...store.activityLogs];
+    if (options?.category) {
+      filtered = filtered.filter((a) => a.category === options.category);
+    }
+
+    const total = filtered.length;
+    const items = filtered.slice(skip, skip + limit);
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }, "Failed to retrieve activity audit logs");
 }

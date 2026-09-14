@@ -1,62 +1,34 @@
 import "server-only";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { verifyAdminSessionCookie, SESSION_COOKIE_NAME } from "@/lib/firebase/auth";
+import { headers } from "next/headers";
+import { auth, type Session, type User } from "./index";
 import { getSafeRedirectUrl } from "./redirects";
 import { assertResourceAccess } from "./authorization";
 
 export { assertResourceAccess };
 
-export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
-
-export interface AuthSession {
-  id: string;
-  userId: string;
-  expiresAt: Date;
-}
-
 export interface SessionContext {
-  session: AuthSession;
-  user: AuthUser;
+  session: Session;
+  user: User;
 }
 
 /**
- * Retrieves the authenticated administrator session from the incoming __session cookie.
- * Authoritatively verified by Firebase Admin SDK.
- * Safe for Server Components, Route Handlers, and Server Actions.
+ * Retrieves the current authenticated session from incoming request headers.
+ * Safe to call in Server Components, Route Handlers, and Server Actions.
+ *
+ * @returns SessionContext or null if unauthenticated.
  */
 export async function getServerSession(): Promise<SessionContext | null> {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    const reqHeaders = await headers();
+    const session = await auth.api.getSession({
+      headers: reqHeaders,
+    });
 
-    if (!sessionCookie) {
+    if (!session || !session.session || !session.user) {
       return null;
     }
 
-    const verified = await verifyAdminSessionCookie(sessionCookie);
-    if (!verified || !verified.admin) {
-      return null;
-    }
-
-    return {
-      session: {
-        id: verified.uid,
-        userId: verified.uid,
-        expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-      },
-      user: {
-        id: verified.uid,
-        email: verified.email || "admin@siddharthvarpe.com",
-        name: verified.name || "Admin",
-        role: "admin",
-      },
-    };
+    return session as unknown as SessionContext;
   } catch (error: unknown) {
     // Let Next.js dynamic rendering bailout pass through cleanly
     if (
@@ -69,7 +41,7 @@ export async function getServerSession(): Promise<SessionContext | null> {
     ) {
       throw error;
     }
-    console.error("[Firebase Auth Session Error]: Failed to retrieve server session:", error);
+    console.error("[Auth Server Session Error]: Failed to retrieve session", error);
     return null;
   }
 }
@@ -78,24 +50,27 @@ export async function getServerSession(): Promise<SessionContext | null> {
  * Server-side guard enforcing administrative authentication.
  *
  * BEHAVIOR:
- * - For Server Components: Redirects to /admin/login?returnTo=... when unauthenticated.
- * - For API Route Handlers (isApi: true): Returns null so caller can return a 401 JSON response.
+ * - For Server Components: Redirects to `/admin/login?returnTo=...` when unauthenticated.
+ * - For API Route Handlers (`isApi: true`): Returns null so caller can return a 401 JSON response.
+ *
+ * @param options Configuration options
+ * @returns SessionContext if authenticated; throws redirect for pages or returns null for APIs.
  */
 export async function requireAdminSession(options?: {
   isApi?: boolean;
   returnTo?: string;
 }): Promise<SessionContext | null> {
-  const session = await getServerSession();
+  const sessionContext = await getServerSession();
 
-  if (!session) {
+  if (!sessionContext) {
     if (options?.isApi) {
       return null;
     }
 
-    const safeReturn = getSafeRedirectUrl(options?.returnTo, "/admin");
-    const loginUrl = `/admin/login?returnTo=${encodeURIComponent(safeReturn)}`;
-    redirect(loginUrl);
+    const safeReturnTo = getSafeRedirectUrl(options?.returnTo, "/admin");
+    const { redirect } = await import("next/navigation");
+    redirect(`/admin/login?returnTo=${encodeURIComponent(safeReturnTo)}`);
   }
 
-  return session;
+  return sessionContext;
 }

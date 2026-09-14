@@ -1,14 +1,14 @@
 import "server-only";
 import { withDatabaseErrorHandling } from "../errors";
-import { adminDb } from "@/lib/firebase/admin";
-import type { Query, QueryDocumentSnapshot } from "firebase-admin/firestore";
+import { getStore } from "../store";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
 import {
   mapProfileFromDb,
   mapHeroFromDb,
   mapAboutFromDb,
   mapSkillFromDb,
-  mapExperienceFromDb,
   mapProjectFromDb,
+  mapExperienceFromDb,
   mapAchievementFromDb,
   mapCertificationFromDb,
   mapMetricFromDb,
@@ -28,298 +28,424 @@ import type {
   CertificationDocument,
   MetricDocument,
   ContactSettingsDocument,
+  ContactMessageDocument,
   ResumeMetadataDocument,
   SeoMetadataDocument,
   SiteContentDocument,
-  ContactMessageDocument,
-} from "@/types";
+} from "@/types/models";
 import crypto from "node:crypto";
 
+const MAX_PUBLIC_LIMIT = 50;
+
 /**
- * Fetch published author profile from Cloud Firestore.
+ * Fetch the public developer profile from Supabase PostgreSQL.
  */
 export async function getPublishedProfile(): Promise<ProfileDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("profiles").doc("profile_root").get();
-    if (snap.exists) {
-      return mapProfileFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[Supabase] getPublishedProfile query issue:", error.message);
+      } else if (data) {
+        return mapProfileFromDb(data);
+      }
     }
-    return null;
-  }, "Failed to retrieve author profile from Cloud Firestore");
+    const store = getStore();
+    return store.profile || null;
+  }, "Failed to retrieve public profile");
 }
 
 /**
- * Fetch published hero section content from Cloud Firestore.
+ * Fetch published hero section data from Supabase PostgreSQL.
  */
 export async function getPublishedHero(): Promise<HeroDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("hero").doc("hero_root").get();
-    if (snap.exists) {
-      const data = snap.data();
-      if (data?.status === "published" || !data?.status) {
-        return mapHeroFromDb(data, snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("heroes")
+        .select("*")
+        .eq("status", "published")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[Supabase] getPublishedHero query issue:", error.message);
+      } else if (data) {
+        return mapHeroFromDb(data);
       }
     }
-    return null;
-  }, "Failed to retrieve hero section from Cloud Firestore");
+    const store = getStore();
+    if (store.hero && store.hero.status === "published") {
+      return store.hero;
+    }
+    return store.hero || null;
+  }, "Failed to retrieve hero section");
 }
 
 /**
- * Fetch published about section content from Cloud Firestore.
+ * Fetch published about section data from Supabase PostgreSQL.
  */
 export async function getPublishedAbout(): Promise<AboutDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("about").doc("about_root").get();
-    if (snap.exists) {
-      const data = snap.data();
-      if (data?.status === "published" || !data?.status) {
-        return mapAboutFromDb(data, snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("abouts")
+        .select("*")
+        .eq("status", "published")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[Supabase] getPublishedAbout query issue:", error.message);
+      } else if (data) {
+        return mapAboutFromDb(data);
       }
     }
-    return null;
-  }, "Failed to retrieve about content from Cloud Firestore");
+    const store = getStore();
+    if (store.about && store.about.status === "published") {
+      return store.about;
+    }
+    return store.about || null;
+  }, "Failed to retrieve about section");
 }
 
 /**
- * Fetch published skills sorted by order ascending from Cloud Firestore.
+ * Fetch published skills sorted by order ascending from Supabase PostgreSQL.
  */
-export async function getPublishedSkills(options?: {
-  category?: SkillDocument["category"];
-  featuredOnly?: boolean;
-}): Promise<SkillDocument[]> {
+export async function getPublishedSkills(
+  category?: SkillDocument["category"]
+): Promise<SkillDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    let query: Query = adminDb.collection("skills").where("status", "==", "published");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase
+        .from("skills")
+        .select("*")
+        .eq("status", "published")
+        .order("order", { ascending: true });
 
-    if (options?.category) {
-      query = query.where("category", "==", options.category);
+      if (category) {
+        query = query.eq("category", category);
+      }
+      const { data, error } = await query;
+      if (error) {
+        console.warn("[Supabase] getPublishedSkills query issue:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapSkillFromDb);
+      }
     }
-    if (options?.featuredOnly) {
-      query = query.where("featured", "==", true);
+    const store = getStore();
+    let items = store.skills.filter((s) => s.status === "published");
+    if (category) {
+      items = items.filter((s) => s.category === category);
     }
-
-    try {
-      const snap = await query.orderBy("order", "asc").get();
-      return snap.docs.map((doc: QueryDocumentSnapshot) => mapSkillFromDb(doc.data(), doc.id));
-    } catch {
-      const snap = await query.get();
-      const items: SkillDocument[] = snap.docs.map((doc: QueryDocumentSnapshot) => mapSkillFromDb(doc.data(), doc.id));
-      return items.sort((a: SkillDocument, b: SkillDocument) => (a.order ?? 0) - (b.order ?? 0));
-    }
-  }, "Failed to retrieve published skills from Cloud Firestore");
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, "Failed to retrieve published skills");
 }
 
 /**
- * Fetch published projects sorted by order ascending from Cloud Firestore.
+ * Fetch published projects with optional featured filter and bounded limit from Supabase PostgreSQL.
  */
 export async function getPublishedProjects(options?: {
   featuredOnly?: boolean;
   limit?: number;
 }): Promise<ProjectDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    let query: Query = adminDb.collection("projects").where("status", "==", "published");
+    const safeLimit = Math.min(Math.max(1, options?.limit ?? MAX_PUBLIC_LIMIT), MAX_PUBLIC_LIMIT);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase
+        .from("projects")
+        .select("*")
+        .eq("status", "published")
+        .order("order", { ascending: true });
 
+      if (options?.featuredOnly) {
+        query = query.eq("featured", true);
+      }
+      query = query.limit(safeLimit);
+      const { data, error } = await query;
+      if (error) {
+        console.warn("[Supabase] getPublishedProjects query issue:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapProjectFromDb);
+      }
+    }
+    const store = getStore();
+    let items = store.projects.filter((p) => p.status === "published");
     if (options?.featuredOnly) {
-      query = query.where("featured", "==", true);
+      items = items.filter((p) => p.featured === true);
     }
-
-    try {
-      query = query.orderBy("order", "asc");
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
-      const snap = await query.get();
-      return snap.docs.map((doc: QueryDocumentSnapshot) => mapProjectFromDb(doc.data(), doc.id));
-    } catch {
-      const snap = await query.get();
-      let items: ProjectDocument[] = snap.docs.map((doc: QueryDocumentSnapshot) => mapProjectFromDb(doc.data(), doc.id));
-      items.sort((a: ProjectDocument, b: ProjectDocument) => (a.order ?? 0) - (b.order ?? 0));
-      if (options?.limit) {
-        items = items.slice(0, options.limit);
-      }
-      return items;
-    }
-  }, "Failed to retrieve published projects from Cloud Firestore");
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).slice(0, safeLimit);
+  }, "Failed to retrieve published projects");
 }
 
 /**
- * Fetch a single published project by its unique URL slug from Cloud Firestore.
+ * Fetch a single published project by its unique slug from Supabase PostgreSQL.
  */
 export async function getPublishedProjectBySlug(slug: string): Promise<ProjectDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    if (!slug) return null;
-    const snap = await adminDb
-      .collection("projects")
-      .where("slug", "==", slug)
-      .where("status", "==", "published")
-      .limit(1)
-      .get();
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("slug", slug)
+        .eq("status", "published")
+        .limit(1)
+        .maybeSingle();
 
-    if (snap.empty) {
-      return null;
+      if (error) {
+        console.warn("[Supabase] getPublishedProjectBySlug query issue:", error.message);
+      } else if (data) {
+        return mapProjectFromDb(data);
+      }
     }
-    const doc = snap.docs[0];
-    return mapProjectFromDb(doc.data(), doc.id);
-  }, `Failed to retrieve project by slug: ${slug} from Cloud Firestore`);
+    const store = getStore();
+    const item = store.projects.find((p) => p.slug === slug && p.status === "published");
+    return item || null;
+  }, "Failed to retrieve project details");
 }
 
 /**
- * Fetch published experience records sorted by order ascending from Cloud Firestore.
+ * Fetch published experience timeline items sorted by order ascending from Supabase PostgreSQL.
  */
 export async function getPublishedExperience(): Promise<ExperienceDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    try {
-      const snap = await adminDb
-        .collection("experience")
-        .where("status", "==", "published")
-        .orderBy("order", "asc")
-        .get();
-      return snap.docs.map((doc: QueryDocumentSnapshot) => mapExperienceFromDb(doc.data(), doc.id));
-    } catch {
-      const snap = await adminDb
-        .collection("experience")
-        .where("status", "==", "published")
-        .get();
-      const items: ExperienceDocument[] = snap.docs.map((doc: QueryDocumentSnapshot) => mapExperienceFromDb(doc.data(), doc.id));
-      return items.sort((a: ExperienceDocument, b: ExperienceDocument) => (a.order ?? 0) - (b.order ?? 0));
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("experiences")
+        .select("*")
+        .eq("status", "published")
+        .order("order", { ascending: true });
+
+      if (error) {
+        console.warn("[Supabase] getPublishedExperience query issue:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapExperienceFromDb);
+      }
     }
-  }, "Failed to retrieve published experience from Cloud Firestore");
+    const store = getStore();
+    return store.experience
+      .filter((e) => e.status === "published")
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, "Failed to retrieve published experience");
 }
 
 /**
- * Fetch published achievements sorted by order ascending from Cloud Firestore.
+ * Fetch published achievements sorted by order ascending from Supabase PostgreSQL.
  */
 export async function getPublishedAchievements(options?: {
   featuredOnly?: boolean;
 }): Promise<AchievementDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    let query: Query = adminDb.collection("achievements").where("status", "==", "published");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase
+        .from("achievements")
+        .select("*")
+        .eq("status", "published")
+        .order("order", { ascending: true });
 
+      if (options?.featuredOnly) {
+        query = query.eq("featured", true);
+      }
+      const { data, error } = await query;
+      if (error) {
+        console.warn("[Supabase] getPublishedAchievements query issue:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapAchievementFromDb);
+      }
+    }
+    const store = getStore();
+    let items = store.achievements.filter((a) => a.status === "published");
     if (options?.featuredOnly) {
-      query = query.where("featured", "==", true);
+      items = items.filter((a) => a.featured === true);
     }
-
-    try {
-      const snap = await query.orderBy("order", "asc").get();
-      return snap.docs.map((doc: QueryDocumentSnapshot) => mapAchievementFromDb(doc.data(), doc.id));
-    } catch {
-      const snap = await query.get();
-      const items: AchievementDocument[] = snap.docs.map((doc: QueryDocumentSnapshot) => mapAchievementFromDb(doc.data(), doc.id));
-      return items.sort((a: AchievementDocument, b: AchievementDocument) => (a.order ?? 0) - (b.order ?? 0));
-    }
-  }, "Failed to retrieve published achievements from Cloud Firestore");
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, "Failed to retrieve published achievements");
 }
 
 /**
- * Fetch published certifications sorted by order ascending from Cloud Firestore.
+ * Fetch published certifications sorted by order ascending from Supabase PostgreSQL.
  */
 export async function getPublishedCertifications(options?: {
   featuredOnly?: boolean;
 }): Promise<CertificationDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    let query: Query = adminDb.collection("certifications").where("status", "==", "published");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase
+        .from("certifications")
+        .select("*")
+        .eq("status", "published")
+        .order("order", { ascending: true });
 
+      if (options?.featuredOnly) {
+        query = query.eq("featured", true);
+      }
+      const { data, error } = await query;
+      if (error) {
+        console.warn("[Supabase] getPublishedCertifications query issue:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapCertificationFromDb);
+      }
+    }
+    const store = getStore();
+    let items = store.certifications.filter((c) => c.status === "published");
     if (options?.featuredOnly) {
-      query = query.where("featured", "==", true);
+      items = items.filter((c) => c.featured === true);
     }
-
-    try {
-      const snap = await query.orderBy("order", "asc").get();
-      return snap.docs.map((doc: QueryDocumentSnapshot) => mapCertificationFromDb(doc.data(), doc.id));
-    } catch {
-      const snap = await query.get();
-      const items: CertificationDocument[] = snap.docs.map((doc: QueryDocumentSnapshot) => mapCertificationFromDb(doc.data(), doc.id));
-      return items.sort((a: CertificationDocument, b: CertificationDocument) => (a.order ?? 0) - (b.order ?? 0));
-    }
-  }, "Failed to retrieve published certifications from Cloud Firestore");
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, "Failed to retrieve published certifications");
 }
 
 /**
- * Fetch published key metrics sorted by order ascending from Cloud Firestore.
+ * Fetch published key metrics sorted by order ascending from Supabase PostgreSQL.
  */
 export async function getPublishedMetrics(options?: {
   featuredOnly?: boolean;
 }): Promise<MetricDocument[]> {
   return withDatabaseErrorHandling(async () => {
-    let query: Query = adminDb.collection("metrics").where("status", "==", "published");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      let query = supabase
+        .from("metrics")
+        .select("*")
+        .eq("status", "published")
+        .order("order", { ascending: true });
 
+      if (options?.featuredOnly) {
+        query = query.eq("featured", true);
+      }
+      const { data, error } = await query;
+      if (error) {
+        console.warn("[Supabase] getPublishedMetrics query issue:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapMetricFromDb);
+      }
+    }
+    const store = getStore();
+    let items = store.metrics.filter((m) => m.status === "published");
     if (options?.featuredOnly) {
-      query = query.where("featured", "==", true);
+      items = items.filter((m) => m.featured === true);
     }
-
-    try {
-      const snap = await query.orderBy("order", "asc").get();
-      return snap.docs.map((doc: QueryDocumentSnapshot) => mapMetricFromDb(doc.data(), doc.id));
-    } catch {
-      const snap = await query.get();
-      const items: MetricDocument[] = snap.docs.map((doc: QueryDocumentSnapshot) => mapMetricFromDb(doc.data(), doc.id));
-      return items.sort((a: MetricDocument, b: MetricDocument) => (a.order ?? 0) - (b.order ?? 0));
-    }
-  }, "Failed to retrieve published metrics from Cloud Firestore");
+    return items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, "Failed to retrieve published metrics");
 }
 
 /**
- * Fetch public contact settings and social links from Cloud Firestore.
+ * Fetch public contact settings and social links from Supabase PostgreSQL.
  */
 export async function getPublishedContactSettings(): Promise<ContactSettingsDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("contactSettings").doc("contact_settings_root").get();
-    if (snap.exists) {
-      return mapContactSettingsFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("contact_settings")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[Supabase] getPublishedContactSettings query issue:", error.message);
+      } else if (data) {
+        return mapContactSettingsFromDb(data);
+      }
     }
-    return null;
-  }, "Failed to retrieve contact settings from Cloud Firestore");
+    const store = getStore();
+    return store.contactSettings || null;
+  }, "Failed to retrieve contact settings");
 }
 
 /**
- * Fetch current active resume metadata for download from Cloud Firestore.
+ * Fetch current active resume metadata for download from Supabase PostgreSQL.
  */
 export async function getActiveResume(): Promise<ResumeMetadataDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb
-      .collection("resumes")
-      .where("active", "==", true)
-      .where("archived", "==", false)
-      .where("downloadEnabled", "==", true)
-      .limit(1)
-      .get();
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("resumes")
+        .select("*")
+        .eq("active", true)
+        .eq("archived", false)
+        .eq("download_enabled", true)
+        .limit(1)
+        .maybeSingle();
 
-    if (snap.empty) {
-      return null;
+      if (error) {
+        console.warn("[Supabase] getActiveResume query issue:", error.message);
+      } else if (data) {
+        return mapResumeFromDb(data);
+      }
     }
-    const doc = snap.docs[0];
-    return mapResumeFromDb(doc.data(), doc.id);
-  }, "Failed to retrieve active resume from Cloud Firestore");
+    const store = getStore();
+    const resume = store.resumes.find((r) => r.active && !r.archived && r.downloadEnabled);
+    return resume || null;
+  }, "Failed to retrieve active resume");
 }
 
 /**
- * Fetch global SEO metadata from Cloud Firestore.
+ * Fetch global SEO metadata from Supabase PostgreSQL.
  */
 export async function getPublishedSeo(): Promise<SeoMetadataDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("seo").doc("seo_root").get();
-    if (snap.exists) {
-      return mapSeoFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("seo")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[Supabase] getPublishedSeo query issue:", error.message);
+      } else if (data) {
+        return mapSeoFromDb(data);
+      }
     }
-    return null;
-  }, "Failed to retrieve SEO metadata from Cloud Firestore");
+    const store = getStore();
+    return store.seo || null;
+  }, "Failed to retrieve SEO metadata");
 }
 
 /**
- * Fetch site content elements (footer, global CTA, microcopy) from Cloud Firestore.
+ * Fetch site content elements (footer, global CTA, microcopy) from Supabase PostgreSQL.
  */
 export async function getPublishedSiteContent(): Promise<SiteContentDocument | null> {
   return withDatabaseErrorHandling(async () => {
-    const snap = await adminDb.collection("siteContent").doc("site_content_root").get();
-    if (snap.exists) {
-      return mapSiteContentFromDb(snap.data(), snap.id);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("site_content")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn("[Supabase] getPublishedSiteContent query issue:", error.message);
+      } else if (data) {
+        return mapSiteContentFromDb(data);
+      }
     }
-    return null;
-  }, "Failed to retrieve site content from Cloud Firestore");
+    const store = getStore();
+    return store.siteContent || null;
+  }, "Failed to retrieve site content");
 }
 
 /**
- * Persist incoming contact message into Cloud Firestore.
- * CRITICAL RELIABILITY RULE: Firestore persistence happens BEFORE any email notification attempts.
+ * Persist incoming contact message into Supabase PostgreSQL.
+ * CRITICAL RELIABILITY RULE: Database persistence happens BEFORE any email notification attempts.
  */
 export async function saveContactMessage(data: {
   name: string;
@@ -354,14 +480,36 @@ export async function saveContactMessage(data: {
       newDoc.userAgent = data.userAgent.slice(0, 300);
     }
 
-    await adminDb.collection("contactMessages").doc(id).set(newDoc);
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = {
+        id,
+        name: newDoc.name,
+        email: newDoc.email,
+        subject: newDoc.subject || null,
+        message: newDoc.message,
+        status: newDoc.status,
+        email_delivery_status: newDoc.emailDeliveryStatus,
+        turnstile_verified: newDoc.turnstileVerified,
+        ip_hash: newDoc.ipHash || null,
+        user_agent: newDoc.userAgent || null,
+        created_at: now.toISOString(),
+      };
+      const { error } = await supabase.from("contact_messages").insert(dbPayload);
+      if (error) {
+        console.error("[Supabase Error] Failed to insert contact message:", error.message);
+      }
+    }
 
+    // Maintain in-memory sync
+    const store = getStore();
+    store.contactMessages.unshift(newDoc);
     return newDoc;
-  }, "Failed to save contact message to Cloud Firestore");
+  }, "Failed to save contact message to database");
 }
 
 /**
- * Record email delivery notification status for a stored contact message in Cloud Firestore.
+ * Record email delivery notification status for a stored contact message.
  * Never throws away or removes the stored message on delivery failure.
  */
 export async function updateContactMessageDelivery(
@@ -372,13 +520,24 @@ export async function updateContactMessageDelivery(
   }
 ): Promise<void> {
   return withDatabaseErrorHandling(async () => {
-    await adminDb
-      .collection("contactMessages")
-      .doc(id)
-      .update({
-        emailDeliveryStatus: delivery.status,
-        emailMessageId: delivery.messageId || null,
-        updatedAt: new Date(),
-      });
-  }, "Failed to update contact message delivery status in Cloud Firestore");
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase
+        .from("contact_messages")
+        .update({
+          email_delivery_status: delivery.status,
+          email_message_id: delivery.messageId || null,
+        })
+        .eq("id", id);
+    }
+
+    const store = getStore();
+    const msg = store.contactMessages.find((m) => m.id === id || m._id === id);
+    if (msg) {
+      msg.emailDeliveryStatus = delivery.status;
+      if (delivery.messageId) {
+        msg.emailMessageId = delivery.messageId;
+      }
+    }
+  }, "Failed to update contact message delivery status");
 }

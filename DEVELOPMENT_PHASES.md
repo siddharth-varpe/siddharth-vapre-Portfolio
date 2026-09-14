@@ -4,24 +4,19 @@
 
 **Project:** Premium Personal Portfolio  
 **Positioning:** Software Engineer | AI & Full-Stack  
-**Deployment:** Firebase App Hosting  
-**Architecture:** Next.js + TypeScript + Cloud Firestore + Firebase Authentication + Cloud Storage for Firebase + Firebase App Hosting  
+**Deployment:** Vercel  
+**Architecture:** Next.js + TypeScript + Supabase PostgreSQL (Migration from MongoDB Atlas underway) + approved services  
 **Development Model:** Phase-gated implementation
 
 ---
 
 > [!IMPORTANT]
-> **INFRASTRUCTURE & DATABASE ARCHITECTURE SPECIFICATION**
-> - **Active Infrastructure:** Firebase-centered production architecture.
-> - **Hosting:** Firebase App Hosting (dynamic Next.js full-stack runtime).
-> - **Database:** Cloud Firestore (sole persistent database).
-> - **Authentication:** Firebase Authentication with secure server-side session cookies (`__session`) and custom claim admin authorization.
-> - **Storage:** Cloud Storage for Firebase with strict security rules and controlled storage paths.
-> - **Privileged Operations:** Firebase Admin SDK (server-only singleton).
-> - **Abuse Protection:** Firebase App Check + Cloudflare Turnstile anti-spam verification.
-> - **Email Integration:** Firebase-compatible transactional email delivery with reliable Firestore pre-persistence.
-> - **Migration Status:** Complete — Supabase, MongoDB, Firebase Authentication, and Cloud Storage for Firebase completely removed from runtime and architecture.
-> - **Data Preservation:** 100% of authentic portfolio data has been preserved in `data/portfolio-seed-data.json`. No mock data.
+> **DATABASE ARCHITECTURE SPECIFICATION**
+> - **Active Database:** Supabase PostgreSQL (approved production database).
+> - **Migration Status:** Completed — MongoDB completely removed, Supabase PostgreSQL fully integrated with versioned migrations in `supabase/migrations/`, RLS enabled, Better Auth connected via PostgreSQL adapter, and repository layer wired with dual-mode runtime persistence.
+> - **Authentication Authority:** Better Auth remains the authoritative authentication engine. It is NOT replaced with Supabase Auth.
+> - **Data Preservation:** 100% of authentic portfolio data has been preserved in `data/portfolio-seed-data.json`. No data loss, no mock data.
+> - **Cloud State:** The remote MongoDB Atlas cluster and its data have NOT been deleted in the cloud.
 
 # 0. PURPOSE OF THIS DOCUMENT
 
@@ -315,7 +310,7 @@ Test early at:
 
 ## Objective
 
-Establish Cloud Firestore as the sole source of truth for dynamic portfolio content.
+Establish Supabase PostgreSQL as the source of truth for dynamic portfolio content.
 
 ## Technology
 
@@ -373,7 +368,7 @@ Secure the administrative system before building sensitive CMS functionality.
 
 ## Technology
 
-**Firebase Authentication**
+**Better Auth**
 
 ## Tasks
 
@@ -491,7 +486,7 @@ It must NOT execute arbitrary:
 ## Acceptance Criteria
 
 - admin can manage approved dynamic content
-- changes persist in Cloud Firestore
+- changes persist in MongoDB
 - public content can consume published data
 - draft content remains private
 - destructive operations are deliberate
@@ -508,7 +503,7 @@ Implement secure portfolio asset management.
 
 ## Technology
 
-**Cloud Storage for Firebase**
+**Vercel Blob**
 
 ## Media Types
 
@@ -763,7 +758,7 @@ Cloudflare Turnstile
  ↓
 Server-side Turnstile Verification
  ↓
-Cloud Firestore
+MongoDB Atlas
  ↓
 Resend
  ↓
@@ -772,7 +767,7 @@ User Email
 
 ## Reliability Rule
 
-**Cloud Firestore persistence happens before email notification.**
+**MongoDB persistence happens before email notification.**
 
 If Resend fails:
 
@@ -813,7 +808,7 @@ Test:
 
 A real production-style test submission must:
 
-1. reach Cloud Firestore
+1. reach MongoDB
 2. appear in Admin Messages
 3. trigger Resend notification
 4. reach the configured recipient
@@ -901,13 +896,14 @@ Implement:
 - structured data where useful
 - personal profile/Person metadata where appropriate
 
-## Analytics & Discoverability
+## Analytics
 
-Use approved Firebase architecture:
+Use approved:
 
-- Privacy-conscious Firebase Analytics with production browser initialization
-- Native Next.js App Router dynamic sitemap (`app/sitemap.ts`) and robots (`app/robots.ts`)
-- No legacy Vercel Analytics or Speed Insights
+- Vercel Analytics
+- Vercel Speed Insights
+
+Do not add another analytics provider without approval.
 
 ## Acceptance Criteria
 
@@ -1044,7 +1040,7 @@ Review:
 
 ## Objective
 
-Deploy the portfolio to Firebase App Hosting.
+Deploy the portfolio to Vercel.
 
 ## Pre-deployment Checklist
 
@@ -1053,7 +1049,7 @@ Deploy the portfolio to Firebase App Hosting.
 Configure production values for:
 
 ```text
-FIREBASE_PROJECT_ID
+MONGODB_URI
 BETTER_AUTH_SECRET
 RESEND_API_KEY
 CONTACT_EMAIL
@@ -1069,11 +1065,11 @@ Only intentionally public values may use `NEXT_PUBLIC_`.
 
 Verify:
 
-- Cloud Firestore connectivity
+- MongoDB Atlas connectivity
 - Vercel environment variables
 - Resend verified domain
 - Turnstile production configuration
-- Cloud Storage for Firebase
+- Vercel Blob
 - domain
 - HTTPS
 - production build
@@ -1137,7 +1133,7 @@ Perform an actual controlled test:
 Visitor submission
 → Turnstile
 → validation
-→ Cloud Firestore
+→ MongoDB
 → Resend
 → email inbox
 → Admin Messages
@@ -1378,7 +1374,7 @@ The project is complete only when:
 [ ] All approved public pages work
 [ ] Admin CMS works
 [ ] Authentication is secure
-[x] Cloud Firestore persistence works
+[ ] MongoDB persistence works
 [ ] Contact messages persist
 [ ] Contact emails reach the configured recipient
 [ ] Turnstile is server-validated

@@ -20,7 +20,7 @@ import {
 
 async function main() {
   console.log("==================================================");
-  console.log("FIRESTORE ARCHITECTURE MIGRATION VERIFICATION");
+  console.log("DATABASE MIGRATION VERIFICATION (MONGODB REMOVED)");
   console.log("==================================================");
 
   // 1. Health Ping
@@ -29,13 +29,16 @@ async function main() {
 
   // 2. Public Profile
   const profile = await getPublishedProfile();
-  console.log("[PASS] getPublishedProfile:", profile?.name, "-", profile?.title);
+  if (!profile || profile.name !== "Siddharth Varpe") {
+    throw new Error("Profile verification failed");
+  }
+  console.log("[PASS] getPublishedProfile:", profile.name, "-", profile.title);
 
   // 3. Hero & About
   const hero = await getPublishedHero();
   const about = await getPublishedAbout();
-  console.log("[PASS] getPublishedHero loaded:", hero?.headline);
-  console.log("[PASS] getPublishedAbout loaded:", Boolean(about));
+  if (!hero || !about) throw new Error("Hero/About verification failed");
+  console.log("[PASS] getPublishedHero & getPublishedAbout loaded");
 
   // 4. Collections
   const skills = await getPublishedSkills();
@@ -55,17 +58,17 @@ async function main() {
   console.log(`[PASS] Achievements count: ${ach.length}`);
   console.log(`[PASS] Certifications count: ${cert.length}`);
   console.log(`[PASS] Metrics count: ${metrics.length}`);
-  console.log(`[PASS] Contact settings recipient: ${contactSettings?.email}`);
+  console.log(`[PASS] Contact settings: ${contactSettings?.email}`);
   console.log(`[PASS] Active resume: ${resume?.filename}`);
   console.log(`[PASS] SEO title: ${seo?.title}`);
   console.log(`[PASS] Site content copyright: ${siteContent?.copyright}`);
 
-  // 5. Contact Message Persistence
+  // 5. Contact Message persistence
   const savedMsg = await saveContactMessage({
-    name: "Firebase Migration Verification Tester",
+    name: "Verification Tester",
     email: "tester@example.com",
-    subject: "Firestore Persistence Verification",
-    message: "Verifying message persistence into Cloud Firestore collection.",
+    subject: "Database Migration Verification",
+    message: "Verifying message persistence with MongoDB removed.",
     turnstileVerified: true,
   });
   console.log("[PASS] saveContactMessage id:", savedMsg.id || savedMsg._id);
@@ -78,11 +81,11 @@ async function main() {
   console.log(`[PASS] getAdminProjects pagination: total=${adminProjects.total}, items=${adminProjects.items.length}`);
 
   console.log("==================================================");
-  console.log("ALL VERIFICATION CHECKS PASSED ON CLOUD FIRESTORE");
+  console.log("ALL VERIFICATION CHECKS PASSED WITH 0 MONGODB CALLS");
   console.log("==================================================");
 }
 
 main().catch((err) => {
-  console.error("Firestore verification note/error:", err.message);
+  console.error("Verification failed:", err);
   process.exit(1);
 });

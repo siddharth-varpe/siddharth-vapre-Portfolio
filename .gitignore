@@ -22,8 +22,9 @@
 .env*
 !.env.example
 
-# Vercel
+# Vercel & Firebase
 .vercel
+.firebase
 
 # TypeScript
 *.tsbuildinfo

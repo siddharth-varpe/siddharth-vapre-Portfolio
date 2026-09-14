@@ -8,14 +8,13 @@
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "db:seed": "tsx scripts/seed-firestore.ts",
-    "db:verify": "tsx scripts/verify-firestore-migration.ts"
+    "db:seed": "NODE_OPTIONS=--experimental-websocket tsx scripts/migrate-and-seed-supabase.ts"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^9.1.0",
-    "@google-cloud/storage": "^8.1.0",
-    "firebase": "^12.19.0",
-    "firebase-admin": "^13.10.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
+    "@vercel/blob": "^2.8.0",
+    "better-auth": "^1.7.2",
     "lucide-react": "^1.41.0",
     "motion": "^13.2.0",
     "next": "^15.2.0",

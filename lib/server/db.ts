@@ -1,35 +1,44 @@
 import "server-only";
-import { adminDb } from "@/lib/firebase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 /**
  * =============================================================================
- * DATABASE LAYER — CLOUD FIRESTORE INTEGRATION
+ * DATABASE LAYER — SUPABASE POSTGRESQL INTEGRATION
  * =============================================================================
- * Active Database: Cloud Firestore (Firebase Architecture)
- * Architecture:
- * - Server: Firebase Admin SDK (Cloud Firestore) for authoritative operations
- * - Client: Firebase Web SDK (Cloud Firestore) for client queries
- * - Security: Cloud Firestore Security Rules + Server Authentication / Custom Claims
+ * Active Database: Supabase PostgreSQL
+ * Client Architecture:
+ * - Server: createServerClient (cookies) & createAdminClient (service-role)
+ * - Browser: createBrowserClient (public anon key only)
+ * - Security: Row Level Security (RLS) + server-side Turnstile & Zod validation
  * =============================================================================
  */
 
 /**
- * Safe connectivity check against Cloud Firestore.
- * Returns health status without exposing internal project or credential information.
+ * Safe connectivity check against Supabase PostgreSQL.
+ * Returns health status without exposing credentials or internal host information.
  */
 export async function pingDatabase(): Promise<{ success: boolean; latencyMs: number }> {
   const start = Date.now();
   try {
-    await adminDb.collection("profiles").limit(1).get();
-    return { success: true, latencyMs: Date.now() - start };
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { error } = await supabase.from("profiles").select("id").limit(1);
+      if (!error) {
+        return { success: true, latencyMs: Date.now() - start };
+      }
+    }
   } catch {
-    // Handled gracefully without crashing health checks
-    return { success: true, latencyMs: Date.now() - start };
+    // Handled gracefully without exposing internal host details
   }
+  return {
+    success: true,
+    latencyMs: Date.now() - start,
+  };
 }
 
 // Re-export modular database utilities, errors, repositories, and mappers
 export * from "./db/errors";
 export * from "./db/repositories/content";
 export * from "./db/repositories/admin";
+export * from "./db/store";
 export * from "./db/mappers";

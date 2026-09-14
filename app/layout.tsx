@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE_CONFIG, SITE_URL, generatePersonJsonLd, generateWebSiteJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
-import { FirebaseAnalytics } from "@/components/analytics/firebase-analytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +28,8 @@ export const metadata: Metadata = {
     "Next.js",
     "React",
     "TypeScript",
-    "Cloud Firestore",
-    "Firebase App Hosting",
+    "Supabase PostgreSQL",
+    "PostgreSQL",
     "Distributed Systems",
     "CRM Architecture",
     "Python",
@@ -97,7 +96,6 @@ export default function RootLayout({
         <JsonLd data={personSchema} />
       </head>
       <body className="min-h-screen bg-[#09090b] font-sans text-[#fafafa] antialiased selection:bg-accent/25 selection:text-accent">
-        <FirebaseAnalytics />
         {children}
       </body>
     </html>

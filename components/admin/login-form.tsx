@@ -4,7 +4,6 @@ import * as React from "react";
 import { Eye, EyeOff, Lock, User, AlertCircle, ShieldCheck } from "lucide-react";
 import { Input, Label } from "@/components/ui/form-controls";
 import { Button } from "@/components/ui/button";
-import { signIn } from "@/lib/client/auth";
 
 interface LoginFormProps {
   returnTo?: string;
@@ -30,7 +29,7 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
         window.history.replaceState({}, document.title, cleanUrl);
       }
     }
-  }, [username]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,21 +45,58 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
     setErrorMessage(null);
 
     try {
-      await signIn(cleanIdentifier, cleanPassword);
+      const isEmail = cleanIdentifier.includes("@");
+      const primaryEndpoint = isEmail
+        ? "/api/auth/sign-in/email"
+        : "/api/auth/sign-in/username";
+      const primaryPayload = isEmail
+        ? { email: cleanIdentifier.toLowerCase(), password: cleanPassword }
+        : { username: cleanIdentifier, password: cleanPassword };
+
+      let res = await fetch(primaryEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(primaryPayload),
+      });
+
+      // If primary endpoint rejected with 401 or 404, attempt alternate endpoint as a resilient fallback
+      if (!res.ok && (res.status === 401 || res.status === 404)) {
+        const fallbackEndpoint = isEmail
+          ? "/api/auth/sign-in/username"
+          : "/api/auth/sign-in/email";
+        const fallbackPayload = isEmail
+          ? { username: cleanIdentifier.split("@")[0], password: cleanPassword }
+          : { email: cleanIdentifier.includes("@") ? cleanIdentifier : `${cleanIdentifier}@siddharthvarpe.com`, password: cleanPassword };
+
+        const fallbackRes = await fetch(fallbackEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fallbackPayload),
+        });
+
+        if (fallbackRes.ok) {
+          res = fallbackRes;
+        }
+      }
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setErrorMessage("Too many login attempts. Please wait 60 seconds before trying again.");
+        } else if (res.status >= 500) {
+          setErrorMessage("Authentication server error. Please retry in a few moments.");
+        } else {
+          setErrorMessage("Invalid credentials. Please verify your username and password.");
+        }
+        setIsLoading(false);
+        return;
+      }
 
       // Hard redirect to admin dashboard ensures session cookies are recognized by Server Components
       const destination = returnTo && returnTo.startsWith("/admin") ? returnTo : "/admin";
       window.location.href = destination;
     } catch (err: unknown) {
       console.error("[Login submission error]:", err);
-      const msg = err instanceof Error ? err.message : "Authentication failed.";
-      if (msg.toLowerCase().includes("invalid-credential") || msg.toLowerCase().includes("user-not-found") || msg.toLowerCase().includes("wrong-password")) {
-        setErrorMessage("Invalid credentials. Please verify your email/username and password.");
-      } else if (msg.toLowerCase().includes("too-many-requests")) {
-        setErrorMessage("Too many login attempts. Please wait 60 seconds before trying again.");
-      } else {
-        setErrorMessage(msg || "An unexpected authentication error occurred. Please try again.");
-      }
+      setErrorMessage("An unexpected authentication error occurred. Please try again.");
       setIsLoading(false);
     }
   };
@@ -149,7 +185,7 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
       <div className="pt-2 text-center">
         <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-neutral-500">
           <ShieldCheck className="h-3.5 w-3.5 text-emerald-500/70" />
-          <span>Encrypted Session · Firebase Authentication</span>
+          <span>Encrypted Session · Better Auth v1.7</span>
         </div>
       </div>
     </form>
