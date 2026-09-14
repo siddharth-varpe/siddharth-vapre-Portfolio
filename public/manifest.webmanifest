@@ -1,0 +1,16 @@
+{
+  "name": "Siddharth Varpe | Software Engineer | AI & Full-Stack",
+  "short_name": "Siddharth Varpe",
+  "description": "Personal portfolio and proof-of-work platform for Siddharth Varpe — Full-Stack Software Engineer specializing in production-grade CRM and inventory systems, distributed architectures, and AI-assisted engineering.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}

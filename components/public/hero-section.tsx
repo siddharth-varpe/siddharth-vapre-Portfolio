@@ -328,7 +328,7 @@ export function HeroSection({
               </a>
 
               <a
-                href="https://github.com/Siddharth-Varpe"
+                href="https://github.com/siddharth-varpe"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub Profile"

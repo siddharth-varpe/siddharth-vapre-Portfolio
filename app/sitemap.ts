@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  *
  * Rules:
  * - Includes only verified, public, published portfolio routes.
- * - Dynamically queries published case studies from Cloud Firestore.
+ * - Dynamically queries published case studies from the database repository.
  * - Strictly excludes administrative (/admin/*), API (/api/*), and internal utility routes.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -82,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [...staticRoutes, ...projectRoutes];
   } catch (error) {
-    console.error("[Sitemap Generation Warning]: Failed to fetch published projects from Firestore:", error);
+    console.error("[Sitemap Generation Warning]: Failed to fetch published projects from database:", error);
     return staticRoutes;
   }
 }

@@ -1,4 +1,4 @@
-import { buildMetadata, generateBreadcrumbJsonLd } from "@/lib/seo";
+import { buildMetadata, generateBreadcrumbJsonLd, generateProfilePageJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import * as React from "react";
 import type { Metadata } from "next";
@@ -31,10 +31,12 @@ export default async function AboutPage() {
     getPublishedProfile(),
   ]);
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "About", path: "/about" }]);
+  const profilePageSchema = generateProfilePageJsonLd(profile);
 
   return (
     <div className="space-y-12 pb-20">
       <JsonLd data={breadcrumbs} />
+      <JsonLd data={profilePageSchema} />
       <PageIntro
         eyebrow="BIOGRAPHY & PHILOSOPHY"
         title="About Siddharth Varpe"

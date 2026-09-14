@@ -13,19 +13,21 @@ export const SITE_CONFIG = {
   email: "siddharth.varpe0@gmail.com",
   defaultImage: "/images/siddharth-hero.png",
   social: {
-    github: "https://github.com/siddharthvarpe0",
-    linkedin: "https://www.linkedin.com/in/siddharthvarpe",
+    github: "https://github.com/siddharth-varpe",
+    linkedin: "https://www.linkedin.com/in/siddharth-varpe",
   },
   skills: [
     "Next.js",
     "React",
     "TypeScript",
     "Python",
-    "Cloud Firestore",
+    "FastAPI",
+    "PostgreSQL",
+    "Supabase",
     "Node.js",
     "Distributed Systems",
     "AI-Assisted Engineering",
-    "Database Architecture",
+    "Prompt Engineering",
     "REST & Cloud Infrastructure",
   ],
 };
@@ -102,6 +104,8 @@ export function buildMetadata({
 
 /**
  * Generates schema.org Person structured data representing Siddharth Varpe.
+ * Incorporates entity disambiguation signals (geographic locality, occupation,
+ * education, employers, and canonical sameAs profiles).
  */
 export function generatePersonJsonLd(
   profile?: ProfileDocument | null,
@@ -112,6 +116,8 @@ export function generatePersonJsonLd(
     "@type": "Person",
     "@id": `${SITE_URL}/#person`,
     name: profile?.name || SITE_CONFIG.name,
+    givenName: "Siddharth",
+    familyName: "Varpe",
     jobTitle: profile?.title || SITE_CONFIG.headline,
     url: SITE_URL,
     email: `mailto:${profile?.email || SITE_CONFIG.email}`,
@@ -119,11 +125,34 @@ export function generatePersonJsonLd(
     image: profile?.photoUrl
       ? (profile.photoUrl.startsWith("http") ? profile.photoUrl : `${SITE_URL}${profile.photoUrl}`)
       : `${SITE_URL}${SITE_CONFIG.defaultImage}`,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Pune",
+      addressRegion: "Maharashtra",
+      addressCountry: "IN",
+    },
+    hasOccupation: {
+      "@type": "Occupation",
+      name: "Full-Stack Software Engineer",
+      occupationalCategory: "15-1252.00",
+      skills: SITE_CONFIG.skills.join(", "),
+    },
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
+      name: "Ajeenkya DY Patil University",
+    },
+    worksFor: {
+      "@type": "Organization",
+      name: "Opstech Solution Pvt. Ltd.",
+    },
     sameAs: Array.from(
       new Set(
         [
           SITE_CONFIG.social.github,
+          "https://github.com/siddharth-varpe",
           SITE_CONFIG.social.linkedin,
+          "https://www.linkedin.com/in/siddharth-varpe",
+          "https://www.linkedin.com/in/siddharthvarpe",
           contactSettings?.githubUrl,
           contactSettings?.linkedinUrl,
         ].filter((url): url is string => Boolean(url) && typeof url === "string")
@@ -152,6 +181,27 @@ export function generateWebSiteJsonLd() {
 }
 
 /**
+ * Generates schema.org ProfilePage structured data for the /about page.
+ * Explicitly links the page to the primary Person entity.
+ */
+export function generateProfilePageJsonLd(profile?: ProfileDocument | null) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "@id": `${SITE_URL}/about#profilepage`,
+    url: `${SITE_URL}/about`,
+    name: `About Siddharth Varpe | Software Engineer`,
+    isPartOf: {
+      "@id": `${SITE_URL}/#website`,
+    },
+    mainEntity: {
+      "@id": `${SITE_URL}/#person`,
+    },
+    description: profile?.summary || SITE_CONFIG.description,
+  };
+}
+
+/**
  * Generates schema.org BreadcrumbList structured data.
  */
 export function generateBreadcrumbJsonLd(items: { name: string; path: string }[]) {
@@ -176,7 +226,7 @@ export function generateBreadcrumbJsonLd(items: { name: string; path: string }[]
 }
 
 /**
- * Generates schema.org SoftwareApplication / TechArticle structured data for project case studies.
+ * Generates schema.org SoftwareApplication structured data for project case studies.
  */
 export function generateProjectJsonLd(project: ProjectDocument) {
   const projectUrl = `${SITE_URL}/projects/${project.slug}`;
@@ -189,18 +239,30 @@ export function generateProjectJsonLd(project: ProjectDocument) {
     "@type": "SoftwareApplication",
     "@id": `${projectUrl}#software`,
     name: project.title,
+    headline: project.title,
     description: project.shortDescription,
     applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
+    operatingSystem: "Web, Cloud",
     url: projectUrl,
     image: coverImageUrl,
     author: {
       "@type": "Person",
+      "@id": `${SITE_URL}/#person`,
       name: SITE_CONFIG.name,
       url: SITE_URL,
     },
+    publisher: {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#person`,
+      name: SITE_CONFIG.name,
+    },
     datePublished: project.year,
     keywords: project.technologies?.join(", ") || "",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
     ...(project.githubUrl ? { codeRepository: project.githubUrl } : {}),
   };
 }

@@ -85,7 +85,7 @@ export function PublicFooter() {
             <ul className="space-y-2 text-xs">
               <li>
                 <a
-                  href="https://github.com/Siddharth-Varpe"
+                  href="https://github.com/siddharth-varpe"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-foreground-muted hover:text-foreground transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
@@ -107,7 +107,7 @@ export function PublicFooter() {
               </li>
               <li>
                 <a
-                  href="mailto:contact@siddharthvarpe.dev"
+                  href="mailto:siddharth.varpe0@gmail.com"
                   className="text-foreground-muted hover:text-foreground transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
                 >
                   <Mail className="w-3.5 h-3.5 text-emerald-400" />
@@ -122,7 +122,7 @@ export function PublicFooter() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/80 pt-6 text-xs text-foreground-subtle">
           <div className="flex items-center gap-2">
             <MonoText className="text-[11px]">
-              ENGINEERING ARCHITECTURE: NEXT.JS 15 • REACT 19 • CLOUD FIRESTORE
+              ENGINEERING ARCHITECTURE: NEXT.JS 15 • REACT 19 • POSTGRESQL • SUPABASE
             </MonoText>
           </div>
 

@@ -1,5 +1,4 @@
-import { buildMetadata, generatePersonJsonLd } from "@/lib/seo";
-import { JsonLd } from "@/components/seo/json-ld";
+import { buildMetadata } from "@/lib/seo";
 import * as React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -76,7 +75,6 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-20 sm:space-y-28 pb-20">
-      <JsonLd data={generatePersonJsonLd(profile)} />
       {/* ========================================================================= */}
       {/* 1. HIGH-FIDELITY TECHNICAL EDITORIAL HERO SECTION                         */}
       {/* Matches reference screenshot with approved portrait image & atmospheric depth */}
@@ -187,7 +185,7 @@ export default async function HomePage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={coverImage}
-                          alt={project.title}
+                          alt={`${project.title} — Software Architecture & Case Study Overview`}
                           className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                           loading="lazy"
                         />
@@ -240,6 +238,7 @@ export default async function HomePage() {
                           <Link
                             href={`/projects/${project.slug}`}
                             className="text-xs font-semibold text-accent hover:text-accent-hover flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
+                            aria-label={`View ${project.title} case study`}
                           >
                             <span>View Case Study</span>
                             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />

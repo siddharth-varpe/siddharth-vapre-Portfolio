@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  manifest: "/manifest.webmanifest",
   title: {
     default: SITE_CONFIG.title,
     template: "%s | Siddharth Varpe",
@@ -28,15 +29,25 @@ export const metadata: Metadata = {
     "Next.js",
     "React",
     "TypeScript",
-    "Supabase PostgreSQL",
     "PostgreSQL",
-    "Distributed Systems",
-    "CRM Architecture",
+    "Supabase",
     "Python",
+    "FastAPI",
+    "Node.js",
+    "Distributed Systems",
+    "Prompt Engineering",
   ],
   authors: [{ name: SITE_CONFIG.name, url: SITE_URL }],
   creator: SITE_CONFIG.name,
   publisher: SITE_CONFIG.name,
+  category: "technology",
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
   formatDetection: {
     email: false,
     address: false,
