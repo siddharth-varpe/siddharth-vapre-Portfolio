@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NEXT_CPU_NUM=2 NODE_OPTIONS=--max-old-space-size=2048 next build",
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "db:seed": "NODE_OPTIONS=--experimental-websocket tsx scripts/migrate-and-seed-supabase.ts"
+    "db:seed": "NODE_OPTIONS=--experimental-websocket tsx scripts/migrate-and-seed-supabase.ts",
+    "db:verify": "NODE_OPTIONS='--conditions=react-server --experimental-websocket' tsx scripts/verify-database-migration.ts",
+    "test:qa": "tsx scripts/run-qa-suite.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -25,15 +27,21 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^9",
     "eslint-config-next": "^15.2.0",
+    "jsdom": "^27.0.1",
     "postcss": "^8",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

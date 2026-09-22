@@ -34,7 +34,7 @@ export default async function AboutPage() {
   const profilePageSchema = generateProfilePageJsonLd(profile);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
       <JsonLd data={profilePageSchema} />
       <PageIntro
@@ -42,7 +42,7 @@ export default async function AboutPage() {
         title="About Siddharth Varpe"
         description="Full-stack software engineer focused on building production systems that eliminate operational friction and deliver measurable business outcomes."
         action={
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <Link href="/experience">
               <Button variant="primary" size="sm" className="gap-1.5">
                 <span>View Career Timeline</span>
@@ -64,11 +64,11 @@ export default async function AboutPage() {
         }
       />
 
-      <Container size="public" className="space-y-16">
+      <Container size="public" className="space-y-10 sm:space-y-16">
         {/* Core Narrative & Developer Profile Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           {/* Main Story (8 cols) */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-8 space-y-6 sm:space-y-8">
             <div className="space-y-4">
               <TechnicalLabel>ENGINEERING MINDSET & BACKGROUND</TechnicalLabel>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -87,9 +87,9 @@ export default async function AboutPage() {
 
             {/* Philosophy Banner */}
             {about?.philosophy && (
-              <div className="p-6 rounded-xl border border-accent/30 bg-accent/5 space-y-2">
+              <div className="p-4 sm:p-6 rounded-lg border border-accent/30 bg-accent/5 space-y-2">
                 <TechnicalLabel className="text-accent">CORE PRINCIPLE</TechnicalLabel>
-                <p className="text-base font-medium text-foreground italic leading-relaxed">
+                <p className="text-sm sm:text-base font-medium text-foreground italic leading-relaxed">
                   &ldquo;{about.philosophy}&rdquo;
                 </p>
               </div>
@@ -104,7 +104,7 @@ export default async function AboutPage() {
                     <Badge
                       key={interest}
                       variant="neutral"
-                      className="px-3 py-1 text-xs font-mono"
+                      className="px-2.5 py-1 text-xs font-mono"
                     >
                       {interest}
                     </Badge>
@@ -116,7 +116,7 @@ export default async function AboutPage() {
 
           {/* Identity & Technical Credentials Panel (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="border border-border/80 bg-surface/40 p-6 space-y-5">
+            <div className="border border-border/80 bg-surface/40 p-4 sm:p-6 space-y-4 sm:space-y-5 rounded-lg">
               <div className="space-y-1.5 border-b border-border/70 pb-4">
                 <TechnicalLabel>VERIFIED IDENTITY DOSSIER</TechnicalLabel>
                 <h3 className="text-xl font-bold text-foreground">Siddharth Varpe</h3>

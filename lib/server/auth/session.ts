@@ -47,11 +47,59 @@ export async function getServerSession(): Promise<SessionContext | null> {
 }
 
 /**
+ * Validates request Origin/Referer against the active host and configured site URL.
+ * Defends admin API endpoints against cross-site request forgery (CSRF).
+ */
+export function isAllowedOrigin(reqHeaders: Headers): boolean {
+  const origin = reqHeaders.get("origin");
+  const host = reqHeaders.get("host") || reqHeaders.get("x-forwarded-host");
+
+  if (!origin) {
+    const referer = reqHeaders.get("referer");
+    if (!referer) return true;
+    try {
+      const refererHost = new URL(referer).host;
+      return !host || refererHost === host || refererHost.endsWith(`.${host}`);
+    } catch {
+      return false;
+    }
+  }
+
+  try {
+    const originUrl = new URL(origin);
+
+    const isLocalHost =
+      (host?.startsWith("localhost") || host?.startsWith("127.0.0.1")) &&
+      (originUrl.host.startsWith("localhost") || originUrl.host.startsWith("127.0.0.1"));
+    if (isLocalHost) return true;
+
+    if (host && (originUrl.host === host || originUrl.host.endsWith(`.${host}`))) {
+      return true;
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl) {
+      try {
+        const siteHost = new URL(siteUrl).host;
+        if (originUrl.host === siteHost) return true;
+      } catch {
+        // Safe fallback
+      }
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Server-side guard enforcing administrative authentication.
  *
  * BEHAVIOR:
  * - For Server Components: Redirects to `/admin/login?returnTo=...` when unauthenticated.
  * - For API Route Handlers (`isApi: true`): Returns null so caller can return a 401 JSON response.
+ * - For API Route Handlers: Enforces strict CSRF origin verification on state-changing or privileged requests.
  *
  * @param options Configuration options
  * @returns SessionContext if authenticated; throws redirect for pages or returns null for APIs.
@@ -60,6 +108,14 @@ export async function requireAdminSession(options?: {
   isApi?: boolean;
   returnTo?: string;
 }): Promise<SessionContext | null> {
+  if (options?.isApi) {
+    const reqHeaders = await headers();
+    if (!isAllowedOrigin(reqHeaders)) {
+      console.warn("[Auth Security Violation]: Cross-origin API request rejected.");
+      return null;
+    }
+  }
+
   const sessionContext = await getServerSession();
 
   if (!sessionContext) {

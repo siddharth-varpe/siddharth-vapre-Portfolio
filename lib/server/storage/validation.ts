@@ -93,8 +93,9 @@ export function generateSafeStorageKey(
   originalFilename: string,
   extension: string
 ): string {
-  // Normalize and extract only the final base name
-  const rawBase = path.basename(originalFilename);
+  // Normalize Windows backslashes and extract only the final base name
+  const normalized = originalFilename.replace(/\\/g, "/");
+  const rawBase = path.basename(normalized);
 
   // Strip non-alphanumeric characters from basename (preserving hyphens and underscores)
   const sanitizedSlug = rawBase

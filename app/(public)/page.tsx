@@ -15,6 +15,7 @@ import {
   getPublishedMetrics,
   getPublishedProjects,
   getPublishedExperience,
+  getPublishedContactSettings,
 } from "@/lib/server/db/repositories/content";
 import {
   Container,
@@ -24,12 +25,12 @@ import {
   SectionHeader,
   TechnicalLabel,
 } from "@/components/ui";
-import { HeroSection } from "@/components/public";
+import { HeroSection, FeaturedProjectsSlider } from "@/components/public";
+import { TechIcon } from "@/components/public/tech-icons";
 import {
   Reveal,
   StaggerGroup,
   StaggerItem,
-  SpotlightCard,
   AnimatedDivider,
 } from "@/components/motion";
 
@@ -52,12 +53,13 @@ export const metadata: Metadata = buildMetadata({
  * - Zero fake telemetry; strictly authentic verified resume evidence
  */
 export default async function HomePage() {
-  const [profile, hero, metrics, projects, experiences] = await Promise.all([
+  const [profile, hero, metrics, projects, experiences, contactSettings] = await Promise.all([
     getPublishedProfile(),
     getPublishedHero(),
     getPublishedMetrics(),
     getPublishedProjects(),
     getPublishedExperience(),
+    getPublishedContactSettings(),
   ]);
 
   const eyebrow = hero?.eyebrow || "SOFTWARE ENGINEER";
@@ -66,15 +68,25 @@ export default async function HomePage() {
   const description =
     hero?.description ||
     profile?.summary ||
-    "Full-Stack Software Engineer with experience building production-grade CRM and inventory systems. Skilled in JavaScript, React.js, Node.js, Python, PostgreSQL, and REST APIs, with hands-on AI-powered application development.";
+    "Software engineer with experience building production-grade CRM and inventory systems. Specializing in high-throughput full-stack applications, distributed architectures, and AI integrations.";
 
   const availability = profile?.availability || "Available for Software Engineering roles";
 
-  const featuredProjects = projects.filter((p) => p.featured).slice(0, 2);
+  const featuredProjects = projects.filter((p) => p.featured);
   const primaryExperience = experiences[0];
 
+  const socialLinks = contactSettings
+    ? {
+        linkedin: contactSettings.linkedinUrl,
+        github: contactSettings.githubUrl,
+        email: contactSettings.email,
+        instagram: contactSettings.instagramUrl,
+        twitter: contactSettings.twitterUrl,
+      }
+    : undefined;
+
   return (
-    <div className="space-y-20 sm:space-y-28 pb-20">
+    <div className="space-y-12 sm:space-y-16 lg:space-y-24 pb-14 sm:pb-20">
       {/* ========================================================================= */}
       {/* 1. HIGH-FIDELITY TECHNICAL EDITORIAL HERO SECTION                         */}
       {/* Matches reference screenshot with approved portrait image & atmospheric depth */}
@@ -88,16 +100,16 @@ export default async function HomePage() {
         primaryCtaLink={hero?.ctaUrl || "/projects"}
         secondaryCtaText="Download Resume"
         secondaryCtaLink="/api/resume/download"
+        socialLinks={socialLinks}
       />
 
-
       {/* ========================================================================= */}
-      {/* 2. MEASURABLE BUSINESS IMPACT (OPEN EDITORIAL EVIDENCE RIBBON)             */}
-      {/* Card reduction: Open horizontal evidence strip with hairline dividers      */}
-      {/* Strictly verified metrics from resume/projects; zero fake telemetry        */}
+      {/* 2. MEASURABLE BUSINESS IMPACT (RESPONSIVE EVIDENCE SYSTEM)                 */}
+      {/* Mobile: 2x2 compact grid answering WHAT / HOW MUCH / WHERE                 */}
+      {/* Desktop: Expansive horizontal evidence ribbon with hairline dividers       */}
       {/* ========================================================================= */}
       {metrics && metrics.length > 0 && (
-        <section className="space-y-8">
+        <section className="space-y-5 sm:space-y-8">
           <Container size="public">
             <Reveal>
               <SectionHeader
@@ -107,31 +119,31 @@ export default async function HomePage() {
               />
             </Reveal>
 
-            {/* Expansive Horizontal Evidence Ribbon */}
-            <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-y border-border/80 py-8">
+            {/* Structured Evidence System: 2x2 on Mobile, 4-col on Desktop */}
+            <StaggerGroup className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 pt-4 sm:pt-6 border-y border-border/80 py-4 sm:py-8">
               {metrics.map((metric, idx) => (
                 <StaggerItem
                   key={idx}
-                  className="flex flex-col justify-between space-y-3 lg:border-l lg:border-border/60 lg:first:border-l-0 lg:pl-6 lg:first:pl-0"
+                  className="flex flex-col justify-between p-3 sm:p-0 rounded-lg sm:rounded-none bg-surface/40 sm:bg-transparent border border-border/60 sm:border-0 lg:border-l lg:border-border/60 lg:first:border-l-0 lg:pl-6 lg:first:pl-0 space-y-2 sm:space-y-3"
                 >
-                  <div className="space-y-1.5">
-                    <span className="font-mono text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground block">
+                  <div className="space-y-1 sm:space-y-1.5">
+                    <span className="font-mono text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground block">
                       {metric.value}
                     </span>
-                    <span className="text-sm font-semibold text-foreground tracking-wide block">
+                    <span className="text-xs sm:text-sm font-semibold text-foreground tracking-tight block leading-snug">
                       {metric.label}
                     </span>
                   </div>
 
-                  {metric.supportingText && (
-                    <span className="text-xs text-foreground-muted leading-relaxed block">
-                      {metric.supportingText}
+                  {metric.context && (
+                    <span className="text-[10px] sm:text-[11px] font-mono text-accent/90 block uppercase tracking-wider pt-0.5 sm:pt-1">
+                      {metric.context}
                     </span>
                   )}
 
-                  {metric.context && (
-                    <span className="text-[11px] font-mono text-accent/90 block uppercase tracking-wider pt-1">
-                      {metric.context}
+                  {metric.supportingText && (
+                    <span className="hidden sm:block text-xs text-foreground-muted leading-relaxed">
+                      {metric.supportingText}
                     </span>
                   )}
                 </StaggerItem>
@@ -147,10 +159,10 @@ export default async function HomePage() {
       </Container>
 
       {/* ========================================================================= */}
-      {/* 4. FEATURED PROJECTS PREVIEW (OPEN EDITORIAL SHOWCASE)                    */}
+      {/* 3. FEATURED PROJECTS PREVIEW (OPEN EDITORIAL SHOWCASE)                    */}
       {/* Structured whitespace, high visual fidelity, clear problem/solution/impact */}
       {/* ========================================================================= */}
-      <section className="space-y-8">
+      <section className="space-y-5 sm:space-y-8">
         <Container size="public">
           <Reveal>
             <SectionHeader
@@ -168,117 +180,29 @@ export default async function HomePage() {
             />
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-6">
-            {featuredProjects.map((project) => {
-              const coverImage =
-                project.media?.find((m) => m.type === "image" || !m.type)?.url ||
-                project.coverImage;
-
-              return (
-                <SpotlightCard key={project.slug} className="rounded-lg h-full">
-                  <article
-                    className="group flex flex-col justify-between border border-border/80 bg-surface/40 hover:border-border-hover transition-all duration-300 overflow-hidden h-full rounded-lg"
-                  >
-                    {/* Screenshot Visual Plane */}
-                    {coverImage && (
-                      <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 border-b border-border/80">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={coverImage}
-                          alt={`${project.title} — Software Architecture & Case Study Overview`}
-                          className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                        <div className="absolute top-3 right-3">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded text-[11px] font-mono bg-background/90 text-foreground border border-border/80 backdrop-blur-md">
-                            {project.year || "2026"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Editorial Body */}
-                    <div className="p-6 sm:p-8 space-y-6 flex-1 flex flex-col justify-between">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-xs font-mono text-foreground-muted">
-                          <TechnicalLabel>{project.category || "Full-Stack System"}</TechnicalLabel>
-                          <span className="text-[11px] text-foreground-subtle uppercase tracking-wider">
-                            {project.role}
-                          </span>
-                        </div>
-
-                        <h3 className="text-2xl font-bold text-foreground group-hover:text-accent transition-colors">
-                          {project.title}
-                        </h3>
-
-                        <p className="text-sm text-foreground-secondary leading-relaxed line-clamp-3 font-normal">
-                          {project.shortDescription}
-                        </p>
-                      </div>
-
-                      <div className="space-y-4 pt-2">
-                        {/* Technology pills */}
-                        {project.technologies && project.technologies.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {project.technologies.slice(0, 5).map((tech) => (
-                              <Badge key={tech} variant="neutral" className="text-[11px] font-mono">
-                                {tech}
-                              </Badge>
-                            ))}
-                            {project.technologies.length > 5 && (
-                              <span className="text-[10px] font-mono text-foreground-muted self-center">
-                                +{project.technologies.length - 5}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Footer: Action + Verified Impact */}
-                        <div className="pt-4 border-t border-border/60 flex items-center justify-between">
-                          <Link
-                            href={`/projects/${project.slug}`}
-                            className="text-xs font-semibold text-accent hover:text-accent-hover flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
-                            aria-label={`View ${project.title} case study`}
-                          >
-                            <span>View Case Study</span>
-                            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                          </Link>
-
-                          {project.metrics && project.metrics.length > 0 && (
-                            <span className="text-xs font-mono text-emerald-400 font-medium">
-                              {project.metrics[0]}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                </SpotlightCard>
-              );
-            })}
-          </div>
+          <FeaturedProjectsSlider projects={featuredProjects} />
         </Container>
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. PROFESSIONAL TRACK RECORD & EXPERIENCE SNAPSHOT                        */}
+      {/* 4. PROFESSIONAL TRACK RECORD & EXPERIENCE SNAPSHOT                        */}
       {/* Open editorial presentation with timeline datum; verified metrics         */}
       {/* ========================================================================= */}
       {primaryExperience && (
-        <section className="space-y-8">
+        <section className="space-y-5 sm:space-y-8">
           <Container size="public">
             <Reveal>
-              <div className="border border-border/80 bg-surface/30 p-6 sm:p-10 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/70 pb-6">
+              <div className="border border-border/80 bg-surface/30 p-4 sm:p-8 lg:p-10 space-y-4 sm:space-y-6 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-border/70 pb-4 sm:pb-6">
                   <div className="space-y-1">
                     <TechnicalLabel>PROFESSIONAL TRACK RECORD</TechnicalLabel>
-                    <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+                    <h3 className="text-lg sm:text-2xl font-bold text-foreground">
                       {primaryExperience.role} <span className="text-foreground-muted font-normal">at</span>{" "}
                       {primaryExperience.company}
                     </h3>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-accent bg-accent/10 border border-accent/20 px-3 py-1 rounded-full font-semibold">
+                    <span className="font-mono text-xs text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full font-semibold">
                       {primaryExperience.startDate} – {primaryExperience.endDate || "Present"}
                     </span>
                     <Link href="/experience">
@@ -290,17 +214,17 @@ export default async function HomePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="md:col-span-2 space-y-4">
-                    <BodyText className="text-sm sm:text-base text-foreground-secondary leading-relaxed font-normal">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                  <div className="md:col-span-2 space-y-3 sm:space-y-4">
+                    <BodyText className="text-xs sm:text-base text-foreground-secondary leading-relaxed font-normal">
                       {primaryExperience.description}
                     </BodyText>
 
                     {primaryExperience.responsibilities && (
-                      <ul className="space-y-2.5 text-xs sm:text-sm text-foreground-secondary">
+                      <ul className="space-y-2 sm:space-y-2.5 text-xs sm:text-sm text-foreground-secondary">
                         {primaryExperience.responsibilities.map((resp, idx) => (
-                          <li key={idx} className="flex items-start gap-2.5">
-                            <span className="text-accent mt-1 shrink-0 font-bold">•</span>
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-accent mt-0.5 shrink-0 font-bold">•</span>
                             <span>{resp}</span>
                           </li>
                         ))}
@@ -308,7 +232,7 @@ export default async function HomePage() {
                     )}
                   </div>
 
-                  <div className="space-y-4 p-5 border border-border/70 bg-background/50">
+                  <div className="space-y-3 sm:space-y-4 p-4 sm:p-5 border border-border/70 bg-background/50 rounded-md">
                     <TechnicalLabel>Stack Applied</TechnicalLabel>
                     <div className="flex flex-wrap gap-1.5">
                       {primaryExperience.technologies.map((tech) => (
@@ -317,7 +241,7 @@ export default async function HomePage() {
                         </Badge>
                       ))}
                     </div>
-                    <div className="pt-3 border-t border-border/60 text-xs text-foreground-muted">
+                    <div className="pt-2 sm:pt-3 border-t border-border/60 text-xs text-foreground-muted">
                       Location: <span className="text-foreground font-medium">{primaryExperience.location}</span>
                     </div>
                   </div>
@@ -329,37 +253,48 @@ export default async function HomePage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 6. CAPABILITIES & VERIFIED DISTINCTIONS (SKILLS & AWARDS GATEWAY)         */}
-      {/* Open 2-column editorial split; zero card soup                             */}
+      {/* 5. CAPABILITIES & VERIFIED DISTINCTIONS (SKILLS & AWARDS GATEWAY)         */}
+      {/* Open 2-column editorial split; compact on mobile                          */}
       {/* ========================================================================= */}
-      <section className="space-y-8">
+      <section className="space-y-5 sm:space-y-8">
         <Container size="public">
           <Reveal>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
               {/* Technical Capability Editorial Block */}
-              <div className="border border-border/80 bg-surface/30 p-6 sm:p-8 space-y-5 flex flex-col justify-between">
-                <div className="space-y-3">
+              <div className="border border-border/80 bg-surface/30 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 flex flex-col justify-between rounded-lg">
+                <div className="space-y-2.5 sm:space-y-3">
                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-accent">
                     <Code2 className="w-4 h-4" />
                   </div>
-                  <h3 className="text-xl font-bold text-foreground">Technical Taxonomy</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground">Technical Taxonomy</h3>
                   <p className="text-xs text-foreground-secondary leading-relaxed">
                     Categorized skills across React.js, Next.js, Node.js, Python, PostgreSQL, and REST/WebSocket architectures.
                   </p>
 
-                  <div className="flex flex-wrap gap-1.5 pt-2">
-                    <Badge variant="neutral">React.js</Badge>
-                    <Badge variant="neutral">Next.js</Badge>
-                    <Badge variant="neutral">Node.js</Badge>
-                    <Badge variant="neutral">Python</Badge>
-                    <Badge variant="neutral">FastAPI</Badge>
-                    <Badge variant="neutral">PostgreSQL</Badge>
-                    <Badge variant="neutral">WebSockets</Badge>
-                    <Badge variant="neutral">Git</Badge>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1 sm:pt-2">
+                    {[
+                      "React.js",
+                      "Next.js",
+                      "Node.js",
+                      "Python",
+                      "FastAPI",
+                      "PostgreSQL",
+                      "WebSockets",
+                      "Git",
+                    ].map((tech) => (
+                      <Badge
+                        key={tech}
+                        variant="neutral"
+                        className="inline-flex items-center gap-1.5 py-0.5 px-2 text-xs"
+                      >
+                        <TechIcon name={tech} className="w-3.5 h-3.5" />
+                        <span>{tech}</span>
+                      </Badge>
+                    ))}
                   </div>
                 </div>
 
-                <div className="border-t border-border/60 pt-4">
+                <div className="border-t border-border/60 pt-3 sm:pt-4">
                   <Link
                     href="/skills"
                     className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
@@ -371,17 +306,17 @@ export default async function HomePage() {
               </div>
 
               {/* Distinctions & Awards Editorial Block */}
-              <div className="border border-border/80 bg-surface/30 p-6 sm:p-8 space-y-5 flex flex-col justify-between">
-                <div className="space-y-3">
+              <div className="border border-border/80 bg-surface/30 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 flex flex-col justify-between rounded-lg">
+                <div className="space-y-2.5 sm:space-y-3">
                   <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                     <Award className="w-4 h-4" />
                   </div>
-                  <h3 className="text-xl font-bold text-foreground">Verified Distinctions</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground">Verified Distinctions</h3>
                   <p className="text-xs text-foreground-secondary leading-relaxed">
                     1st &amp; 2nd Rank University Awards in Prompt Engineering, plus verified NxtWave certifications.
                   </p>
 
-                  <div className="space-y-2.5 text-xs pt-2">
+                  <div className="space-y-2 text-xs pt-1 sm:pt-2">
                     <div className="flex items-center justify-between border-b border-border/50 pb-2">
                       <span className="font-semibold text-foreground">
                         Prompt Engineering — 1st Rank (ADYPU)
@@ -397,13 +332,13 @@ export default async function HomePage() {
                   </div>
                 </div>
 
-                <div className="border-t border-border/60 pt-4">
+                <div className="border-t border-border/60 pt-3 sm:pt-4">
                   <Link
                     href="/achievements"
                     className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
                   >
                     <span>View Honors &amp; Certifications</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
               </div>
@@ -413,26 +348,26 @@ export default async function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 7. CALL TO ACTION / CONTACT GATEWAY                                       */}
+      {/* 6. CALL TO ACTION / CONTACT GATEWAY                                       */}
       {/* Expansive editorial closing statement                                     */}
       {/* ========================================================================= */}
-      <section className="relative pt-4">
+      <section className="relative pt-2 sm:pt-4">
         <Container size="public">
           <Reveal>
-            <div className="border border-border/90 bg-surface/60 p-8 sm:p-14 text-center space-y-6 relative overflow-hidden">
-              <div className="space-y-3 max-w-xl mx-auto">
+            <div className="border border-border/90 bg-surface/60 p-6 sm:p-10 lg:p-14 text-center space-y-5 sm:space-y-6 relative overflow-hidden rounded-lg">
+              <div className="space-y-2.5 sm:space-y-3 max-w-xl mx-auto">
                 <TechnicalLabel>OPEN FOR OPPORTUNITIES</TechnicalLabel>
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                <h3 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
                   Ready to engineer high-impact systems together.
                 </h3>
-                <BodyText className="text-sm sm:text-base text-foreground-secondary leading-relaxed font-normal">
+                <BodyText className="text-xs sm:text-base text-foreground-secondary leading-relaxed font-normal">
                   Whether you are hiring for full-stack software engineering roles, distributed systems, or AI application development, let&apos;s connect.
                 </BodyText>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-1 sm:pt-2">
                 <Link href="/contact">
-                  <Button variant="primary" size="lg" className="gap-2">
+                  <Button variant="primary" size="md" className="gap-2 sm:h-11 px-5 text-xs sm:text-sm font-semibold">
                     <span>Get in Touch</span>
                     <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -443,7 +378,7 @@ export default async function HomePage() {
                   rel="noopener noreferrer"
                   aria-label="Download verified resume PDF"
                 >
-                  <Button variant="outline" size="lg" className="gap-2">
+                  <Button variant="outline" size="md" className="gap-2 sm:h-11 px-5 text-xs sm:text-sm font-semibold">
                     <Download className="w-4 h-4 text-accent" />
                     <span>Download Resume PDF</span>
                   </Button>

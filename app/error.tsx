@@ -17,7 +17,11 @@ export default function RootError({
   return (
     <ErrorBoundaryView
       title="Application Error"
-      message="We encountered an unexpected error while loading this page."
+      message={
+        process.env.NODE_ENV !== "production" && error?.message
+          ? `${error.message}${error.digest ? ` (digest: ${error.digest})` : ""}`
+          : "We encountered an unexpected error while loading this page."
+      }
       reset={reset}
     />
   );

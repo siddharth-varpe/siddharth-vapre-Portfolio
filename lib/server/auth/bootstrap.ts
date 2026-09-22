@@ -1,9 +1,26 @@
 import "server-only";
 import { auth } from "./index";
 
+import crypto from "node:crypto";
+
 export const BOOTSTRAP_ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 export const BOOTSTRAP_ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@siddharthvarpe.com";
-export const BOOTSTRAP_ADMIN_DEFAULT_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
+
+// Security Hardening (Phase 13): Prevent default "admin" password in production
+export const BOOTSTRAP_ADMIN_DEFAULT_PASSWORD = (() => {
+  if (process.env.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD.trim().length >= 8) {
+    return process.env.ADMIN_PASSWORD;
+  }
+  if (process.env.NODE_ENV === "production") {
+    // Generate a strong ephemeral password if not configured in production
+    const generated = crypto.randomBytes(16).toString("hex");
+    console.warn(
+      "[SECURITY NOTICE]: ADMIN_PASSWORD environment variable not configured. Generated ephemeral bootstrap password."
+    );
+    return generated;
+  }
+  return process.env.ADMIN_PASSWORD || "admin";
+})();
 
 /**
  * =============================================================================

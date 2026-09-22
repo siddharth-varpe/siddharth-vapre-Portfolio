@@ -30,7 +30,7 @@ export default async function ExperiencePage() {
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Experience", path: "/experience" }]);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
       <PageIntro
         eyebrow="PROFESSIONAL CAREER TIMELINE"
@@ -51,9 +51,9 @@ export default async function ExperiencePage() {
         }
       />
 
-      <Container size="public" className="space-y-10">
+      <Container size="public" className="space-y-8 sm:space-y-10">
         {experiences.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-12 text-center max-w-xl mx-auto space-y-3">
+          <div className="rounded-xl border border-dashed border-border p-8 sm:p-12 text-center max-w-xl mx-auto space-y-3">
             <TechnicalLabel>TIMELINE NOTICE</TechnicalLabel>
             <h3 className="text-base font-semibold text-foreground">Experience Catalog In Progress</h3>
             <BodyText className="text-sm text-foreground-muted">
@@ -61,13 +61,13 @@ export default async function ExperiencePage() {
             </BodyText>
           </div>
         ) : (
-          <div className="relative border-l border-border/80 pl-6 sm:pl-10 ml-3 sm:ml-6 space-y-12">
+          <div className="relative border-l border-border/80 pl-4 sm:pl-10 ml-2 sm:ml-6 space-y-8 sm:space-y-12">
             {experiences.map((exp) => (
               <div key={exp.company + exp.role} className="relative group">
                 {/* Timeline node */}
-                <span className="absolute -left-[31px] sm:-left-[47px] top-1.5 h-4 w-4 rounded-full border-2 border-accent bg-background" />
+                <span className="absolute -left-[23px] sm:-left-[47px] top-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full border-2 border-accent bg-background" />
 
-                <Card className="bg-surface/85 border-border shadow-lg p-2 sm:p-4">
+                <Card className="bg-surface/85 border-border shadow-lg p-3 sm:p-5">
                   <CardHeader className="space-y-3 pb-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2">

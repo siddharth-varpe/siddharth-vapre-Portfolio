@@ -31,7 +31,7 @@ export default async function AchievementsPage() {
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Achievements", path: "/achievements" }]);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
       <PageIntro
         eyebrow="AWARDS & COMPETITIONS"
@@ -47,9 +47,9 @@ export default async function AchievementsPage() {
         }
       />
 
-      <Container size="public" className="space-y-10">
+      <Container size="public" className="space-y-8 sm:space-y-10">
         {achievements.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-12 text-center max-w-xl mx-auto space-y-3">
+          <div className="rounded-xl border border-dashed border-border p-8 sm:p-12 text-center max-w-xl mx-auto space-y-3">
             <TechnicalLabel>DISTINCTION NOTICE</TechnicalLabel>
             <h3 className="text-base font-semibold text-foreground">Achievements Catalog In Progress</h3>
             <BodyText className="text-sm text-foreground-muted">
@@ -57,40 +57,40 @@ export default async function AchievementsPage() {
             </BodyText>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-2 gap-3 sm:gap-6">
             {achievements.map((item) => (
               <Card
                 key={item.title + item.date}
-                className="bg-surface/85 border-border shadow-md flex flex-col justify-between"
+                className="bg-surface/85 border-border shadow-md flex flex-col justify-between p-3.5 sm:p-6 min-w-0"
               >
-                <CardHeader className="space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                        <Trophy className="w-4 h-4" />
+                <CardHeader className="space-y-2 sm:space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="p-1 sm:p-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                        <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
-                      <Badge variant="accent" className="font-mono text-xs">
+                      <Badge variant="accent" className="font-mono text-[9px] sm:text-xs px-1.5 py-0">
                         {item.rank || "Award Winner"}
                       </Badge>
                     </div>
 
-                    <span className="font-mono text-xs text-foreground-muted">{item.date}</span>
+                    <span className="font-mono text-[10px] sm:text-xs text-foreground-muted">{item.date}</span>
                   </div>
 
                   <div>
-                    <CardTitle className="text-xl font-bold text-foreground">
+                    <CardTitle className="text-sm sm:text-xl font-bold text-foreground line-clamp-2 leading-snug">
                       {item.title}
                     </CardTitle>
                     {item.organization && (
-                      <span className="text-xs font-mono text-foreground-muted block mt-1">
+                      <span className="text-[11px] sm:text-xs font-mono text-foreground-muted block mt-0.5 sm:mt-1 truncate">
                         {item.organization}
                       </span>
                     )}
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4 pt-2">
-                  <BodyText className="text-sm text-foreground-secondary leading-relaxed">
+                <CardContent className="space-y-2.5 sm:space-y-4 pt-1 sm:pt-2">
+                  <BodyText className="text-xs sm:text-sm text-foreground-secondary leading-relaxed line-clamp-3 sm:line-clamp-none">
                     {item.description}
                   </BodyText>
 

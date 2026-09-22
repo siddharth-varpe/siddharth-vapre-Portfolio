@@ -30,7 +30,7 @@ export default async function CertificationsPage() {
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Certifications", path: "/certifications" }]);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
       <PageIntro
         eyebrow="CREDENTIALS & LICENSES"
@@ -51,9 +51,9 @@ export default async function CertificationsPage() {
         }
       />
 
-      <Container size="public" className="space-y-10">
+      <Container size="public" className="space-y-8 sm:space-y-10">
         {certifications.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border p-12 text-center max-w-xl mx-auto space-y-3">
+          <div className="rounded-xl border border-dashed border-border p-8 sm:p-12 text-center max-w-xl mx-auto space-y-3">
             <TechnicalLabel>CREDENTIAL NOTICE</TechnicalLabel>
             <h3 className="text-base font-semibold text-foreground">Certifications Catalog In Progress</h3>
             <BodyText className="text-sm text-foreground-muted">
@@ -61,34 +61,34 @@ export default async function CertificationsPage() {
             </BodyText>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {certifications.map((cert) => (
               <Card
                 key={cert.name + cert.issuer}
-                className="bg-surface/85 border-border shadow-md flex flex-col justify-between"
+                className="bg-surface/85 border-border shadow-md flex flex-col justify-between p-3.5 sm:p-6 min-w-0"
               >
-                <CardHeader className="space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                        <ShieldCheck className="w-4 h-4" />
+                <CardHeader className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="p-1 sm:p-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
-                      <Badge variant="outline" className="text-[11px] font-mono">
+                      <Badge variant="outline" className="text-[9px] sm:text-[11px] font-mono px-1.5 py-0">
                         {cert.issuer}
                       </Badge>
                     </div>
 
-                    <span className="font-mono text-xs text-foreground-muted">{cert.date}</span>
+                    <span className="font-mono text-[10px] sm:text-xs text-foreground-muted">{cert.date}</span>
                   </div>
 
-                  <CardTitle className="text-lg font-bold text-foreground">
+                  <CardTitle className="text-sm sm:text-lg font-bold text-foreground line-clamp-2 leading-snug">
                     {cert.name}
                   </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-4 pt-1">
+                <CardContent className="space-y-2.5 sm:space-y-4 pt-1">
                   {cert.description && (
-                    <BodyText className="text-xs sm:text-sm text-foreground-secondary leading-relaxed">
+                    <BodyText className="text-xs sm:text-sm text-foreground-secondary leading-relaxed line-clamp-3 sm:line-clamp-none">
                       {cert.description}
                     </BodyText>
                   )}

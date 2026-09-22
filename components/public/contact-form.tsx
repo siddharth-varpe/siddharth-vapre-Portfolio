@@ -296,7 +296,7 @@ export function ContactForm({ turnstileSiteKey = "" }: ContactFormProps) {
                 onChange={handleChange}
                 disabled={formState === "submitting"}
                 placeholder="e.g. Alex Morgan"
-                className={`w-full rounded-md border bg-surface-muted/50 px-3.5 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all ${
+                className={`w-full h-11 rounded-md border bg-surface-muted/50 px-3.5 py-2 text-base sm:text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all ${
                   errors.name ? "border-rose-500/80 focus:ring-rose-500" : "border-border"
                 }`}
                 aria-invalid={Boolean(errors.name)}
@@ -325,7 +325,7 @@ export function ContactForm({ turnstileSiteKey = "" }: ContactFormProps) {
                 onChange={handleChange}
                 disabled={formState === "submitting"}
                 placeholder="e.g. alex@company.com"
-                className={`w-full rounded-md border bg-surface-muted/50 px-3.5 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all ${
+                className={`w-full h-11 rounded-md border bg-surface-muted/50 px-3.5 py-2 text-base sm:text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all ${
                   errors.email ? "border-rose-500/80 focus:ring-rose-500" : "border-border"
                 }`}
                 aria-invalid={Boolean(errors.email)}
@@ -356,7 +356,7 @@ export function ContactForm({ turnstileSiteKey = "" }: ContactFormProps) {
               onChange={handleChange}
               disabled={formState === "submitting"}
               placeholder="e.g. Software Engineer Opportunity / Enterprise Project"
-              className={`w-full rounded-md border bg-surface-muted/50 px-3.5 py-2.5 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all ${
+              className={`w-full h-11 rounded-md border bg-surface-muted/50 px-3.5 py-2 text-base sm:text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all ${
                 errors.subject ? "border-rose-500/80 focus:ring-rose-500" : "border-border"
               }`}
             />
@@ -388,7 +388,7 @@ export function ContactForm({ turnstileSiteKey = "" }: ContactFormProps) {
               onChange={handleChange}
               disabled={formState === "submitting"}
               placeholder="Provide context regarding the engineering opportunity, problem statement, or inquiry..."
-              className={`w-full rounded-md border bg-surface-muted/50 p-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all resize-y leading-relaxed ${
+              className={`w-full rounded-md border bg-surface-muted/50 p-3.5 text-base sm:text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent transition-all resize-y leading-relaxed ${
                 errors.message ? "border-rose-500/80 focus:ring-rose-500" : "border-border"
               }`}
               aria-invalid={Boolean(errors.message)}

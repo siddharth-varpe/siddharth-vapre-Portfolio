@@ -1,6 +1,5 @@
 import "server-only";
 import { betterAuth } from "better-auth";
-import { memoryAdapter } from "better-auth/adapters/memory";
 import { username } from "better-auth/plugins";
 import { supabaseAdapter } from "./supabase-adapter";
 
@@ -28,25 +27,24 @@ const authBaseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   "http://localhost:3000";
 
-const isSupabaseConfigured = Boolean(
-  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export const auth = betterAuth({
-  database: isSupabaseConfigured ? supabaseAdapter() : memoryAdapter({}),
+  database: supabaseAdapter(),
   secret: authSecret,
   baseURL: authBaseUrl,
-  trustedOrigins: [
-    "http://localhost:*",
-    "http://127.0.0.1:*",
-    "http://192.168.*",
-    "http://10.*",
-    "http://172.16.*",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    process.env.BETTER_AUTH_URL || "http://localhost:3000",
-  ],
+  trustedOrigins:
+    process.env.NODE_ENV === "production"
+      ? [
+          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          process.env.BETTER_AUTH_URL || "http://localhost:3000",
+        ].filter(Boolean)
+      : [
+          "http://localhost:*",
+          "http://127.0.0.1:*",
+          "http://localhost:3000",
+          "http://127.0.0.1:3000",
+          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          process.env.BETTER_AUTH_URL || "http://localhost:3000",
+        ],
   user: {
     additionalFields: {
       username: {

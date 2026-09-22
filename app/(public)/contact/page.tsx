@@ -35,7 +35,7 @@ export default async function ContactPage() {
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Contact", path: "/contact" }]);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
       <PageIntro
         eyebrow="COMMUNICATION & COLLABORATION PIPELINE"
@@ -43,9 +43,9 @@ export default async function ContactPage() {
         description="Direct pathways for technical inquiries, software engineering opportunities, and architectural collaboration."
       />
 
-      <Container size="public" className="space-y-14">
+      <Container size="public" className="space-y-8 sm:space-y-14">
         {/* Main Grid: Interactive Form & Direct Channels */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           {/* Left Column: Interactive Contact Form (7 cols) */}
           <div className="lg:col-span-7">
             <ContactForm turnstileSiteKey={turnstileKey} />

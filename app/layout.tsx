@@ -1,8 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SITE_CONFIG, SITE_URL, generatePersonJsonLd, generateWebSiteJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+  ],
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -101,12 +111,30 @@ export default function RootLayout({
   const websiteSchema = generateWebSiteJsonLd();
 
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('theme');
+                  if (stored === 'light' || (!stored && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  } else {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <JsonLd data={websiteSchema} />
         <JsonLd data={personSchema} />
       </head>
-      <body className="min-h-screen bg-[#09090b] font-sans text-[#fafafa] antialiased selection:bg-accent/25 selection:text-accent">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-accent/25 selection:text-accent transition-colors duration-200">
         {children}
       </body>
     </html>

@@ -17,7 +17,11 @@ export default function PublicError({
   return (
     <ErrorBoundaryView
       title="Error Loading Content"
-      message="We encountered an issue loading this portfolio section. Please try again."
+      message={
+        process.env.NODE_ENV !== "production" && error?.message
+          ? `${error.message}${error.digest ? ` (digest: ${error.digest})` : ""}`
+          : "We encountered an issue loading this portfolio section. Please try again."
+      }
       reset={reset}
     />
   );

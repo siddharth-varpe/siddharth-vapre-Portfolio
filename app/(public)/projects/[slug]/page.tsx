@@ -104,11 +104,11 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
   ]);
 
   return (
-    <article className="space-y-12 pb-24">
+    <article className="space-y-8 sm:space-y-12 pb-16 sm:pb-24">
       <JsonLd data={projectSchema} />
       <JsonLd data={breadcrumbSchema} />
       {/* 1. Back Navigation Breadcrumb */}
-      <div className="border-b border-border/70 py-3.5 bg-surface/30 backdrop-blur-sm sticky top-16 z-20">
+      <div className="border-b border-border/70 py-2.5 sm:py-3.5 bg-surface/30 backdrop-blur-sm sticky top-14 sm:top-16 z-20">
         <Container size="public">
           <div className="flex items-center justify-between">
             <Link
@@ -127,9 +127,9 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
       </div>
 
       {/* 2. Header & Hero Intro */}
-      <header className="border-b border-border/80 pb-10 pt-4">
-        <Container size="public" className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+      <header className="border-b border-border/80 pb-6 sm:pb-10 pt-3 sm:pt-4">
+        <Container size="public" className="space-y-4 sm:space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
             <div className="inline-flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <TechnicalLabel>
@@ -144,12 +144,12 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
             )}
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-            <div className="space-y-4 max-w-3xl">
-              <DisplayHeadline className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-6">
+            <div className="space-y-2.5 sm:space-y-4 max-w-3xl">
+              <DisplayHeadline className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
                 {project.title}
               </DisplayHeadline>
-              <p className="text-base sm:text-lg md:text-xl text-foreground-secondary leading-relaxed font-sans">
+              <p className="text-sm sm:text-lg md:text-xl text-foreground-secondary leading-relaxed font-sans">
                 {project.shortDescription}
               </p>
             </div>
@@ -162,7 +162,7 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
                     href={project.liveDemoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center rounded-md font-sans text-xs font-semibold h-10 px-4 gap-2 transition-all bg-white text-black hover:bg-neutral-200 border border-white shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="inline-flex items-center justify-center rounded-md font-sans text-xs font-semibold h-10 px-4 gap-2 transition-all bg-foreground text-background hover:bg-foreground/90 border border-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     <span>Live Platform</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -184,40 +184,40 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
           </div>
 
           {/* Meta Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 sm:p-5 rounded-xl border border-border bg-surface/80 text-xs shadow-md">
-            <div className="space-y-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-5 rounded-lg border border-border bg-surface/80 text-xs shadow-md">
+            <div className="space-y-0.5 sm:space-y-1">
               <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
                 Timeline
               </span>
-              <span className="font-semibold text-foreground font-mono block">
+              <span className="font-semibold text-foreground font-mono block text-xs">
                 {project.year || "2024–2025"}
               </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5 sm:space-y-1">
               <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
                 Engineering Role
               </span>
-              <span className="font-semibold text-foreground block truncate" title={project.role}>
+              <span className="font-semibold text-foreground block truncate text-xs" title={project.role}>
                 {project.role || "Lead Engineer"}
               </span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5 sm:space-y-1">
               <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
                 Domain Category
               </span>
-              <span className="font-semibold text-foreground block">{project.category}</span>
+              <span className="font-semibold text-foreground block text-xs truncate">{project.category}</span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5 sm:space-y-1">
               <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
                 Deployment Status
               </span>
-              <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-foreground text-xs">
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
                     project.liveDemoUrl ? "bg-emerald-400" : "bg-accent"
                   }`}
                 />
-                <span>
+                <span className="truncate">
                   {project.liveDemoUrl ? "Production Live" : "Architecture Verified"}
                 </span>
               </span>
@@ -226,7 +226,7 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
         </Container>
       </header>
 
-      <Container size="public" className="space-y-14">
+      <Container size="public" className="space-y-8 sm:space-y-14">
         {/* 3. Verified Metrics Banner */}
         {project.metrics && project.metrics.length > 0 && (
           <section aria-labelledby="verified-metrics-heading" className="space-y-4">
@@ -282,27 +282,27 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
                   id="system-interface-heading"
                   className="font-mono text-xs uppercase tracking-widest text-accent font-semibold"
                 >
-                  SYSTEM INTERFACE & TELEMETRY // {project.slug.toUpperCase()}
+                  SYSTEM INTERFACE &amp; ARCHITECTURE
                 </h2>
               </div>
-              <span className="font-mono text-[10px] text-foreground-muted">
-                1920×1080 RENDER
+              <span className="font-mono text-[10px] text-muted-foreground">
+                INTERFACE PREVIEW
               </span>
             </div>
 
-            <div className="rounded-xl overflow-hidden border border-border bg-zinc-950 shadow-2xl">
+            <div className="rounded-xl overflow-hidden border border-border bg-surface shadow-md">
               {/* Browser / Terminal Chrome */}
-              <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/90 border-b border-border text-xs font-mono text-foreground-muted">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-surface-muted/80 border-b border-border text-xs font-mono text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                   <span className="ml-2 text-[11px] text-foreground-secondary hidden sm:inline-block">
-                    sys://{project.slug}/dashboard
+                    {project.title} — Interface
                   </span>
                 </div>
                 <span className="text-[10px] uppercase text-accent font-semibold">
-                  [TELEMETRY_VIEW]
+                  PRODUCTION
                 </span>
               </div>
 
@@ -310,14 +310,14 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
               <img
                 src={displayImage}
                 alt={mediaItem?.caption || project.title}
-                className="w-full max-h-[640px] object-cover object-top"
+                className="w-full max-h-[280px] sm:max-h-[640px] object-cover object-top"
                 loading="eager"
               />
             </div>
 
             {mediaItem?.caption && (
-              <p className="text-xs font-mono text-foreground-muted text-center pt-1">
-                Figure 1: {mediaItem.caption}
+              <p className="text-xs font-mono text-muted-foreground text-center pt-1">
+                {mediaItem.caption}
               </p>
             )}
           </section>
@@ -415,7 +415,7 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
                 )}
 
                 {project.architectureSummary && (
-                  <div className="rounded-xl border border-border/80 bg-zinc-950 p-5 space-y-3">
+                  <div className="rounded-xl border border-border/80 bg-surface p-5 space-y-3">
                     <div className="flex items-center justify-between border-b border-border/60 pb-2">
                       <div className="flex items-center gap-2">
                         <Cpu className="w-3.5 h-3.5 text-accent" />

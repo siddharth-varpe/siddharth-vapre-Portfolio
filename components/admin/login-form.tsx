@@ -21,8 +21,8 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
     if (typeof window !== "undefined" && window.location.search) {
       const urlParams = new URLSearchParams(window.location.search);
       const queryUser = urlParams.get("username");
-      if (queryUser && !username) {
-        setUsername(queryUser);
+      if (queryUser) {
+        setUsername((prev) => (!prev ? queryUser : prev));
       }
       if (urlParams.has("password") || urlParams.has("username")) {
         const cleanUrl = window.location.pathname + (urlParams.get("returnTo") ? `?returnTo=${encodeURIComponent(urlParams.get("returnTo")!)}` : "");
@@ -106,6 +106,7 @@ export function LoginForm({ returnTo = "/admin" }: LoginFormProps) {
       {errorMessage && (
         <div
           role="alert"
+          data-testid="login-error-alert"
           className="flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-950/20 p-3.5 text-sm text-red-300 transition-all"
         >
           <AlertCircle className="h-4 w-4 shrink-0 text-red-400 mt-0.5" />

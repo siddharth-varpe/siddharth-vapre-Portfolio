@@ -15,7 +15,6 @@ import {
   CardFooter,
   Badge,
   BodyText,
-  TechnicalLabel,
 } from "@/components/ui";
 
 interface ProjectsExplorerProps {
@@ -125,11 +124,10 @@ export function ProjectsExplorer({ projects }: ProjectsExplorerProps) {
       {/* Projects Grid */}
       {filteredProjects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center max-w-xl mx-auto space-y-3">
-          <TechnicalLabel>[00 // NO_MATCHES]</TechnicalLabel>
           <h3 className="text-base font-semibold text-foreground">
             No projects match the &ldquo;{activeFilter}&rdquo; filter
           </h3>
-          <BodyText className="text-sm text-foreground-muted">
+          <BodyText className="text-sm text-muted-foreground">
             Try selecting a different domain category or reset to view all published engineering case studies.
           </BodyText>
           <button
@@ -142,7 +140,7 @@ export function ProjectsExplorer({ projects }: ProjectsExplorerProps) {
       ) : (
         <motion.div
           layout={!shouldReduceMotion}
-          className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
         >
           <AnimatePresence mode="popLayout">
             {filteredProjects.map((project, index) => {
@@ -164,49 +162,43 @@ export function ProjectsExplorer({ projects }: ProjectsExplorerProps) {
                   className="h-full flex"
                 >
                   <Card
-                    className="w-full flex flex-col justify-between bg-surface/90 border-border hover:border-border-hover transition-all duration-300 overflow-hidden group shadow-lg"
+                    className="w-full flex flex-col justify-between bg-surface/90 border-border hover:border-border-hover transition-all duration-300 overflow-hidden group shadow-sm hover:shadow-md p-0"
                   >
                     <div>
                       {/* Visual Preview / Thumbnail */}
                       {coverImage && (
-                        <div className="relative aspect-video w-full overflow-hidden bg-zinc-950 border-b border-border">
+                        <div className="relative aspect-video w-full overflow-hidden bg-surface-muted border-b border-border">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={coverImage}
                             alt={project.title}
                             className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                            loading={index < 2 ? "eager" : "lazy"}
+                            loading={index < 4 ? "eager" : "lazy"}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
 
-                          {/* Technical corner HUD tag */}
-                          <div className="absolute top-3 left-3">
-                            <span className="font-mono text-[10px] uppercase tracking-widest px-2 py-0.5 rounded bg-background/85 backdrop-blur-md border border-border text-foreground-muted">
-                              SYS://0{project.order || index + 1}
-                            </span>
-                          </div>
-                          <div className="absolute top-3 right-3">
-                            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-background/85 backdrop-blur-md border border-border text-accent">
+                          <div className="absolute top-2.5 right-2.5">
+                            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-background/90 backdrop-blur-md border border-border text-accent">
                               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                              <span>{project.liveDemoUrl ? "VERIFIED LIVE" : "ARCHITECTED"}</span>
+                              <span>{project.liveDemoUrl ? "LIVE" : "SYSTEM"}</span>
                             </span>
                           </div>
                         </div>
                       )}
 
-                      <CardHeader className="space-y-2.5 pt-5">
+                      <CardHeader className="space-y-2 pt-4 px-4 pb-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-xs uppercase tracking-wider text-accent font-semibold">
+                          <span className="font-mono text-[11px] uppercase tracking-wider text-accent font-semibold">
                             {project.category || "Full-Stack"}
                           </span>
                           {project.year && (
-                            <span className="font-mono text-xs text-foreground-muted">
+                            <span className="font-mono text-[11px] text-muted-foreground">
                               {project.year}
                             </span>
                           )}
                         </div>
 
-                        <CardTitle className="text-xl font-bold text-foreground group-hover:text-accent transition-colors">
+                        <CardTitle className="text-base font-bold text-foreground group-hover:text-accent transition-colors leading-snug line-clamp-1">
                           <Link
                             href={`/projects/${project.slug}`}
                             className="hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm"
@@ -215,68 +207,64 @@ export function ProjectsExplorer({ projects }: ProjectsExplorerProps) {
                           </Link>
                         </CardTitle>
 
-                        <CardDescription className="text-sm text-foreground-secondary line-clamp-3 leading-relaxed">
+                        <CardDescription className="text-xs text-foreground-secondary line-clamp-2 leading-relaxed">
                           {project.shortDescription}
                         </CardDescription>
                       </CardHeader>
 
-                      <CardContent className="space-y-4">
-                        {/* High-Impact Verified Metrics Strip */}
+                      <CardContent className="space-y-3 px-4 pb-3">
+                        {/* High-Impact Highlights if present */}
                         {project.metrics && project.metrics.length > 0 && (
-                          <div className="rounded-md border border-border/80 bg-surface-muted/40 p-3 space-y-1.5">
-                            <div className="font-mono text-[10px] uppercase tracking-wider text-foreground-muted flex items-center justify-between">
-                              <span>VERIFIED METRICS // IMPACT</span>
-                              <span className="text-accent font-semibold">AUTHENTIC</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                              {project.metrics.slice(0, 4).map((metric, mIdx) => (
-                                <div
-                                  key={mIdx}
-                                  className="flex items-start gap-1.5 font-mono text-xs text-foreground"
-                                >
-                                  <Check className="w-3.5 h-3.5 text-accent flex-shrink-0 mt-0.5" />
-                                  <span className="truncate" title={metric}>
-                                    {metric}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="rounded border border-border/70 bg-surface-muted/30 p-2 space-y-1">
+                            {project.metrics.slice(0, 2).map((metric, mIdx) => (
+                              <div
+                                key={mIdx}
+                                className="flex items-center gap-1.5 font-mono text-[11px] text-foreground"
+                              >
+                                <Check className="w-3 h-3 text-accent flex-shrink-0" />
+                                <span className="truncate" title={metric}>
+                                  {metric}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         )}
 
                         {/* Technology Badges */}
                         {project.technologies && project.technologies.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {project.technologies.slice(0, 6).map((tech) => (
-                              <Badge key={tech} variant="neutral">
+                          <div className="flex flex-wrap gap-1 pt-0.5">
+                            {project.technologies.slice(0, 4).map((tech) => (
+                              <Badge key={tech} variant="neutral" className="text-[10px] px-1.5 py-0">
                                 {tech}
                               </Badge>
                             ))}
-                            {project.technologies.length > 6 && (
-                              <Badge variant="outline">+{project.technologies.length - 6}</Badge>
+                            {project.technologies.length > 4 && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                +{project.technologies.length - 4}
+                              </Badge>
                             )}
                           </div>
                         )}
                       </CardContent>
                     </div>
 
-                    <CardFooter className="flex items-center justify-between pt-4 border-t border-border/60 mt-4">
+                    <CardFooter className="flex items-center justify-between pt-3 pb-3 px-4 border-t border-border/60">
                       <Link
                         href={`/projects/${project.slug}`}
-                        className="text-xs font-semibold text-accent hover:text-accent-hover inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm transition-transform group-hover:translate-x-0.5"
+                        className="text-xs font-semibold text-accent hover:text-accent-hover inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm transition-transform group-hover:translate-x-0.5"
                       >
-                        <span>Explore Case Study</span>
+                        <span>Case Study</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
 
-                      {/* External links: ONLY rendered if verified (Campus Buddy) */}
-                      <div className="flex items-center gap-2">
+                      {/* External links: ONLY rendered if verified */}
+                      <div className="flex items-center gap-1.5">
                         {project.githubUrl && (
                           <a
                             href={project.githubUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-mono text-foreground-muted hover:text-foreground transition-colors p-1.5 rounded hover:bg-surface-muted border border-transparent hover:border-border"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-surface-muted border border-transparent hover:border-border"
                             aria-label={`View ${project.title} source code on GitHub`}
                             title="View GitHub Repository"
                           >
@@ -289,7 +277,7 @@ export function ProjectsExplorer({ projects }: ProjectsExplorerProps) {
                             href={project.liveDemoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-mono text-foreground-muted hover:text-foreground transition-colors p-1.5 rounded hover:bg-surface-muted border border-transparent hover:border-border"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-surface-muted border border-transparent hover:border-border"
                             aria-label={`View live demo of ${project.title}`}
                             title="View Live Platform"
                           >

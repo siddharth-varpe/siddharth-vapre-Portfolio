@@ -27,27 +27,27 @@ export function PageIntro({
   children,
 }: PageIntroProps) {
   return (
-    <div className={cn("border-b border-border/80 pb-8 pt-6 sm:pb-12 sm:pt-10", className)}>
-      <Container size="public" className="space-y-4">
+    <div className={cn("border-b border-border/80 pb-6 pt-5 sm:pb-12 sm:pt-10", className)}>
+      <Container size="public" className="space-y-3 sm:space-y-4">
         {eyebrow && (
           <div>
             <TechnicalLabel>{eyebrow}</TechnicalLabel>
           </div>
         )}
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3 max-w-3xl">
-            <DisplayHeadline className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+        <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2 sm:space-y-3 max-w-3xl">
+            <DisplayHeadline className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
               {title}
             </DisplayHeadline>
             {description && (
-              <BodyText className="text-base sm:text-lg text-foreground-secondary leading-relaxed">
+              <BodyText className="text-sm sm:text-base md:text-lg text-foreground-secondary leading-relaxed">
                 {description}
               </BodyText>
             )}
           </div>
 
-          {action && <div className="flex-shrink-0 pt-2 sm:pt-0">{action}</div>}
+          {action && <div className="flex-shrink-0 pt-1 sm:pt-0">{action}</div>}
         </div>
 
         {metadata && <div className="pt-2">{metadata}</div>}

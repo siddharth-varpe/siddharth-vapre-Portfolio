@@ -4,31 +4,62 @@
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Surfaces (Near-black / Graphite) */
+  /* Surfaces */
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-surface-subtle: var(--color-surface-subtle);
+  --color-surface-hover: var(--color-surface-hover);
+
+  /* Borders */
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-hover);
+  --color-border-emphasized: var(--color-border-emphasized);
+
+  /* Typography */
+  --color-foreground: var(--color-foreground);
+  --color-foreground-secondary: var(--color-foreground-secondary);
+  --color-foreground-muted: var(--color-foreground-muted);
+  --color-foreground-subtle: var(--color-foreground-subtle);
+
+  /* Electric Blue Accent */
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-subtle: var(--color-accent-subtle);
+  --color-accent-glow: var(--color-accent-glow);
+
+  /* Semantic Feedback States */
+  --color-success: var(--color-success);
+  --color-success-subtle: var(--color-success-subtle);
+  --color-warning: var(--color-warning);
+  --color-warning-subtle: var(--color-warning-subtle);
+  --color-error: var(--color-error);
+  --color-error-subtle: var(--color-error-subtle);
+  --color-info: var(--color-info);
+  --color-info-subtle: var(--color-info-subtle);
+}
+
+:root, .dark, [data-theme="dark"] {
   --color-background: #09090b;
   --color-surface: #121215;
   --color-surface-muted: #18181b;
   --color-surface-subtle: #202024;
   --color-surface-hover: #27272a;
 
-  /* Borders (Restrained Hairline) */
   --color-border: #27272a;
   --color-border-hover: #3f3f46;
   --color-border-emphasized: #52525b;
 
-  /* Typography (Warm Off-White Hierarchy) */
   --color-foreground: #fafafa;
   --color-foreground-secondary: #d4d4d8;
   --color-foreground-muted: #a1a1aa;
   --color-foreground-subtle: #71717a;
 
-  /* Electric Blue Accent (Controlled & Intentional) */
   --color-accent: #3b82f6;
   --color-accent-hover: #2563eb;
   --color-accent-subtle: rgba(59, 130, 246, 0.1);
   --color-accent-glow: rgba(59, 130, 246, 0.25);
 
-  /* Semantic Feedback States */
   --color-success: #10b981;
   --color-success-subtle: rgba(16, 185, 129, 0.1);
   --color-warning: #f59e0b;
@@ -37,26 +68,61 @@
   --color-error-subtle: rgba(239, 68, 68, 0.1);
   --color-info: #3b82f6;
   --color-info-subtle: rgba(59, 130, 246, 0.1);
+
+  --grid-color: rgba(255, 255, 255, 0.03);
 }
 
-:root {
-  --background: #09090b;
-  --foreground: #fafafa;
+.light, [data-theme="light"] {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-subtle: #e2e8f0;
+  --color-surface-hover: #cbd5e1;
+
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-border-emphasized: #94a3b8;
+
+  --color-foreground: #0f172a;
+  --color-foreground-secondary: #334155;
+  --color-foreground-muted: #64748b;
+  --color-foreground-subtle: #94a3b8;
+
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-subtle: rgba(37, 99, 235, 0.08);
+  --color-accent-glow: rgba(37, 99, 235, 0.18);
+
+  --color-success: #059669;
+  --color-success-subtle: rgba(5, 150, 105, 0.1);
+  --color-warning: #d97706;
+  --color-warning-subtle: rgba(217, 119, 6, 0.1);
+  --color-error: #dc2626;
+  --color-error-subtle: rgba(220, 38, 38, 0.1);
+  --color-info: #2563eb;
+  --color-info-subtle: rgba(37, 99, 235, 0.1);
+
+  --grid-color: rgba(15, 23, 42, 0.035);
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Technical grid pattern utility (subtle 32px hairline grid) */
+/* Technical grid pattern utility */
 .bg-grid-technical {
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-image: linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
@@ -65,7 +131,37 @@ body {
   border: 1px solid var(--color-border);
 }
 
-/* Atmospheric lighting accent highlight (controlled electric blue glow) */
+/* Atmospheric lighting accent highlight */
 .atmospheric-glow {
-  box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 40px -10px var(--color-accent-glow);
+}
+
+/* Safe area insets & mobile touch utilities */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+.min-h-screen-dvh {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-screen-dvh {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
 }

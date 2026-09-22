@@ -176,8 +176,10 @@ export const metricMutationSchema = z.object({
 // 11. Contact Settings Mutation Schema
 export const contactSettingsMutationSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(150),
-  linkedinUrl: safeUrlSchema,
-  githubUrl: safeUrlSchema,
+  linkedinUrl: z.union([safeUrlSchema, z.literal("")]).optional(),
+  githubUrl: z.union([safeUrlSchema, z.literal("")]).optional(),
+  instagramUrl: z.union([safeUrlSchema, z.literal("")]).optional(),
+  twitterUrl: z.union([safeUrlSchema, z.literal("")]).optional(),
   location: z.string().trim().min(1).max(100),
   ctaDestination: z.string().trim().min(1).max(200),
   availabilityNotice: z.string().trim().max(250).optional(),
