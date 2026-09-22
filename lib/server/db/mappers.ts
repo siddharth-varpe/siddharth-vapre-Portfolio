@@ -421,15 +421,12 @@ export function mapMetricToDb(doc: Partial<MetricDocument>): Record<string, unkn
 
 // 10. Contact Settings
 export function mapContactSettingsFromDb(row: ContactSettingsRow): ContactSettingsDocument {
-  const socialLinks = row.social_links || {};
   return {
     id: row.id,
     _id: row.id,
     email: row.email || row.recipient_email || "",
-    linkedinUrl: row.linkedin_url || socialLinks.linkedin || "",
-    githubUrl: row.github_url || socialLinks.github || "",
-    instagramUrl: (row as unknown as { instagram_url?: string }).instagram_url || socialLinks.instagram || "",
-    twitterUrl: (row as unknown as { twitter_url?: string }).twitter_url || socialLinks.twitter || "",
+    linkedinUrl: row.linkedin_url || "",
+    githubUrl: row.github_url || "",
     location: row.location || "",
     ctaDestination: row.cta_destination || "",
     availabilityNotice: row.availability_notice || undefined,
@@ -450,15 +447,6 @@ export function mapContactSettingsToDb(doc: Partial<ContactSettingsDocument>): R
   if (doc.location !== undefined) result.location = doc.location;
   if (doc.ctaDestination !== undefined) result.cta_destination = doc.ctaDestination;
   if (doc.availabilityNotice !== undefined) result.availability_notice = doc.availabilityNotice;
-
-  const socialLinks: Record<string, string> = {};
-  if (doc.linkedinUrl) socialLinks.linkedin = doc.linkedinUrl;
-  if (doc.githubUrl) socialLinks.github = doc.githubUrl;
-  if (doc.email) socialLinks.email = doc.email;
-  if (doc.instagramUrl) socialLinks.instagram = doc.instagramUrl;
-  if (doc.twitterUrl) socialLinks.twitter = doc.twitterUrl;
-  result.social_links = socialLinks;
-
   result.updated_at = new Date().toISOString();
   return result;
 }

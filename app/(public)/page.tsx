@@ -15,7 +15,6 @@ import {
   getPublishedMetrics,
   getPublishedProjects,
   getPublishedExperience,
-  getPublishedContactSettings,
 } from "@/lib/server/db/repositories/content";
 import {
   Container,
@@ -53,13 +52,12 @@ export const metadata: Metadata = buildMetadata({
  * - Zero fake telemetry; strictly authentic verified resume evidence
  */
 export default async function HomePage() {
-  const [profile, hero, metrics, projects, experiences, contactSettings] = await Promise.all([
+  const [profile, hero, metrics, projects, experiences] = await Promise.all([
     getPublishedProfile(),
     getPublishedHero(),
     getPublishedMetrics(),
     getPublishedProjects(),
     getPublishedExperience(),
-    getPublishedContactSettings(),
   ]);
 
   const eyebrow = hero?.eyebrow || "SOFTWARE ENGINEER";
@@ -68,22 +66,12 @@ export default async function HomePage() {
   const description =
     hero?.description ||
     profile?.summary ||
-    "Software engineer with experience building production-grade CRM and inventory systems. Specializing in high-throughput full-stack applications, distributed architectures, and AI integrations.";
+    "Full-Stack Software Engineer with experience building production-grade CRM and inventory systems. Skilled in JavaScript, React.js, Node.js, Python, PostgreSQL, and REST APIs, with hands-on AI-powered application development.";
 
   const availability = profile?.availability || "Available for Software Engineering roles";
 
   const featuredProjects = projects.filter((p) => p.featured);
   const primaryExperience = experiences[0];
-
-  const socialLinks = contactSettings
-    ? {
-        linkedin: contactSettings.linkedinUrl,
-        github: contactSettings.githubUrl,
-        email: contactSettings.email,
-        instagram: contactSettings.instagramUrl,
-        twitter: contactSettings.twitterUrl,
-      }
-    : undefined;
 
   return (
     <div className="space-y-12 sm:space-y-16 lg:space-y-24 pb-14 sm:pb-20">
@@ -100,7 +88,6 @@ export default async function HomePage() {
         primaryCtaLink={hero?.ctaUrl || "/projects"}
         secondaryCtaText="Download Resume"
         secondaryCtaLink="/api/resume/download"
-        socialLinks={socialLinks}
       />
 
       {/* ========================================================================= */}

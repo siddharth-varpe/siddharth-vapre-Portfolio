@@ -11,15 +11,11 @@ import { ThemeToggle } from "@/components/public/theme-toggle";
 
 import { PUBLIC_NAV_ITEMS } from "./constants";
 
-interface PublicNavbarProps {
-  navigationTitle?: string;
-}
-
 /**
  * Global Public Navigation Header (Phase 7 Public Shell + Phase 11 Motion).
  * Responsive header with desktop bar, layoutId active indicator, and accessible animated mobile drawer.
  */
-export function PublicNavbar({ navigationTitle = "Software Engineer" }: PublicNavbarProps) {
+export function PublicNavbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const shouldReduceMotion = useReducedMotion();
@@ -77,7 +73,7 @@ export function PublicNavbar({ navigationTitle = "Software Engineer" }: PublicNa
             Siddharth Varpe
           </span>
           <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-foreground-muted leading-tight">
-            {navigationTitle}
+            Software Engineer
           </span>
         </Link>
 

@@ -114,7 +114,7 @@ export function HeroEditor({ initialData }: HeroEditorProps) {
 
           <div className="md:col-span-2">
             <label className="block text-xs font-mono text-zinc-400 mb-1.5">
-              Hero Description <span className="text-red-400">*</span>
+              Detailed Description <span className="text-red-400">*</span>
             </label>
             <textarea
               rows={3}
@@ -123,9 +123,6 @@ export function HeroEditor({ initialData }: HeroEditorProps) {
               required
               className="w-full px-3.5 py-2.5 text-sm bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
             />
-            <p className="text-[11px] text-zinc-500 mt-1 font-mono">
-              Primary supporting paragraph displayed in the above-the-fold hero section.
-            </p>
           </div>
 
           <div>

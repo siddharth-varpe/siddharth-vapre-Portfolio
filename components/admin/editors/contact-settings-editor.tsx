@@ -15,8 +15,6 @@ export function ContactSettingsEditor({ initialData }: ContactSettingsEditorProp
     email: initialData?.email ?? "siddharth@example.com",
     linkedinUrl: initialData?.linkedinUrl ?? "https://linkedin.com/in/siddharth-varpe",
     githubUrl: initialData?.githubUrl ?? "https://github.com/siddharth-varpe",
-    instagramUrl: initialData?.instagramUrl ?? "https://instagram.com",
-    twitterUrl: initialData?.twitterUrl ?? "https://x.com/siddharth_varpe",
     location: initialData?.location ?? "Bengaluru, India",
     ctaDestination: initialData?.ctaDestination ?? "mailto:siddharth@example.com",
     availabilityNotice:
@@ -53,7 +51,7 @@ export function ContactSettingsEditor({ initialData }: ContactSettingsEditorProp
       <div className="p-6 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-5">
         <div className="flex items-center gap-2 pb-4 border-b border-zinc-800 text-sm font-semibold text-white">
           <Send className="w-4 h-4 text-blue-400" />
-          <span>Contact Channels &amp; Hero Social Links</span>
+          <span>Contact Channels &amp; Social Links</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -85,52 +83,28 @@ export function ContactSettingsEditor({ initialData }: ContactSettingsEditorProp
 
           <div>
             <label className="block text-xs font-mono text-zinc-400 mb-1.5">
-              LinkedIn Profile URL
+              LinkedIn Profile URL <span className="text-red-400">*</span>
             </label>
             <input
               type="url"
               value={formData.linkedinUrl}
               onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-              placeholder="https://linkedin.com/in/... (leave blank to hide)"
+              required
+              placeholder="https://linkedin.com/in/..."
               className="w-full px-3.5 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div>
             <label className="block text-xs font-mono text-zinc-400 mb-1.5">
-              GitHub Profile URL
+              GitHub Profile URL <span className="text-red-400">*</span>
             </label>
             <input
               type="url"
               value={formData.githubUrl}
               onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-              placeholder="https://github.com/... (leave blank to hide)"
-              className="w-full px-3.5 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-mono text-zinc-400 mb-1.5">
-              Instagram Profile URL
-            </label>
-            <input
-              type="url"
-              value={formData.instagramUrl}
-              onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
-              placeholder="https://instagram.com/... (leave blank to hide)"
-              className="w-full px-3.5 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-mono text-zinc-400 mb-1.5">
-              Twitter / X Profile URL
-            </label>
-            <input
-              type="url"
-              value={formData.twitterUrl}
-              onChange={(e) => setFormData({ ...formData, twitterUrl: e.target.value })}
-              placeholder="https://x.com/... or https://twitter.com/... (leave blank to hide)"
+              required
+              placeholder="https://github.com/..."
               className="w-full px-3.5 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
             />
           </div>

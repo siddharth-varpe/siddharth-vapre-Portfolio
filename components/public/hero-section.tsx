@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Download, Mail } from "lucide-react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
-import { GithubIcon, LinkedinIcon, InstagramIcon, TwitterIcon } from "@/components/public/icons";
+import { GithubIcon, LinkedinIcon, InstagramIcon } from "@/components/public/icons";
 import { StatusBeacon } from "@/components/motion";
 
 interface HeroSectionProps {
@@ -19,13 +19,6 @@ interface HeroSectionProps {
   primaryCtaLink?: string;
   secondaryCtaText?: string;
   secondaryCtaLink?: string;
-  socialLinks?: {
-    linkedin?: string;
-    github?: string;
-    email?: string;
-    instagram?: string;
-    twitter?: string;
-  };
 }
 
 export function HeroSection({
@@ -39,13 +32,6 @@ export function HeroSection({
   primaryCtaLink = "/projects",
   secondaryCtaText = "Download Resume",
   secondaryCtaLink = "/api/resume/download",
-  socialLinks = {
-    linkedin: "https://www.linkedin.com/in/siddharth-varpe",
-    github: "https://github.com/siddharth-varpe",
-    email: "siddharth.varpe0@gmail.com",
-    instagram: "https://instagram.com",
-    twitter: "https://x.com/siddharth_varpe",
-  },
 }: HeroSectionProps) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -84,7 +70,7 @@ export function HeroSection({
       />
 
       {/* ========================================================================= */}
-      {/* LAYER 2 & 3: SUPPLIED HERO IMAGE & ATMOSPHERIC BLENDING (TABLET & DESKTOP) */}
+      {/* LAYER 2 & 3: SUPPLIED HERO IMAGE & ATMOSPHERIC BLENDING (DESKTOP)         */}
       {/* Strict: authentic image preserved without filter, face alteration or swap  */}
       {/* ========================================================================= */}
       <motion.div
@@ -92,7 +78,7 @@ export function HeroSection({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.7, ease: "easeOut" }}
-        className="pointer-events-none absolute inset-y-0 right-0 hidden md:block md:w-[48%] lg:w-[58%] xl:w-[56%] 2xl:w-[54%] z-10"
+        className="pointer-events-none absolute inset-y-0 right-0 hidden lg:block w-[58%] xl:w-[56%] 2xl:w-[54%] z-10"
       >
         {/* The approved portrait image */}
         <div className="relative h-full w-full">
@@ -103,11 +89,11 @@ export function HeroSection({
             priority
             quality={95}
             className="object-cover object-[62%_28%]"
-            sizes="(min-width: 1536px) 54vw, (min-width: 1280px) 56vw, (min-width: 768px) 48vw, 58vw"
+            sizes="(min-width: 1536px) 54vw, (min-width: 1280px) 56vw, 58vw"
           />
 
           {/* Left-edge smooth dissolution gradient */}
-          <div className="absolute inset-y-0 left-0 w-36 md:w-44 xl:w-56 bg-gradient-to-r from-background via-background/90 to-transparent" />
+          <div className="absolute inset-y-0 left-0 w-44 xl:w-56 bg-gradient-to-r from-background via-background/90 to-transparent" />
 
           {/* Bottom smooth dissolution into technical strip */}
           <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background via-background/80 to-transparent" />
@@ -124,10 +110,10 @@ export function HeroSection({
       {/* LAYER 4: CONTENT LAYER                                                    */}
       {/* ========================================================================= */}
       <div className="relative z-20 mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12">
-        {/* Main Hero Container: 2-Column on Tablet & Desktop (md:), 1-Column on Mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 items-center">
+        {/* Main Hero Container: 2-Column on Desktop (lg:), 1-Column on Mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
           {/* Left / Primary Column: Textual Hierarchy, CTAs & Socials */}
-          <div className="md:col-span-8 lg:col-span-8 xl:col-span-7 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-8 xl:col-span-7 space-y-4 sm:space-y-6">
             {/* Eyebrow strip */}
             <motion.div
               custom={0}
@@ -175,49 +161,9 @@ export function HeroSection({
               </h1>
             </motion.div>
 
-            {/* ========================================================================= */}
-            {/* MOBILE INTEGRATED HERO PORTRAIT (< md:)                                   */}
-            {/* Seamless, borderless edge treatment - visual continuation of the headline  */}
-            {/* ========================================================================= */}
-            <motion.div
-              custom={2}
-              initial="hidden"
-              animate="visible"
-              variants={fadeIn}
-              className="block md:hidden relative w-full my-1 sm:my-2"
-            >
-              <div className="relative w-full overflow-hidden">
-                {/* Soft ambient depth lighting connecting with hero lighting */}
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-blue-600/[0.12] blur-3xl"
-                />
-
-                {/* The approved portrait image with multi-directional seamless dissolution */}
-                <div className="relative aspect-[16/9] sm:aspect-[16/10] max-h-[220px] sm:max-h-[260px] w-full overflow-hidden">
-                  <Image
-                    src="/images/siddharth-hero.png"
-                    alt="Siddharth Varpe — Software Engineer"
-                    fill
-                    priority
-                    quality={92}
-                    className="object-cover object-[62%_24%]"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  {/* Top soft fade connecting into hero headline */}
-                  <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-background via-background/40 to-transparent pointer-events-none" />
-                  {/* Bottom smooth dissolution into description */}
-                  <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-background via-background/60 to-transparent pointer-events-none" />
-                  {/* Left & right edge dissolves into background */}
-                  <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background via-background/40 to-transparent pointer-events-none" />
-                  <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background via-background/40 to-transparent pointer-events-none" />
-                </div>
-              </div>
-            </motion.div>
-
             {/* Professional Description */}
             <motion.p
-              custom={3}
+              custom={2}
               initial="hidden"
               animate="visible"
               variants={fadeIn}
@@ -228,17 +174,17 @@ export function HeroSection({
 
             {/* Action Buttons & Social Links in cohesive group */}
             <motion.div
-              custom={4}
+              custom={3}
               initial="hidden"
               animate="visible"
               variants={fadeIn}
-              className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3.5 sm:gap-4 pt-1"
+              className="flex flex-col sm:flex-row sm:items-center gap-3.5 pt-1"
             >
-              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <Link href={primaryCtaLink}>
                   <button
                     type="button"
-                    className="group inline-flex h-9 sm:h-11 items-center gap-2 rounded-md bg-foreground px-4 sm:px-6 text-xs sm:text-sm font-semibold text-background shadow-sm transition-all duration-200 hover:bg-foreground/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent whitespace-nowrap"
+                    className="group inline-flex h-9 sm:h-11 items-center gap-2 rounded-md bg-foreground px-4 sm:px-6 text-xs sm:text-sm font-semibold text-background shadow-sm transition-all duration-200 hover:bg-foreground/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     <span>{primaryCtaText}</span>
                     <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
@@ -253,7 +199,7 @@ export function HeroSection({
                 >
                   <button
                     type="button"
-                    className="inline-flex h-9 sm:h-11 items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-surface px-3 sm:px-5 text-xs sm:text-sm font-medium text-foreground transition-all duration-200 hover:border-accent/60 hover:bg-surface-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent whitespace-nowrap"
+                    className="inline-flex h-9 sm:h-11 items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-surface px-3 sm:px-5 text-xs sm:text-sm font-medium text-foreground transition-all duration-200 hover:border-accent/60 hover:bg-surface-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
                     <span>{secondaryCtaText}</span>
@@ -261,65 +207,101 @@ export function HeroSection({
                 </a>
               </div>
 
-              {/* Social Links Row (Admin CMS Controlled, Supports Twitter, Hides Empty) */}
-              <div className="flex items-center gap-3.5 sm:gap-4 text-muted-foreground pt-1 sm:pt-0 sm:pl-2 shrink-0">
-                {socialLinks?.linkedin && (
-                  <a
-                    href={socialLinks.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="LinkedIn Profile"
-                    className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
-                  >
-                    <LinkedinIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
-                  </a>
-                )}
+              {/* Social Links Row */}
+              <div className="flex items-center gap-4 text-muted-foreground pt-1 sm:pt-0 sm:pl-2">
+                <a
+                  href="https://www.linkedin.com/in/siddharth-varpe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn Profile"
+                  className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
+                >
+                  <LinkedinIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                </a>
 
-                {socialLinks?.github && (
-                  <a
-                    href={socialLinks.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="GitHub Profile"
-                    className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
-                  >
-                    <GithubIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
-                  </a>
-                )}
+                <a
+                  href="https://github.com/siddharth-varpe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub Profile"
+                  className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
+                >
+                  <GithubIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                </a>
 
-                {socialLinks?.email && (
-                  <a
-                    href={socialLinks.email.startsWith("mailto:") ? socialLinks.email : `mailto:${socialLinks.email}`}
-                    aria-label="Send Email"
-                    className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
-                  >
-                    <Mail className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
-                  </a>
-                )}
+                <a
+                  href="mailto:siddharth.varpe0@gmail.com"
+                  aria-label="Send Email"
+                  className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
+                >
+                  <Mail className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                </a>
 
-                {socialLinks?.instagram && (
-                  <a
-                    href={socialLinks.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram Profile"
-                    className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
-                  >
-                    <InstagramIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
-                  </a>
-                )}
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram Profile"
+                  className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
+                >
+                  <InstagramIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                </a>
+              </div>
+            </motion.div>
 
-                {socialLinks?.twitter && (
-                  <a
-                    href={socialLinks.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Twitter Profile"
-                    className="transition-all duration-150 hover:text-foreground hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm p-1"
-                  >
-                    <TwitterIcon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
-                  </a>
-                )}
+            {/* Mobile Integrated Hero Visual + Capabilities Strip */}
+            {/* The portrait visually anchors and terminates the mobile hero */}
+            <motion.div
+              custom={4}
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              className="block lg:hidden pt-2"
+            >
+              <div className="relative w-full rounded-xl overflow-hidden border border-border/70 bg-gradient-to-b from-surface/40 via-surface/80 to-background shadow-md">
+                {/* Subtle depth lighting behind portrait */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-blue-600/[0.12] blur-3xl"
+                />
+
+                {/* Portrait with atmospheric dissolution */}
+                <div className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[300px] sm:max-h-[340px] w-full overflow-hidden">
+                  <Image
+                    src="/images/siddharth-hero.png"
+                    alt="Siddharth Varpe — Software Engineer"
+                    fill
+                    priority
+                    quality={90}
+                    className="object-cover object-[62%_22%]"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                  {/* Top soft fade into hero text */}
+                  <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-background/50 to-transparent pointer-events-none" />
+                  {/* Left & right edge subtle vignettes */}
+                  <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background/40 to-transparent pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/40 to-transparent pointer-events-none" />
+                  {/* Bottom smooth fade into capabilities strip */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background via-background/70 to-transparent pointer-events-none" />
+                </div>
+
+                {/* Mobile Integrated Capabilities Footer */}
+                <div className="border-t border-border/70 bg-surface/90 backdrop-blur-md px-3 py-2.5 sm:px-4 sm:py-3">
+                  <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                    <div className="space-y-0.5">
+                      <div className="font-sans text-[11px] sm:text-xs font-bold text-foreground">Full-Stack</div>
+                      <div className="text-[9px] sm:text-[10px] text-muted-foreground truncate">React · Node · Next</div>
+                    </div>
+                    <div className="space-y-0.5 border-x border-border/60 px-1">
+                      <div className="font-sans text-[11px] sm:text-xs font-bold text-foreground">Architecture</div>
+                      <div className="text-[9px] sm:text-[10px] text-muted-foreground truncate">Postgres · Python</div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="font-sans text-[11px] sm:text-xs font-bold text-foreground">AI Systems</div>
+                      <div className="text-[9px] sm:text-[10px] text-muted-foreground truncate">LLMs · Automation</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>

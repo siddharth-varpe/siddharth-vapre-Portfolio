@@ -151,13 +151,11 @@ export interface MetricDocument extends MongoBaseDocument {
 // 10. Contact / Social Settings Domain
 export interface ContactSettingsDocument extends MongoBaseDocument {
   email: string;
-  linkedinUrl?: string;
-  githubUrl?: string;
+  linkedinUrl: string;
+  githubUrl: string;
   location: string;
   ctaDestination: string;
   availabilityNotice?: string;
-  instagramUrl?: string;
-  twitterUrl?: string;
 }
 
 // 11. Resume Metadata Domain

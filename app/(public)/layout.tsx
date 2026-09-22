@@ -3,8 +3,6 @@ import * as React from "react";
 import { PublicNavbar, PublicFooter } from "@/components/public";
 import { ScrollProgressBar } from "@/components/motion";
 
-import { getPublishedProfile } from "@/lib/server/db/repositories/content";
-
 interface PublicLayoutProps {
   children: React.ReactNode;
 }
@@ -19,17 +17,14 @@ interface PublicLayoutProps {
  * - Standardized public footer with authentic social and platform metadata
  * - Strict separation from authenticated admin boundaries
  */
-export default async function PublicLayout({ children }: PublicLayoutProps) {
-  const profile = await getPublishedProfile();
-  const navigationTitle = profile?.title || "Software Engineer";
-
+export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="relative flex min-h-screen flex-col bg-background text-foreground selection:bg-accent/20 selection:text-accent">
       {/* Technical Reading Scroll Progress Bar */}
       <ScrollProgressBar />
 
       {/* Global Public Navigation */}
-      <PublicNavbar navigationTitle={navigationTitle} />
+      <PublicNavbar />
 
       {/* Main Page Content Viewport */}
       <main className="flex-1 w-full">{children}</main>

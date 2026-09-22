@@ -78,7 +78,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
 
           <div>
             <label className="block text-xs font-mono text-zinc-400 mb-1.5">
-              Navigation Professional Title <span className="text-red-400">*</span>
+              Professional Title <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -87,9 +87,6 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
               required
               className="w-full px-3.5 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
             />
-            <p className="text-[11px] text-zinc-500 mt-1 font-mono">
-              Displayed under your name in the public navigation header (default: Software Engineer).
-            </p>
           </div>
 
           <div>
