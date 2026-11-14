@@ -2,7 +2,7 @@ import { buildMetadata, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import * as React from "react";
 import type { Metadata } from "next";
-import { getPublishedProjects, getPageHero } from "@/lib/server/db/repositories/content";
+import { getPublishedProjects, getPageHero, getPublishedSiteContent } from "@/lib/server/db/repositories/content";
 import { ProjectsPageView } from "@/components/public/projects";
 
 export const metadata: Metadata = buildMetadata({
@@ -13,9 +13,10 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ProjectsPage() {
-  const [projects, pageHero] = await Promise.all([
+  const [projects, pageHero, siteContent] = await Promise.all([
     getPublishedProjects(),
     getPageHero("projects"),
+    getPublishedSiteContent(),
   ]);
 
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Projects", path: "/projects" }]);
@@ -23,7 +24,11 @@ export default async function ProjectsPage() {
   return (
     <div className="w-full">
       <JsonLd data={breadcrumbs} />
-      <ProjectsPageView projects={projects} heroConfig={pageHero} />
+      <ProjectsPageView
+        projects={projects}
+        heroConfig={pageHero}
+        globalCta={siteContent?.globalCta}
+      />
     </div>
   );
 }

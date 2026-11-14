@@ -7,9 +7,21 @@ import { ArrowRight } from "lucide-react";
 
 interface ProjectsClosingBannerProps {
   className?: string;
+  globalCta?: {
+    headline?: string;
+    subheadline?: string;
+    buttonLabel?: string;
+    buttonDestination?: string;
+  } | null;
 }
 
-export function ProjectsClosingBanner({ className = "" }: ProjectsClosingBannerProps) {
+export function ProjectsClosingBanner({ className = "", globalCta }: ProjectsClosingBannerProps) {
+  const headline = globalCta?.headline || "Always building, always learning.";
+  const subheadline =
+    globalCta?.subheadline ||
+    "These projects are a part of my journey to create practical, scalable and meaningful solutions. More exciting ideas are in the pipeline.";
+  const buttonLabel = globalCta?.buttonLabel || "Let's Build Something Amazing";
+  const buttonDestination = globalCta?.buttonDestination || "/contact";
   return (
     <section
       aria-label="Closing Projects Perspective"
@@ -48,23 +60,28 @@ export function ProjectsClosingBanner({ className = "" }: ProjectsClosingBannerP
       {/* Foreground Narrative & Action */}
       <div className="relative z-10 max-w-xl space-y-3 sm:space-y-4">
         <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-          Always building,{" "}
-          <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 dark:from-blue-400 dark:via-blue-300 dark:to-indigo-400 bg-clip-text text-transparent block sm:inline">
-            always learning.
-          </span>
+          {headline === "Always building, always learning." ? (
+            <>
+              Always building,{" "}
+              <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 dark:from-blue-400 dark:via-blue-300 dark:to-indigo-400 bg-clip-text text-transparent block sm:inline">
+                always learning.
+              </span>
+            </>
+          ) : (
+            headline
+          )}
         </h2>
 
         <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-md font-normal">
-          These projects are a part of my journey to create practical, scalable and meaningful solutions. More exciting ideas are in the pipeline.
+          {subheadline}
         </p>
 
         <div className="pt-1">
           <Link
-            href="/contact"
+            href={buttonDestination}
             className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-semibold text-xs sm:text-sm transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 whitespace-nowrap"
           >
-            <span className="hidden sm:inline">Let&apos;s Build Something Amazing</span>
-            <span className="sm:hidden">Let&apos;s Build Next</span>
+            <span>{buttonLabel}</span>
             <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Link>
         </div>

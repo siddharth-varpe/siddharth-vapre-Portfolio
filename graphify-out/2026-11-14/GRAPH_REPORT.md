@@ -1,12 +1,12 @@
-# Graph Report - Portfolio  (2026-09-29)
+# Graph Report - Portfolio  (2026-11-14)
 
 ## Corpus Check
-- 321 files · ~6,462,201 words
+- 311 files · ~482,132 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 9 file(s) not represented in the graph (top: (none) 6, .example 1, .css 1)
 
 ## Summary
-- 2246 nodes · 5278 edges · 157 communities (131 shown, 26 thin omitted)
+- 2227 nodes · 5255 edges · 163 communities (135 shown, 28 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 20 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
@@ -26,33 +26,34 @@
 - experience-manager.tsx
 - admin/certifications/page.tsx
 - cn
-- useToast
+- lucide-react
 - PRD.md
 - SkillDocument
-- react
-- pil
+- motion-wrapper.tsx
+- math
 - withDatabaseErrorHandling
+- certifications/[id]/route.ts
 - ref_next_server
-- resume/[id]/route.ts
 - page-heroes/route.ts
 - TechStack.md
 - validations/models.ts
 - seo.ts
-- requireAdminSession
+- projects/[id]/route.ts
 - ref_node_path
 - achievements/[id]/route.ts
 - session.ts
 - turnstile-widget.tsx
 - seo/route.ts
-- hero-section.tsx
-- verify-full-desktop-view.ts
+- react
+- InMemoryStore
 - 17. Admin CMS Requirements
 - compilerOptions
-- categories/[id]/route.ts
+- admin/skills/page.tsx
 - package.json
 - DEVELOPMENT_PHASES.md
 - 23. Technical Stack
 - 31. APPROVED TECHNOLOGY STACK
+- about-editor.tsx
 - types/models.ts
 - 4. CROSS-PHASE SECURITY RULE
 - 63. PRODUCTION SECURITY CHECKLIST
@@ -63,11 +64,11 @@
 - dependencies
 - devDependencies
 - 3.1 Recruiters / Hiring Managers
-- about/route.ts
-- lucide-react
-- (public)/page.tsx
-- PageHeroConfig
-- rate-limit.ts
+- requireAdminSession
+- taxonomy-editor.tsx
+- content.ts
+- experience-page-view.tsx
+- contact/route.ts
 - featured/route.ts
 - db.ts
 - 61. TESTING SECURITY CONTROLS
@@ -99,6 +100,7 @@
 - 3. SECURITY DOCUMENT ANALYSIS PROTOCOL
 - 57. TEST BEFORE DECLARING COMPLETE
 - Current projects
+- getAdminSiteContent
 - PHASE 0 — PROJECT INITIALIZATION
 - PHASE 14 — PERFORMANCE & ACCESSIBILITY OPTIMIZATION
 - PHASE 1 — ARCHITECTURE & APPLICATION FOUNDATION
@@ -124,6 +126,7 @@
 - 20. Anti-Spam — Cloudflare Turnstile
 - 3. Framework — Next.js
 - 9. 3D — Three.js
+- projects-page-view.tsx
 - postcss.config.mjs
 - README.md
 - Siddharth Varpe Portfolio — Security Constitution
@@ -145,37 +148,40 @@
   getSession,
   changePassword,
 }
-- content.ts
+- store.ts
 - ProjectDocument
 - profile/route.ts
 - next.config.ts
 - resend.ts
 - @playwright/test
-- validation.ts
-- messages/route.ts
-- contact/route.ts
+- featured-project-card.tsx
+- media/route.ts
+- site-content/route.ts
+- turnstile.ts
 - server-only.ts
 - taxonomy/route.ts
 - featured-highlights-section.tsx
 - services/index.ts
 - zod
-- ref_next_link
+- actions.ts
 - validations/common.ts
 - experience/[id]/route.ts
-- contact-settings/route.ts
+- PageHeroConfig
 - certifications-manager.tsx
 - resume/upload/route.ts
-- activity/route.ts
+- admin/experience/page.tsx
+- project-form.tsx
 - supabase-adapter.ts
 - ref_fs
-- verify-database-migration.ts
+- site-content-editor.tsx
 - hero/route.ts
-- measure-baseline.ts
-- migrate-and-seed-supabase.ts
-- verify-about-page.ts
+- opportunities/route.ts
+- server.ts
+- pil
+- verify-desktop-hero.ts
 - ref_playwright
-- ref_node_fs
-- login/page.tsx
+- bootstrap.ts
+- sys
 
 ## God Nodes (most connected - your core abstractions)
 1. `requireAdminSession()` - 177 edges
@@ -198,13 +204,13 @@
   app/api/resume/download/route.ts → lib/server/db/repositories/content.ts
 - `sitemap()` --calls--> `getPublishedProjects()`  [EXTRACTED]
   app/sitemap.ts → lib/server/db/repositories/content.ts
-- `HeroQuoteOverlay()` --calls--> `cn()`  [EXTRACTED]
-  components/public/hero-section.tsx → lib/utils.ts
+- `FeaturedEditorProps` --references--> `FeaturedSectionConfig`  [EXTRACTED]
+  components/admin/editors/featured-editor.tsx → types/models.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (157 total, 26 thin omitted)
+## Communities (163 total, 28 thin omitted)
 
 ### Community 0 - "DEVELOPMENT_RULES.md"
 Cohesion: 0.03
@@ -220,63 +226,59 @@ Nodes (49): AchievementsPage(), metadata, CertificationsPage(), metadata, Contac
 
 ### Community 3 - "admin.ts"
 Cohesion: 0.05
-Nodes (56): AdminMediaPage(), GET(), mapAboutToDb(), mapAchievementToDb(), mapActivityLogFromDb(), mapCertificationToDb(), mapContactMessageFromDb(), mapContactSettingsToDb() (+48 more)
+Nodes (60): DEFAULT_FEATURED_SECTION, DEFAULT_TECHNICAL_TAXONOMY, mapAboutToDb(), mapAchievementToDb(), mapActivityLogFromDb(), mapCertificationToDb(), mapContactMessageFromDb(), mapContactSettingsToDb() (+52 more)
 
 ### Community 4 - "design-system/page.tsx"
-Cohesion: 0.07
-Nodes (32): metadata, AdminPanelProps, LoginFormProps, Button, ButtonProps, Checkbox, CheckboxProps, FormErrorText() (+24 more)
+Cohesion: 0.08
+Nodes (31): metadata, AdminPanelProps, LoginFormProps, Button, ButtonProps, Checkbox, CheckboxProps, FormErrorText() (+23 more)
 
 ### Community 5 - "ui/index.ts"
-Cohesion: 0.18
-Nodes (20): HeroCtaButton(), HeroCtaProps, ConversionHeroVariant(), CredentialsHeroVariant(), EditorialHeroVariant(), EvidenceHeroVariant(), ProjectDetailHeroVariant(), ShowcaseHeroVariant() (+12 more)
+Cohesion: 0.15
+Nodes (23): HeroCtaButton(), HeroCtaProps, ConversionHeroVariant(), CredentialsHeroVariant(), EditorialHeroVariant(), EvidenceHeroVariant(), ProjectDetailHeroVariant(), ShowcaseHeroVariant() (+15 more)
 
 ### Community 6 - "run-qa-suite.ts"
 Cohesion: 0.48
 Nodes (6): checkRoute(), fetchRoute(), main(), results, runTest(), TestResult
 
 ### Community 7 - "experience-manager.tsx"
-Cohesion: 0.16
-Nodes (22): ExperienceManagerProps, ExperienceCard(), ExperienceCardProps, renderHighlightedText(), ExperienceTimeline(), ExperienceTimelineProps, ProfessionalTrackSection(), ProfessionalTrackSectionProps (+14 more)
+Cohesion: 0.21
+Nodes (16): ExperienceManagerProps, ExperienceCard(), ExperienceCardProps, renderHighlightedText(), ExperienceTimeline(), ExperienceTimelineProps, ProfessionalTrackSection(), ProfessionalTrackSectionProps (+8 more)
 
 ### Community 8 - "admin/certifications/page.tsx"
 Cohesion: 0.27
 Nodes (8): dynamic, metadata, dynamic, metadata, CertificationsManager(), lib_server_db_getadmincertifications, lib_server_db_getadmindistinctionssection, lib_server_db_getdistinctionmetrics
 
 ### Community 9 - "cn"
-Cohesion: 0.09
-Nodes (28): PageIntro(), Link(), LinkProps, MetadataItem(), MetadataItemProps, MetadataList(), MetadataListProps, Metric() (+20 more)
+Cohesion: 0.10
+Nodes (25): MetadataItem(), MetadataItemProps, MetadataList(), MetadataListProps, Metric(), MetricProps, MobileNavShell(), MobileNavShellProps (+17 more)
 
-### Community 10 - "useToast"
-Cohesion: 0.05
-Nodes (56): dynamic, metadata, AdminSiteContentPage(), dynamic, metadata, ConfirmDialog(), ConfirmDialogProps, ContactSettingsEditor() (+48 more)
+### Community 10 - "lucide-react"
+Cohesion: 0.12
+Nodes (29): ConfirmDialog(), ConfirmDialogProps, SeoEditor(), EmptyState(), EmptyStateProps, AchievementsManager(), ActivityManager(), ActivityManagerProps (+21 more)
 
 ### Community 11 - "PRD.md"
 Cohesion: 0.06
 Nodes (34): 12. Project Case Study Requirements, 14. Achievements Page, 15. Certifications Page, 18. Authentication Requirements, 1. Product Overview, 20. Media Storage, 21. Email Requirements, 22. Anti-Spam & Abuse Prevention (+26 more)
 
 ### Community 12 - "SkillDocument"
-Cohesion: 0.12
-Nodes (27): dynamic, metadata, SkillsManager(), SkillsManagerProps, DynamicOrbit(), DynamicOrbitProps, SkillsApproachBanner(), SkillsApproachBannerProps (+19 more)
+Cohesion: 0.20
+Nodes (18): SkillsManagerProps, DynamicOrbit(), DynamicOrbitProps, CATEGORY_ICON_MAP, SkillsCategoryGrid(), SkillsCategoryGridProps, SkillsFilterBar(), SkillsFilterBarProps (+10 more)
 
-### Community 13 - "react"
-Cohesion: 0.06
-Nodes (33): dynamic, PublicLayoutProps, AnimatedDivider(), AnimatedDividerProps, HoverCard(), HoverCardProps, Reveal(), RevealProps (+25 more)
-
-### Community 14 - "pil"
-Cohesion: 0.13
-Nodes (3): math, pil, sys
+### Community 13 - "motion-wrapper.tsx"
+Cohesion: 0.11
+Nodes (21): AnimatedDivider(), AnimatedDividerProps, HoverCard(), HoverCardProps, Reveal(), RevealProps, SpotlightCard(), SpotlightCardProps (+13 more)
 
 ### Community 15 - "withDatabaseErrorHandling"
-Cohesion: 0.16
-Nodes (53): PATCH(), withDatabaseErrorHandling(), createAdminAchievement(), createAdminCertification(), createAdminExperience(), createAdminMedia(), createAdminMetric(), createAdminProject() (+45 more)
+Cohesion: 0.14
+Nodes (59): PATCH(), withDatabaseErrorHandling(), createAdminAchievement(), createAdminCertification(), createAdminExperience(), createAdminMedia(), createAdminMetric(), createAdminProject() (+51 more)
 
-### Community 16 - "ref_next_server"
-Cohesion: 0.08
-Nodes (21): DELETE(), dynamic, PUT(), RouteParams, dynamic, GET(), POST(), DELETE() (+13 more)
+### Community 16 - "certifications/[id]/route.ts"
+Cohesion: 0.15
+Nodes (11): DELETE(), dynamic, PUT(), RouteParams, dynamic, GET(), POST(), lib_server_db_createadmincertification (+3 more)
 
-### Community 17 - "resume/[id]/route.ts"
-Cohesion: 0.09
-Nodes (19): AdminResumePage(), dynamic, metadata, dynamic, POST(), RouteParams, DELETE(), dynamic (+11 more)
+### Community 17 - "ref_next_server"
+Cohesion: 0.07
+Nodes (23): AdminResumePage(), dynamic, metadata, dynamic, POST(), RouteParams, DELETE(), dynamic (+15 more)
 
 ### Community 18 - "page-heroes/route.ts"
 Cohesion: 0.18
@@ -287,16 +289,16 @@ Cohesion: 0.08
 Nodes (24): 10. React Three Fiber, 11. @react-three/drei, 14. Supabase Client & PostgreSQL Integration Layer, 16. Validation — Zod, 17. Forms — React Hook Form, 1. Stack Philosophy, 22. Images — Next/Image, 24. Version Control — Git + GitHub (+16 more)
 
 ### Community 20 - "validations/models.ts"
-Cohesion: 0.04
-Nodes (56): dynamic, GET(), PUT(), dynamic, POST(), DELETE(), dynamic, RouteParams (+48 more)
+Cohesion: 0.05
+Nodes (43): dynamic, GET(), PUT(), DELETE(), dynamic, RouteParams, dynamic, POST() (+35 more)
 
 ### Community 21 - "seo.ts"
 Cohesion: 0.13
 Nodes (19): app_globals, caveat, geistMono, geistSans, metadata, RootLayout(), viewport, AboutPage() (+11 more)
 
-### Community 22 - "requireAdminSession"
-Cohesion: 0.07
-Nodes (32): dynamic, EditProjectPage(), EditProjectPageProps, metadata, AdminProjectsPage(), dynamic, metadata, dynamic (+24 more)
+### Community 22 - "projects/[id]/route.ts"
+Cohesion: 0.08
+Nodes (21): dynamic, EditProjectPage(), EditProjectPageProps, metadata, AdminProjectsPage(), dynamic, metadata, DELETE() (+13 more)
 
 ### Community 23 - "ref_node_path"
 Cohesion: 0.15
@@ -304,23 +306,27 @@ Nodes (9): dynamic, GET(), lib_server_db_getactiveresume, ref_node_fs_promises, 
 
 ### Community 24 - "achievements/[id]/route.ts"
 Cohesion: 0.11
-Nodes (16): AdminAchievementsPage(), dynamic, metadata, DELETE(), dynamic, PUT(), RouteParams, dynamic (+8 more)
+Nodes (15): AdminAchievementsPage(), dynamic, metadata, DELETE(), dynamic, PUT(), RouteParams, dynamic (+7 more)
 
 ### Community 25 - "session.ts"
-Cohesion: 0.10
-Nodes (23): AdminDashboardPage(), dynamic, metadata, AdminSecurityPage(), dynamic, metadata, changePasswordSchema, POST() (+15 more)
+Cohesion: 0.16
+Nodes (13): changePasswordSchema, POST(), GET(), POST(), assertResourceAccess(), markBootstrapPasswordChanged(), Auth, Session (+5 more)
 
 ### Community 26 - "turnstile-widget.tsx"
 Cohesion: 0.40
 Nodes (3): TurnstileWidget(), TurnstileWidgetProps, Window
 
 ### Community 27 - "seo/route.ts"
-Cohesion: 0.17
-Nodes (10): AdminSeoPage(), dynamic, metadata, dynamic, GET(), PUT(), SeoEditor(), lib_server_db_getadminseo (+2 more)
+Cohesion: 0.18
+Nodes (9): AdminSeoPage(), dynamic, metadata, dynamic, GET(), PUT(), lib_server_db_getadminseo, lib_server_db_updateadminseo (+1 more)
 
-### Community 28 - "hero-section.tsx"
-Cohesion: 0.22
-Nodes (7): DEFAULT_HERO_IMAGE_OVERLAY, HeroQuoteOverlay(), HeroSection(), METRIC_ICONS, REFERENCE_METRICS, InstagramIcon(), LinkedinIcon()
+### Community 28 - "react"
+Cohesion: 0.07
+Nodes (25): PublicLayoutProps, revalidate, BackToTopButton(), BackToTopButtonProps, NavItem, PUBLIC_NAV_ITEMS, PublicFooter(), DEFAULT_HERO_IMAGE_OVERLAY (+17 more)
+
+### Community 29 - "InMemoryStore"
+Cohesion: 0.10
+Nodes (26): ContactSettingsEditor(), ContactSettingsEditorProps, HeroEditor(), HeroEditorProps, SeoEditorProps, AchievementsManagerProps, MediaManagerProps, MessagesManagerProps (+18 more)
 
 ### Community 30 - "17. Admin CMS Requirements"
 Cohesion: 0.11
@@ -330,9 +336,9 @@ Nodes (19): 17. Admin CMS Requirements, About, Account & Security, Achievements,
 Cohesion: 0.11
 Nodes (18): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+10 more)
 
-### Community 32 - "categories/[id]/route.ts"
-Cohesion: 0.15
-Nodes (11): DELETE(), dynamic, PUT(), RouteParams, dynamic, GET(), POST(), lib_server_db_createadminskillcategory (+3 more)
+### Community 32 - "admin/skills/page.tsx"
+Cohesion: 0.08
+Nodes (21): dynamic, metadata, DELETE(), dynamic, PUT(), RouteParams, dynamic, GET() (+13 more)
 
 ### Community 33 - "package.json"
 Cohesion: 0.09
@@ -350,9 +356,13 @@ Nodes (16): 23. Technical Stack, 3D, Analytics / Monitoring, Animation, Anti-Spa
 Cohesion: 0.14
 Nodes (14): 31. APPROVED TECHNOLOGY STACK, 3D, Analytics, Anti-spam, Authentication, Core, Data, Deployment (+6 more)
 
-### Community 37 - "types/models.ts"
-Cohesion: 0.08
-Nodes (33): AboutEditorProps, TabKey, ProfileEditorProps, AboutContent(), AboutContentProps, types_index_aboutdocument, types_index_aboutmetricitem, types_index_aboutpillaritem (+25 more)
+### Community 37 - "about-editor.tsx"
+Cohesion: 0.12
+Nodes (20): AboutEditorProps, TabKey, ProfileEditor(), ProfileEditorProps, AboutContent(), AboutContentProps, types_index_aboutdocument, types_index_aboutmetricitem (+12 more)
+
+### Community 38 - "types/models.ts"
+Cohesion: 0.09
+Nodes (23): HERO_VARIANTS, PAGE_KEYS, PageHeroEditorProps, SkillsApproachBanner(), SkillsApproachBannerProps, AuditableEntity, BaseEntity, DistinctionsDecorativeVisual (+15 more)
 
 ### Community 39 - "4. CROSS-PHASE SECURITY RULE"
 Cohesion: 0.15
@@ -386,33 +396,33 @@ Nodes (18): devDependencies, eslint, eslint-config-next, @eslint/eslintrc, jsdom
 Cohesion: 0.17
 Nodes (12): 3.1 Recruiters / Hiring Managers, 3.2 Freelance / Client Prospects, 3.3 Portfolio Administrator — Siddharth, 3. Target Users, Need, Need, Need, Success condition (+4 more)
 
-### Community 48 - "about/route.ts"
-Cohesion: 0.12
-Nodes (16): AdminAboutPage(), dynamic, metadata, dynamic, GET(), PUT(), dynamic, GET() (+8 more)
+### Community 48 - "requireAdminSession"
+Cohesion: 0.06
+Nodes (36): AdminAboutPage(), dynamic, metadata, AdminContactSettingsPage(), dynamic, metadata, AdminMessagesPage(), dynamic (+28 more)
 
-### Community 49 - "lucide-react"
-Cohesion: 0.13
-Nodes (15): ACCENT_OPTIONS, MOBILE_VISIBILITY_OPTIONS, OPACITY_OPTIONS, POPULAR_SKILL_ICONS, POSITION_OPTIONS, SECTION_ICON_OPTIONS, TaxonomyEditorProps, BackToTopButton() (+7 more)
+### Community 49 - "taxonomy-editor.tsx"
+Cohesion: 0.22
+Nodes (8): ACCENT_OPTIONS, MOBILE_VISIBILITY_OPTIONS, OPACITY_OPTIONS, POPULAR_SKILL_ICONS, POSITION_OPTIONS, SECTION_ICON_OPTIONS, TaxonomyEditorProps, TaxonomySkillItem
 
-### Community 50 - "(public)/page.tsx"
-Cohesion: 0.08
-Nodes (39): AdminCertificationsPage(), AdminDistinctionsPage(), HomePage(), metadata, components_public_index_featuredhighlightssection, components_public_index_herosection, components_public_index_openforopportunitiessection, components_public_index_professionaltracksection (+31 more)
+### Community 50 - "content.ts"
+Cohesion: 0.07
+Nodes (65): HomePage(), metadata, components_public_index_featuredhighlightssection, components_public_index_herosection, components_public_index_openforopportunitiessection, components_public_index_professionaltracksection, components_public_index_technicaltaxonomysection, components_public_index_verifieddistinctionssection (+57 more)
 
-### Community 51 - "PageHeroConfig"
-Cohesion: 0.09
-Nodes (27): HERO_VARIANTS, PAGE_KEYS, PageHeroEditorProps, DynamicHeroProps, ConversionHeroProps, CredentialsHeroProps, EditorialHeroProps, EvidenceHeroProps (+19 more)
+### Community 51 - "experience-page-view.tsx"
+Cohesion: 0.22
+Nodes (11): ExperienceHero(), ExperiencePageView(), ExperiencePageViewProps, LocationCard(), LocationCardProps, ICON_STYLES, OperationalEvidenceSection(), OperationalEvidenceSectionProps (+3 more)
 
-### Community 52 - "rate-limit.ts"
-Cohesion: 0.31
-Nodes (7): checkRateLimit(), cleanupStaleEntries(), lastCleanup, RateLimitRecord, RateLimitResult, rateLimitStore, resetRateLimitStore()
+### Community 52 - "contact/route.ts"
+Cohesion: 0.19
+Nodes (13): contactApiSchema, dynamic, POST(), lib_server_db_savecontactmessage, lib_server_db_updatecontactmessagedelivery, checkRateLimit(), cleanupStaleEntries(), hashClientIp() (+5 more)
 
 ### Community 53 - "featured/route.ts"
 Cohesion: 0.21
 Nodes (10): AdminFeaturedPage(), dynamic, metadata, dynamic, GET(), PUT(), lib_server_db_getadminfeaturedsection, getAdminFeaturedSection() (+2 more)
 
 ### Community 54 - "db.ts"
-Cohesion: 0.11
-Nodes (15): AdminRevisionsPage(), dynamic, metadata, dynamic, GET(), dynamic, GET(), PUT() (+7 more)
+Cohesion: 0.08
+Nodes (20): AdminActivityPage(), dynamic, metadata, AdminRevisionsPage(), dynamic, metadata, dynamic, GET() (+12 more)
 
 ### Community 55 - "61. TESTING SECURITY CONTROLS"
 Cohesion: 0.20
@@ -431,8 +441,8 @@ Cohesion: 0.22
 Nodes (9): 13. Skills Page, AI, Backend / APIs, Databases, Deployment, Design, Frontend, Languages (+1 more)
 
 ### Community 60 - "eslint.config.mjs"
-Cohesion: 0.18
-Nodes (8): compat, __dirname, eslintConfig, __filename, @eslint/eslintrc, ref_path, ref_url, VIEWPORTS
+Cohesion: 0.14
+Nodes (9): compat, __dirname, eslintConfig, __filename, @eslint/eslintrc, ref_path, ref_url, VIEWPORTS (+1 more)
 
 ### Community 61 - "4. Product Principles"
 Cohesion: 0.25
@@ -472,7 +482,7 @@ Nodes (7): 72. DECISION LOGIC, If ambiguous:, If explicitly prohibited:, If expl
 
 ### Community 71 - "metrics/[id]/route.ts"
 Cohesion: 0.11
-Nodes (16): AdminMetricsPage(), dynamic, metadata, DELETE(), dynamic, PUT(), RouteParams, dynamic (+8 more)
+Nodes (15): AdminMetricsPage(), dynamic, metadata, DELETE(), dynamic, PUT(), RouteParams, dynamic (+7 more)
 
 ### Community 72 - "icon.tsx"
 Cohesion: 0.33
@@ -521,6 +531,10 @@ Nodes (6): 57. TEST BEFORE DECLARING COMPLETE, Accessibility, Functional, Perfor
 ### Community 83 - "Current projects"
 Cohesion: 0.33
 Nodes (6): 11.1 CRM — SR Enterprises, 11.2 Inventory Management Platform, 11.3 Campus Buddy, 11.4 Portfolio Website, 11. Projects Page, Current projects
+
+### Community 84 - "getAdminSiteContent"
+Cohesion: 0.15
+Nodes (17): AdminCertificationsPage(), AdminDistinctionsPage(), DEFAULT_ABOUT_SECTION, mapSiteContentToDb(), getAdminCertifications(), getAdminDistinctionsSection(), getAdminSiteContent(), updateAdminAboutSection() (+9 more)
 
 ### Community 85 - "PHASE 0 — PROJECT INITIALIZATION"
 Cohesion: 0.40
@@ -622,17 +636,21 @@ Nodes (3): 3. Framework — Next.js, Architecture Preference, Role
 Cohesion: 0.67
 Nodes (3): 9. 3D — Three.js, Purpose, Rules
 
-### Community 128 - "content.ts"
-Cohesion: 0.09
-Nodes (39): AdminSkillsPage(), data_portfolio_seed_data, DEFAULT_ABOUT_SECTION, DEFAULT_DISTINCTIONS_SECTION, DEFAULT_FEATURED_SECTION, DEFAULT_FOOTER_SECTION, DEFAULT_OPPORTUNITIES_SECTION, DEFAULT_PAGE_HEROES (+31 more)
+### Community 112 - "projects-page-view.tsx"
+Cohesion: 0.17
+Nodes (9): ProjectShowcase(), ProjectsClosingBanner(), ProjectsClosingBannerProps, ProjectsFilterBar(), ProjectsFilterBarProps, ProjectsHero(), ProjectsHeroProps, ProjectsMetricsProps (+1 more)
+
+### Community 128 - "store.ts"
+Cohesion: 0.10
+Nodes (24): AdminSkillsPage(), data_portfolio_seed_data, DEFAULT_DISTINCTIONS_SECTION, DEFAULT_OPPORTUNITIES_SECTION, DEFAULT_PAGE_HEROES, DEFAULT_SKILL_CATEGORIES, DEFAULT_SKILLS_PAGE_SETTINGS, lib_server_db_getadminopportunitiessection (+16 more)
 
 ### Community 129 - "ProjectDocument"
-Cohesion: 0.10
-Nodes (27): ProjectFormProps, ProjectsManagerProps, FeaturedProjectsSliderProps, AnimatedProjectCard(), AnimatedProjectCardProps, CardPositionState, ProjectsExplorerProps, FeaturedProjectCard() (+19 more)
+Cohesion: 0.20
+Nodes (13): ProjectFormProps, ProjectsManagerProps, FeaturedProjectsSliderProps, AnimatedProjectCard(), AnimatedProjectCardProps, CardPositionState, ProjectsExplorerProps, ProjectCard() (+5 more)
 
 ### Community 130 - "profile/route.ts"
-Cohesion: 0.17
-Nodes (10): AdminProfilePage(), dynamic, metadata, dynamic, GET(), PUT(), ProfileEditor(), lib_server_db_getadminprofile (+2 more)
+Cohesion: 0.18
+Nodes (9): AdminProfilePage(), dynamic, metadata, dynamic, GET(), PUT(), lib_server_db_getadminprofile, lib_server_db_updateadminprofile (+1 more)
 
 ### Community 132 - "resend.ts"
 Cohesion: 0.27
@@ -640,112 +658,116 @@ Nodes (5): IEmailService, emailService, escapeHtml(), ResendEmailService, sendCo
 
 ### Community 133 - "@playwright/test"
 Cohesion: 0.17
-Nodes (4): @playwright/test, VIEWPORTS, MOBILE_VIEWPORTS, PUBLIC_PAGES
+Nodes (6): @playwright/test, main(), measurePage(), MetricsReport, MOBILE_VIEWPORTS, PUBLIC_PAGES
 
-### Community 134 - "validation.ts"
-Cohesion: 0.31
-Nodes (7): ALLOWED_DOC_MIMES, ALLOWED_IMAGE_MIMES, CATEGORY_SIZE_LIMITS, detectFormatFromBuffer(), FileValidationResult, generateSafeStorageKey(), validateUploadBuffer()
+### Community 134 - "featured-project-card.tsx"
+Cohesion: 0.21
+Nodes (9): StackAppliedCard(), StackAppliedCardProps, FeaturedProjectCard(), FeaturedProjectCardProps, getTechBadgeClass(), TECH_STYLES, TechStyle, TechIcon() (+1 more)
 
-### Community 135 - "messages/route.ts"
-Cohesion: 0.20
-Nodes (8): AdminMessagesPage(), dynamic, metadata, dynamic, GET(), MessagesManager(), lib_server_db_getadmincontactmessages, types_index_contactmessagedocument
+### Community 135 - "media/route.ts"
+Cohesion: 0.18
+Nodes (9): AdminMediaPage(), dynamic, metadata, dynamic, GET(), POST(), lib_server_db_createadminmedia, lib_server_db_getadminmedia (+1 more)
 
-### Community 137 - "contact/route.ts"
-Cohesion: 0.28
-Nodes (7): contactApiSchema, dynamic, POST(), lib_server_db_savecontactmessage, lib_server_db_updatecontactmessagedelivery, hashClientIp(), verifyTurnstileToken()
+### Community 136 - "site-content/route.ts"
+Cohesion: 0.18
+Nodes (9): AdminSiteContentPage(), dynamic, metadata, dynamic, GET(), PUT(), SiteContentEditor(), lib_server_db_getadminsitecontent (+1 more)
+
+### Community 137 - "turnstile.ts"
+Cohesion: 0.32
+Nodes (4): IVerificationService, CloudflareTurnstileService, turnstileService, verifyTurnstileToken()
 
 ### Community 140 - "taxonomy/route.ts"
 Cohesion: 0.19
 Nodes (11): AdminTaxonomyPage(), dynamic, metadata, dynamic, GET(), PUT(), TaxonomyEditor(), lib_server_db_getadmintechnicaltaxonomy (+3 more)
 
 ### Community 141 - "featured-highlights-section.tsx"
-Cohesion: 0.17
-Nodes (15): ACCENT_OPTIONS, FeaturedEditor(), FeaturedEditorProps, getBadgeIcon(), ITEM_TYPES, ACCENT_STYLES, AccentStyle, FeaturedCard() (+7 more)
-
-### Community 142 - "services/index.ts"
-Cohesion: 0.18
-Nodes (5): IDatabaseService, IStorageService, IVerificationService, CloudflareTurnstileService, turnstileService
+Cohesion: 0.16
+Nodes (14): ACCENT_OPTIONS, FeaturedEditor(), FeaturedEditorProps, getBadgeIcon(), ITEM_TYPES, ACCENT_STYLES, AccentStyle, FeaturedCard() (+6 more)
 
 ### Community 143 - "zod"
 Cohesion: 0.22
 Nodes (6): publicEnv, publicEnvSchema, ServerEnv, serverEnvSchema, zod, contactApiSchema
 
-### Community 144 - "ref_next_link"
-Cohesion: 0.11
-Nodes (16): dynamic, metadata, NewProjectPage(), ProjectForm(), ref_next_link, ActionFailure, ActionResult, ActionSuccess (+8 more)
+### Community 144 - "actions.ts"
+Cohesion: 0.22
+Nodes (6): ActionFailure, ActionResult, ActionSuccess, PaginatedResult, PaginationParams, types_index_actionresult
 
 ### Community 145 - "validations/common.ts"
 Cohesion: 0.29
 Nodes (5): idSchema, objectIdSchema, paginationSchema, searchFilterSchema, slugSchema
 
 ### Community 146 - "experience/[id]/route.ts"
-Cohesion: 0.09
-Nodes (19): AdminExperiencePage(), dynamic, metadata, AdminProfessionalTrackPage(), dynamic, metadata, DELETE(), dynamic (+11 more)
+Cohesion: 0.15
+Nodes (11): DELETE(), dynamic, PUT(), RouteParams, dynamic, GET(), POST(), lib_server_db_createadminexperience (+3 more)
 
-### Community 147 - "contact-settings/route.ts"
-Cohesion: 0.21
-Nodes (10): AdminContactSettingsPage(), dynamic, metadata, dynamic, GET(), PUT(), lib_server_db_getadmincontactsettings, getAdminContactSettings() (+2 more)
+### Community 147 - "PageHeroConfig"
+Cohesion: 0.18
+Nodes (11): DynamicHeroProps, ConversionHeroProps, CredentialsHeroProps, EditorialHeroProps, EvidenceHeroProps, ProjectDetailHeroProps, ShowcaseHeroProps, SplitHeroProps (+3 more)
 
 ### Community 148 - "certifications-manager.tsx"
 Cohesion: 0.23
 Nodes (10): CertificationsManagerProps, PRESET_TAGS, extractYear(), getTagClass(), VerifiedDistinctionsSection(), VerifiedDistinctionsSectionProps, CertificationDocument, CredentialType (+2 more)
 
 ### Community 149 - "resume/upload/route.ts"
-Cohesion: 0.25
-Nodes (12): dynamic, POST(), dynamic, POST(), lib_server_db_createadminmediawithassociation, createAdminMediaWithAssociation(), BlobUploadResult, deleteBlob() (+4 more)
+Cohesion: 0.16
+Nodes (19): dynamic, POST(), dynamic, POST(), lib_server_db_createadminmediawithassociation, createAdminMediaWithAssociation(), BlobUploadResult, deleteBlob() (+11 more)
 
-### Community 151 - "activity/route.ts"
-Cohesion: 0.20
-Nodes (8): AdminActivityPage(), dynamic, metadata, dynamic, GET(), ActivityManager(), lib_server_db_getadminactivitylogs, types_index_activitylogdocument
+### Community 150 - "admin/experience/page.tsx"
+Cohesion: 0.22
+Nodes (8): AdminExperiencePage(), dynamic, metadata, AdminProfessionalTrackPage(), dynamic, metadata, ExperienceManager(), lib_server_db_getadminexperience
+
+### Community 151 - "project-form.tsx"
+Cohesion: 0.29
+Nodes (6): dynamic, metadata, NewProjectPage(), ProjectForm(), types_index_contentstatus, types_index_projectdocument
 
 ### Community 152 - "supabase-adapter.ts"
-Cohesion: 0.11
-Nodes (15): applyWhere(), deleteMemoryRecords(), FilterableBuilder, getMemoryRecords(), GlobalAuthStore, globalStore, matchesWhere(), setMemoryRecord() (+7 more)
+Cohesion: 0.17
+Nodes (12): applyWhere(), deleteMemoryRecords(), FilterableBuilder, getMemoryRecords(), GlobalAuthStore, globalStore, matchesWhere(), setMemoryRecord() (+4 more)
 
-### Community 154 - "verify-database-migration.ts"
-Cohesion: 0.09
-Nodes (28): lib_server_db_getpublishedabout, lib_server_db_getpublishedachievements, lib_server_db_getpublishedcertifications, lib_server_db_getpublishedcontactsettings, lib_server_db_getpublishedexperience, lib_server_db_getpublishedhero, lib_server_db_getpublishedmetrics, lib_server_db_getpublishedprofile (+20 more)
+### Community 154 - "site-content-editor.tsx"
+Cohesion: 0.43
+Nodes (5): SiteContentEditorProps, DEFAULT_FOOTER_SECTION, PublishedFooterData, FooterSectionConfig, SiteContentDocument
 
 ### Community 155 - "hero/route.ts"
 Cohesion: 0.18
 Nodes (9): AdminHeroPage(), dynamic, metadata, dynamic, GET(), PUT(), lib_server_db_getadminhero, lib_server_db_updateadminhero (+1 more)
 
-### Community 156 - "measure-baseline.ts"
-Cohesion: 0.67
-Nodes (3): main(), measurePage(), MetricsReport
-
-### Community 157 - "migrate-and-seed-supabase.ts"
+### Community 156 - "opportunities/route.ts"
 Cohesion: 0.40
-Nodes (3): @supabase/supabase-js, envLocalPath, supabase
+Nodes (5): dynamic, GET(), PUT(), getAdminOpportunitiesSection(), opportunitiesSectionConfigSchema
 
-### Community 159 - "ref_playwright"
-Cohesion: 0.14
-Nodes (6): ref_playwright, VIEWPORTS, AFTER_MOBILE_DIR, DESKTOP_VIEWPORTS, MOBILE_VIEWPORTS, OUT_DIR
+### Community 157 - "server.ts"
+Cohesion: 0.22
+Nodes (4): createAdminClient(), ref_next_headers, @supabase/ssr, @supabase/supabase-js
 
-### Community 160 - "ref_node_fs"
-Cohesion: 0.18
-Nodes (7): ref_node_fs, OUT_DIR, VIEWPORTS, expectVisible(), verifyFooter(), OUT_DIR, VIEWPORTS
+### Community 159 - "verify-desktop-hero.ts"
+Cohesion: 0.33
+Nodes (4): AFTER_MOBILE_DIR, DESKTOP_VIEWPORTS, MOBILE_VIEWPORTS, OUT_DIR
 
-### Community 161 - "login/page.tsx"
-Cohesion: 0.08
-Nodes (28): AdminLayout(), AdminLayoutProps, dynamic, metadata, AdminLoginPage(), dynamic, LoginPageProps, metadata (+20 more)
+### Community 160 - "ref_playwright"
+Cohesion: 0.09
+Nodes (14): ref_node_fs, ref_playwright, envLocalPath, supabase, OUTPUT_DIR, VIEWPORTS, OUT_DIR, VIEWPORTS (+6 more)
+
+### Community 161 - "bootstrap.ts"
+Cohesion: 0.06
+Nodes (39): AdminLayout(), AdminLayoutProps, dynamic, metadata, AdminLoginPage(), dynamic, LoginPageProps, metadata (+31 more)
 
 ## Knowledge Gaps
-- **919 isolated node(s):** `metadata`, `metadata`, `metadata`, `metadata`, `metadata` (+914 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1114 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **26 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **918 isolated node(s):** `metadata`, `metadata`, `metadata`, `metadata`, `metadata` (+913 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1103 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **28 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `ProjectDocument`, `[slug]/page.tsx`, `design-system/page.tsx`, `ui/index.ts`, `experience-manager.tsx`, `cn`, `useToast`, `SkillDocument`, `featured-highlights-section.tsx`, `ref_next_link`, `certifications-manager.tsx`, `seo.ts`, `turnstile-widget.tsx`, `hero-section.tsx`, `login/page.tsx`, `package.json`, `types/models.ts`, `lucide-react`, `(public)/page.tsx`, `PageHeroConfig`, `error-boundary-view.tsx`?**
-  _High betweenness centrality (0.065) - this node is a cross-community bridge._
-- **Why does `requireAdminSession()` connect `requireAdminSession` to `content.ts`, `profile/route.ts`, `admin.ts`, `messages/route.ts`, `admin/certifications/page.tsx`, `useToast`, `SkillDocument`, `taxonomy/route.ts`, `withDatabaseErrorHandling`, `ref_next_link`, `resume/[id]/route.ts`, `experience/[id]/route.ts`, `contact-settings/route.ts`, `page-heroes/route.ts`, `ref_next_server`, `validations/models.ts`, `activity/route.ts`, `achievements/[id]/route.ts`, `session.ts`, `resume/upload/route.ts`, `hero/route.ts`, `seo/route.ts`, `categories/[id]/route.ts`, `login/page.tsx`, `skills/route.ts`, `about/route.ts`, `(public)/page.tsx`, `featured/route.ts`, `db.ts`, `metrics/[id]/route.ts`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **Why does `server-only` connect `db.ts` to `content.ts`, `package.json`, `admin.ts`, `resend.ts`, `validation.ts`, `services/index.ts`, `ref_next_link`, `ref_next_server`, `rate-limit.ts`, `resume/upload/route.ts`, `supabase-adapter.ts`, `session.ts`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **Why does `requireAdminSession()` connect `requireAdminSession` to `store.ts`, `profile/route.ts`, `media/route.ts`, `admin/certifications/page.tsx`, `site-content/route.ts`, `taxonomy/route.ts`, `withDatabaseErrorHandling`, `certifications/[id]/route.ts`, `ref_next_server`, `page-heroes/route.ts`, `experience/[id]/route.ts`, `validations/models.ts`, `resume/upload/route.ts`, `admin/experience/page.tsx`, `projects/[id]/route.ts`, `achievements/[id]/route.ts`, `project-form.tsx`, `session.ts`, `seo/route.ts`, `hero/route.ts`, `opportunities/route.ts`, `admin/skills/page.tsx`, `bootstrap.ts`, `skills/route.ts`, `featured/route.ts`, `db.ts`, `metrics/[id]/route.ts`, `getAdminSiteContent`?**
+  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `ProjectDocument`, `[slug]/page.tsx`, `design-system/page.tsx`, `ui/index.ts`, `featured-project-card.tsx`, `experience-manager.tsx`, `cn`, `lucide-react`, `SkillDocument`, `featured-highlights-section.tsx`, `motion-wrapper.tsx`, `certifications-manager.tsx`, `seo.ts`, `project-form.tsx`, `site-content-editor.tsx`, `turnstile-widget.tsx`, `InMemoryStore`, `bootstrap.ts`, `package.json`, `about-editor.tsx`, `types/models.ts`, `taxonomy-editor.tsx`, `content.ts`, `experience-page-view.tsx`, `error-boundary-view.tsx`, `projects-page-view.tsx`?**
+  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+- **Why does `lucide-react` connect `lucide-react` to `ProjectDocument`, `[slug]/page.tsx`, `design-system/page.tsx`, `ui/index.ts`, `featured-project-card.tsx`, `experience-manager.tsx`, `SkillDocument`, `featured-highlights-section.tsx`, `motion-wrapper.tsx`, `certifications-manager.tsx`, `project-form.tsx`, `site-content-editor.tsx`, `turnstile-widget.tsx`, `react`, `InMemoryStore`, `bootstrap.ts`, `package.json`, `about-editor.tsx`, `types/models.ts`, `taxonomy-editor.tsx`, `experience-page-view.tsx`, `projects-page-view.tsx`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **What connects `metadata`, `metadata`, `metadata` to the rest of the system?**
-  _919 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _918 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `DEVELOPMENT_RULES.md` be split into smaller, more focused modules?**
   _Cohesion score 0.02564102564102564 - nodes in this community are weakly interconnected._
 - **Should `SECURITY.md` be split into smaller, more focused modules?**

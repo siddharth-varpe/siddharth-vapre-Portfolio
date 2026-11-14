@@ -31,6 +31,7 @@ import {
   X,
   Terminal,
   Code2,
+  Compass,
 } from "lucide-react";
 import { authClient } from "@/lib/client/auth";
 import { ToastProvider } from "./toast";
@@ -60,6 +61,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Hero Section", href: "/admin/hero", icon: Sparkles },
       { label: "Featured Highlights", href: "/admin/featured", icon: Layers },
       { label: "Technical Taxonomy", href: "/admin/taxonomy", icon: Code2 },
+      { label: "Opportunities", href: "/admin/opportunities", icon: Compass },
       { label: "Page Heroes", href: "/admin/page-heroes", icon: LayoutTemplate },
       { label: "About Section", href: "/admin/about", icon: BookOpen },
       { label: "Site Content", href: "/admin/site-content", icon: Globe },

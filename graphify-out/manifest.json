@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "app/(public)/projects/page.tsx": {
-    "mtime": 1790496905.0717695,
-    "seen": 1790497472.5851707,
-    "ast_hash": "fc764e9fb218cd0e0c0a99f8084732de",
+    "mtime": 1794664656.3111007,
+    "seen": 1794665535.9703848,
+    "ast_hash": "8b9a4162148b347e8f513c5d474fbafd",
     "semantic_hash": ""
   },
   "app/(public)/skills/page.tsx": {
@@ -168,9 +168,9 @@
     "semantic_hash": ""
   },
   "app/admin/page.tsx": {
-    "mtime": 1789318103.3897212,
-    "seen": 1789667263.0802984,
-    "ast_hash": "f401ce1149ae52b9bd96e84a61bf0850",
+    "mtime": 1794664759.8745933,
+    "seen": 1794665535.9710574,
+    "ast_hash": "380e5a1514f5012a6f9f62aff23428f3",
     "semantic_hash": ""
   },
   "app/admin/profile/page.tsx": {
@@ -504,9 +504,9 @@
     "semantic_hash": ""
   },
   "components/admin/admin-shell.tsx": {
-    "mtime": 1790356104.303385,
-    "seen": 1790360729.131169,
-    "ast_hash": "aee867195e4ce728d87c77a063d39b15",
+    "mtime": 1794664316.2345824,
+    "seen": 1794665535.9737804,
+    "ast_hash": "5ea903ec5adfd53f4816192070060e8d",
     "semantic_hash": ""
   },
   "components/admin/confirm-dialog.tsx": {
@@ -684,8 +684,8 @@
     "semantic_hash": ""
   },
   "components/public/hero-section.tsx": {
-    "mtime": 1794658826.019756,
-    "seen": 1794659693.6911714,
+    "mtime": 1794660086.5849078,
+    "seen": 1794665535.976182,
     "ast_hash": "f038cd7e827d9ef01478ccada4daf5d4",
     "semantic_hash": ""
   },
@@ -930,9 +930,9 @@
     "semantic_hash": ""
   },
   "lib/server/db/repositories/admin.ts": {
-    "mtime": 1790519084.678182,
-    "seen": 1790520608.146397,
-    "ast_hash": "ea74d7636201aa585083f5375aac360a",
+    "mtime": 1794663891.701687,
+    "seen": 1794665535.978519,
+    "ast_hash": "fbe326ac85208e0295d2c0ef606d3279",
     "semantic_hash": ""
   },
   "lib/server/db/repositories/content.ts": {
@@ -1038,8 +1038,8 @@
     "semantic_hash": ""
   },
   "next.config.ts": {
-    "mtime": 1794658832.7207713,
-    "seen": 1794659693.6942666,
+    "mtime": 1794660087.1629076,
+    "seen": 1794665535.9792578,
     "ast_hash": "9e6896afcd8a689178a12789f3da9991",
     "semantic_hash": ""
   },
@@ -1890,9 +1890,9 @@
     "semantic_hash": ""
   },
   "components/public/projects/projects-closing-banner.tsx": {
-    "mtime": 1790496844.9137106,
-    "seen": 1790497472.5944512,
-    "ast_hash": "3a444aee9ee0b08349e29d3fc081d83c",
+    "mtime": 1794664510.0234475,
+    "seen": 1794665535.9766355,
+    "ast_hash": "f07f64d3c181092860bd7141acf4e9f6",
     "semantic_hash": ""
   },
   "components/public/projects/projects-filter-bar.tsx": {
@@ -1914,9 +1914,9 @@
     "semantic_hash": ""
   },
   "components/public/projects/projects-page-view.tsx": {
-    "mtime": 1790594637.0731468,
-    "seen": 1790595939.4807153,
-    "ast_hash": "89b5ca7accb1db54aaad59d92a25b587",
+    "mtime": 1794664625.0009608,
+    "seen": 1794665535.9767454,
+    "ast_hash": "705589f3ca5220ccddac6a5cb5f211a2",
     "semantic_hash": ""
   },
   "scripts/verify-projects-page.ts": {
@@ -2055,6 +2055,24 @@
     "mtime": 1790664285.9142797,
     "seen": 1790664523.183451,
     "ast_hash": "8701c5a58c35708a75598a2fe8a3963c",
+    "semantic_hash": ""
+  },
+  "app/admin/opportunities/page.tsx": {
+    "mtime": 1794665374.770751,
+    "seen": 1794665535.9710183,
+    "ast_hash": "85fe98e5e3b7c73f8d8bca70a8b1b439",
+    "semantic_hash": ""
+  },
+  "components/admin/editors/opportunities-editor.tsx": {
+    "mtime": 1794665415.2749507,
+    "seen": 1794665535.9739902,
+    "ast_hash": "1cb1a938313cdce384399237811e91ad",
+    "semantic_hash": ""
+  },
+  "tests/unit/admin-controls-comprehensive.test.ts": {
+    "mtime": 1794665051.711109,
+    "seen": 1794665535.9800596,
+    "ast_hash": "8fcdf879ee030ec97bebb3615baa1ac8",
     "semantic_hash": ""
   }
 }

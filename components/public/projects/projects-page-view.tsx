@@ -12,9 +12,15 @@ import { ProjectsClosingBanner } from "./projects-closing-banner";
 interface ProjectsPageViewProps {
   projects: ProjectDocument[];
   heroConfig?: PageHeroConfig | null;
+  globalCta?: {
+    headline?: string;
+    subheadline?: string;
+    buttonLabel?: string;
+    buttonDestination?: string;
+  } | null;
 }
 
-export function ProjectsPageView({ projects, heroConfig }: ProjectsPageViewProps) {
+export function ProjectsPageView({ projects, heroConfig, globalCta }: ProjectsPageViewProps) {
   const [activeCategory, setActiveCategory] = React.useState<string>("All");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
 
@@ -248,7 +254,7 @@ export function ProjectsPageView({ projects, heroConfig }: ProjectsPageViewProps
         </section>
 
         {/* 4. CLOSING BANNER */}
-        <ProjectsClosingBanner />
+        <ProjectsClosingBanner globalCta={globalCta} />
       </main>
     </div>
   );

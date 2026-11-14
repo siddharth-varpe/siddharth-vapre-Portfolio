@@ -2064,6 +2064,13 @@ export async function updateAdminPageHero(
         emptyStateMessage: siteContent?.emptyStateMessage,
         notFoundMessage: siteContent?.notFoundMessage,
         pageHeroes: updatedHeroes,
+        featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
+        technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+        distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+        opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+        footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+        aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
@@ -2099,7 +2106,12 @@ export async function updateAdminFeaturedSection(
         notFoundMessage: siteContent?.notFoundMessage,
         pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
         featuredSection: featuredConfig,
-        technicalTaxonomy: siteContent?.technicalTaxonomy,
+        technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+        distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+        opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+        footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+        aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
@@ -2147,6 +2159,11 @@ export async function updateAdminTechnicalTaxonomy(
         pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
         featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
         technicalTaxonomy: taxonomyConfig,
+        distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+        opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+        footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+        aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
@@ -2214,6 +2231,9 @@ export async function updateAdminDistinctionsSection(
         technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
         distinctionsSection: distinctionsConfig,
         opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+        footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+        aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
@@ -2274,6 +2294,8 @@ export async function updateAdminOpportunitiesSection(
         distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
         opportunitiesSection: opportunitiesConfig,
         footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+        aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
@@ -2347,6 +2369,7 @@ export async function updateAdminFooterSection(
         opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
         footerSection: footerConfig,
         aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
@@ -2436,6 +2459,7 @@ export async function updateAdminAboutSection(
         opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
         footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
         aboutSection: aboutConfig,
+        skillsPageSettings: siteContent?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
       },
       actor
     );
