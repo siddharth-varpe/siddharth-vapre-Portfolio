@@ -207,7 +207,7 @@ export function HeroSection({
                 src="/images/siddharth-hero-mobile-dark.webp"
                 alt="Siddharth Varpe — Software Engineer"
                 fill
-                quality={85}
+                quality={90}
                 className="hidden dark:block w-full h-full object-cover object-right-bottom select-none"
                 sizes="(max-width: 1023px) 100vw, 50vw"
               />
@@ -217,7 +217,7 @@ export function HeroSection({
                 src="/images/siddharth-hero-mobile-light.webp"
                 alt="Siddharth Varpe — Software Engineer"
                 fill
-                quality={85}
+                quality={90}
                 className="block dark:hidden w-full h-full object-cover object-right-bottom select-none"
                 sizes="(max-width: 1023px) 100vw, 50vw"
               />
