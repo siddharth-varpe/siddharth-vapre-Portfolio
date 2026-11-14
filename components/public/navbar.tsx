@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -61,20 +61,26 @@ export function PublicNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/90 backdrop-blur-md transition-colors h-14 sm:h-16 flex items-center pt-[env(safe-area-inset-top,0px)]">
+    <header className="sticky top-0 z-50 w-full border-b border-border/80 dark:border-zinc-800/80 bg-background/90 dark:bg-[#08101a]/95 backdrop-blur-md transition-colors h-14 sm:h-16 flex items-center pt-[env(safe-area-inset-top,0px)]">
       <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Brand / Logo */}
         <Link
           href="/"
-          className="group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
+          className="group flex items-center gap-2.5 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
           aria-label="Siddharth Varpe Portfolio Home"
         >
-          <span className="font-sans text-sm sm:text-base font-bold tracking-tight text-foreground group-hover:text-accent transition-colors leading-tight">
-            Siddharth Varpe
+          <span className="font-sans text-xl sm:text-2xl font-black tracking-tight select-none">
+            <span className="text-foreground">S</span>
+            <span className="text-blue-600 dark:text-blue-500">V.</span>
           </span>
-          <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-foreground-muted leading-tight">
-            Software Engineer
-          </span>
+          <div className="flex flex-col">
+            <span className="font-sans text-xs sm:text-sm font-bold tracking-wider text-foreground group-hover:text-accent transition-colors leading-tight uppercase">
+              Siddharth Varpe
+            </span>
+            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-muted-foreground leading-tight">
+              Software Engineer
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -89,18 +95,19 @@ export function PublicNavbar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative px-3.5 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors rounded-md",
+                  "relative px-3 py-1.5 text-[13px] xl:text-sm font-medium transition-colors rounded-md flex flex-col items-center",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                   active
-                    ? "text-white font-semibold"
+                    ? "text-blue-600 dark:text-blue-500 font-semibold"
                     : "text-foreground-secondary hover:text-foreground hover:bg-surface-hover/50"
                 )}
                 aria-current={active ? "page" : undefined}
               >
+                <span className="relative z-10">{item.label}</span>
                 {active && (
                   <motion.span
-                    layoutId={shouldReduceMotion ? undefined : "activeNavPill"}
-                    className="absolute inset-0 bg-blue-600 rounded-md -z-10 shadow-sm"
+                    layoutId={shouldReduceMotion ? undefined : "activeNavIndicator"}
+                    className="absolute -bottom-1 left-2.5 right-2.5 h-[2.5px] bg-blue-600 dark:bg-blue-500 rounded-full"
                     transition={{
                       type: "spring",
                       stiffness: 380,
@@ -108,7 +115,6 @@ export function PublicNavbar() {
                     }}
                   />
                 )}
-                <span className="relative z-10">{item.label}</span>
               </Link>
             );
           })}
@@ -129,10 +135,11 @@ export function PublicNavbar() {
             <Button
               variant="outline"
               size="sm"
-              className="text-xs h-8 gap-1.5 border-border hover:border-accent/50 active:scale-[0.98]"
+              className="text-xs h-8 gap-1.5 border-blue-200/90 dark:border-blue-800/80 bg-blue-50/60 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100/70 dark:hover:bg-blue-900/50 rounded-xl font-medium active:scale-[0.98]"
             >
-              <Download className="w-3.5 h-3.5 text-accent" />
+              <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>Resume</span>
+              <ArrowRight className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             </Button>
           </a>
 

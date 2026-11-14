@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 360" fill="none">
+  <defs>
+    <!-- Dot Matrix Pattern -->
+    <pattern id="dot-grid" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#3B82F6" fill-opacity="0.18" />
+    </pattern>
+
+    <!-- Wavy Backing Gradient -->
+    <linearGradient id="wave-grad" x1="100" y1="50" x2="500" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.08" />
+      <stop offset="60%" stop-color="#60A5FA" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#93C5FD" stop-opacity="0.01" />
+    </linearGradient>
+
+    <!-- Paper Plane Facet Gradients -->
+    <!-- Top Left Wing (Light Facing) -->
+    <linearGradient id="plane-wing-top" x1="200" y1="120" x2="380" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#93C5FD" />
+      <stop offset="50%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+
+    <!-- Center Fold / Keel (Deep Blue) -->
+    <linearGradient id="plane-keel" x1="250" y1="130" x2="350" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D4ED8" />
+      <stop offset="100%" stop-color="#1E40AF" />
+    </linearGradient>
+
+    <!-- Under Wing / Shadow Facet -->
+    <linearGradient id="plane-underwing" x1="230" y1="150" x2="330" y2="130" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Wing Highlight Edge -->
+    <linearGradient id="plane-highlight" x1="260" y1="70" x2="380" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EFF6FF" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#BFDBFE" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Soft Drop Shadow for Airplane -->
+    <filter id="plane-shadow" x="180" y="50" width="220" height="150" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="-4" dy="12" stdDeviation="16" flood-color="#1E40AF" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <!-- Background Soft Curved Wave -->
+  <path
+    d="M80,260 C180,310 280,340 450,290 C500,275 520,240 520,180 C520,70 420,30 310,40 C220,50 140,110 80,260 Z"
+    fill="url(#wave-grad)"
+  />
+
+  <!-- Top Right Dot Matrix Grid -->
+  <rect x="360" y="30" width="120" height="90" fill="url(#dot-grid)" rx="6" />
+
+  <!-- Dynamic Motion Ticks / Flying Sparks -->
+  <line x1="165" y1="180" x2="180" y2="175" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" opacity="0.6" />
+  <line x1="475" y1="235" x2="490" y2="245" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
+  <line x1="485" y1="215" x2="495" y2="210" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+
+  <!-- Curved Dashed Trajectory Flight Trail -->
+  <path
+    d="M190,270 C160,265 185,210 240,245 C280,270 295,225 285,175"
+    fill="none"
+    stroke="#3B82F6"
+    stroke-width="2"
+    stroke-dasharray="5 5"
+    stroke-linecap="round"
+    opacity="0.75"
+  />
+
+  <!-- 3D Origami Paper Airplane Group -->
+  <g filter="url(#plane-shadow)">
+    <!-- Main Right/Top Wing Facet -->
+    <path
+      d="M375,70 L210,135 L285,160 Z"
+      fill="url(#plane-wing-top)"
+    />
+
+    <!-- Center Keel / Bottom Fold -->
+    <path
+      d="M375,70 L285,160 L245,195 Z"
+      fill="url(#plane-keel)"
+    />
+
+    <!-- Left Wing Facet (Angled Backwards) -->
+    <path
+      d="M375,70 L245,195 L275,145 Z"
+      fill="url(#plane-underwing)"
+    />
+
+    <!-- Crisp Crease Highlight Line -->
+    <path
+      d="M375,70 L285,160"
+      stroke="#DBEAFE"
+      stroke-width="1.2"
+      stroke-linecap="round"
+      opacity="0.8"
+    />
+  </g>
+</svg>

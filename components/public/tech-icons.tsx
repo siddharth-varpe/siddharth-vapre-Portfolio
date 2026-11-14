@@ -70,6 +70,66 @@ export function TechIcon({ name, className = "w-5 h-5" }: TechIconProps) {
     );
   }
 
+  // TypeScript
+  if (normalized.includes("typescript") || normalized === "ts") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect width="24" height="24" rx="4" fill="#3178c6" />
+        <path d="M12.5 10H7.5V12H9V18H11V12H12.5V10Z" fill="white" />
+        <path d="M14 15.5C14.5 16.5 15.5 16.8 16.5 16.5C17.5 16.2 17.5 15.2 17.2 14.8C16.8 14.2 15.2 13.8 14.5 13.2C13.5 12.4 13.7 11 14.5 10.4C15.5 9.6 17 9.8 17.8 10.5L16.6 11.7C16.2 11.3 15.5 11.1 14.9 11.4C14.4 11.6 14.4 12.3 14.8 12.6C15.4 13.1 17 13.4 17.8 14.2C18.6 15 18.5 16.6 17.2 17.5C16 18.3 14.2 18 13 16.8L14 15.5Z" fill="white" />
+      </svg>
+    );
+  }
+
+  // Supabase
+  if (normalized.includes("supabase")) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M12.92 2.15C12.48 1.45 11.4 1.76 11.4 2.59V11.5H3.6C2.69 11.5 2.21 12.58 2.82 13.24L11.08 21.85C11.52 22.55 12.6 22.24 12.6 21.41V12.5H20.4C21.31 12.5 21.79 11.42 21.18 10.76L12.92 2.15Z"
+          fill="#3ECF8E"
+        />
+      </svg>
+    );
+  }
+
+  // Gemini API
+  if (normalized.includes("gemini")) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M12 2C12 7.52 7.52 12 2 12C7.52 12 12 16.48 12 22C12 16.48 16.48 12 22 12C16.48 12 12 7.52 12 2Z"
+          fill="#9333EA"
+        />
+      </svg>
+    );
+  }
+
+  // Mistral OCR
+  if (normalized.includes("mistral")) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="3" y="4" width="4" height="16" rx="1" fill="#EA580C" />
+        <rect x="17" y="4" width="4" height="16" rx="1" fill="#EA580C" />
+        <rect x="7" y="8" width="4" height="8" rx="0.5" fill="#F97316" />
+        <rect x="13" y="8" width="4" height="8" rx="0.5" fill="#F97316" />
+        <rect x="10" y="11" width="4" height="6" rx="0.5" fill="#FB923C" />
+      </svg>
+    );
+  }
+
+  // MySQL
+  if (normalized.includes("mysql")) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M12 3C7.58 3 4 4.79 4 7V17C4 19.21 7.58 21 12 21C16.42 21 20 19.21 20 17V7C20 4.79 16.42 3 12 3ZM18 17C18 17.8 15.5 19 12 19C8.5 19 6 17.8 6 17V15.2C7.5 16.3 9.6 17 12 17C14.4 17 16.5 16.3 18 15.2V17ZM18 13C18 13.8 15.5 15 12 15C8.5 15 6 13.8 6 13V11.2C7.5 12.3 9.6 13 12 13C14.4 13 16.5 12.3 18 11.2V13ZM12 9C8.5 9 6 7.8 6 7C6 6.2 8.5 5 12 5C15.5 5 18 6.2 18 7C18 7.8 15.5 9 12 9Z"
+          fill="#00758F"
+        />
+      </svg>
+    );
+  }
+
   // JavaScript
   if (normalized.includes("javascript") || normalized === "js") {
     return (
@@ -281,6 +341,31 @@ export function TechIcon({ name, className = "w-5 h-5" }: TechIconProps) {
         <rect x="3" y="4" width="18" height="16" rx="3" className="stroke-blue-500" strokeWidth="1.5" />
         <path d="M7 8L11 12L7 16" className="stroke-blue-500" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         <line x1="13" y1="16" x2="17" y2="16" className="stroke-blue-500" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  // System Design
+  if (normalized.includes("system design") || normalized.includes("architecture")) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="3" width="7" height="6" rx="1.5" className="stroke-indigo-500" strokeWidth="1.5" />
+        <rect x="15" y="3" width="7" height="6" rx="1.5" className="stroke-indigo-500" strokeWidth="1.5" />
+        <rect x="8.5" y="15" width="7" height="6" rx="1.5" className="stroke-indigo-500" strokeWidth="1.5" />
+        <path d="M5.5 9V12H18.5V9M12 12V15" className="stroke-indigo-400" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  // Data Structures & Algorithms
+  if (normalized.includes("data structure") || normalized.includes("algorithm") || normalized.includes("dsa")) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="4" r="2.5" className="stroke-emerald-500 fill-emerald-500/20" strokeWidth="1.5" />
+        <circle cx="6" cy="14" r="2.5" className="stroke-emerald-500 fill-emerald-500/20" strokeWidth="1.5" />
+        <circle cx="18" cy="14" r="2.5" className="stroke-emerald-500 fill-emerald-500/20" strokeWidth="1.5" />
+        <circle cx="12" cy="20" r="2" className="stroke-emerald-500 fill-emerald-500/20" strokeWidth="1.5" />
+        <path d="M10 6L7.5 11.5M14 6L16.5 11.5M8 15.5L10.5 18.5M16 15.5L13.5 18.5" className="stroke-emerald-400" strokeWidth="1.2" />
       </svg>
     );
   }

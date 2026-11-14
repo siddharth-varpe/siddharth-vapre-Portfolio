@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" fill="none">
+  <defs>
+    <filter id="textShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <style>
+    .handwritten-line1 {
+      font-family: 'Caveat', 'Brush Script MT', cursive;
+      font-size: 56px;
+      font-weight: 700;
+      fill: #ffffff;
+      filter: url(#textShadow);
+    }
+    .handwritten-line2 {
+      font-family: 'Caveat', 'Brush Script MT', cursive;
+      font-size: 48px;
+      font-weight: 700;
+      fill: #f8fafc;
+      filter: url(#textShadow);
+    }
+    .handwritten-line3 {
+      font-family: 'Caveat', 'Brush Script MT', cursive;
+      font-size: 46px;
+      font-weight: 700;
+      fill: #f1f5f9;
+      filter: url(#textShadow);
+    }
+  </style>
+  <g transform="rotate(-4 300 120)">
+    <text x="30" y="65" class="handwritten-line1">A better</text>
+    <text x="50" y="125" class="handwritten-line2">tomorrow is built today</text>
+    <text x="70" y="180" class="handwritten-line3">with what you learn now.</text>
+    <!-- Royal blue expressive brush flourish -->
+    <path d="M 60 195 C 130 220, 260 215, 360 170" stroke="#3b82f6" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.9" />
+    <path d="M 75 198 C 145 222, 255 218, 345 174" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7" />
+  </g>
+</svg>

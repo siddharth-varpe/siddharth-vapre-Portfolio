@@ -4,6 +4,7 @@ import type {
   AboutDocument,
   SkillDocument,
   ExperienceDocument,
+  SemanticWorkType,
   ProjectDocument,
   AchievementDocument,
   CertificationDocument,
@@ -12,16 +13,26 @@ import type {
   ResumeMetadataDocument,
   SeoMetadataDocument,
   SiteContentDocument,
+  PageHeroConfig,
+  FeaturedSectionConfig,
+  TechnicalTaxonomyConfig,
+  DistinctionsSectionConfig,
+  OpportunitiesSectionConfig,
+  FooterSectionConfig,
+  AboutSectionConfig,
   ContactMessageDocument,
   RevisionDocument,
   ActivityLogDocument,
   MediaMetadataDocument,
+  SkillCategoryDocument,
+  SkillsPageSettings,
 } from "@/types/models";
 import type {
   ProfileRow,
   HeroRow,
   AboutRow,
   SkillRow,
+  SkillCategoryRow,
   ExperienceRow,
   ProjectRow,
   AchievementRow,
@@ -85,6 +96,19 @@ export function mapProfileToDb(doc: Partial<ProfileDocument>): Record<string, un
 
 // 2. Hero
 export function mapHeroFromDb(row: HeroRow): HeroDocument {
+  let imageOverlay: HeroDocument["imageOverlay"] = undefined;
+  if (row.image_overlay) {
+    if (typeof row.image_overlay === "string") {
+      try {
+        imageOverlay = JSON.parse(row.image_overlay) as HeroDocument["imageOverlay"];
+      } catch {
+        imageOverlay = undefined;
+      }
+    } else if (typeof row.image_overlay === "object") {
+      imageOverlay = row.image_overlay as unknown as HeroDocument["imageOverlay"];
+    }
+  }
+
   return {
     id: row.id,
     _id: row.id,
@@ -95,6 +119,7 @@ export function mapHeroFromDb(row: HeroRow): HeroDocument {
     ctaLabel: row.cta_label,
     ctaUrl: row.cta_url,
     supportingText: row.supporting_text || undefined,
+    imageOverlay,
     status: row.status,
     createdAt: new Date(row.created_at || Date.now()),
     updatedAt: new Date(row.updated_at || Date.now()),
@@ -111,6 +136,7 @@ export function mapHeroToDb(doc: Partial<HeroDocument>): Record<string, unknown>
   if (doc.ctaLabel !== undefined) result.cta_label = doc.ctaLabel;
   if (doc.ctaUrl !== undefined) result.cta_url = doc.ctaUrl;
   if (doc.supportingText !== undefined) result.supporting_text = doc.supportingText;
+  if (doc.imageOverlay !== undefined) result.image_overlay = doc.imageOverlay;
   if (doc.status !== undefined) result.status = doc.status;
   result.updated_at = new Date().toISOString();
   return result;
@@ -121,6 +147,7 @@ export function mapAboutFromDb(row: AboutRow): AboutDocument {
   return {
     id: row.id,
     _id: row.id,
+    aboutDescription: row.about_description || undefined,
     primaryDescription: row.primary_description || "",
     supportingDescription: row.supporting_description || undefined,
     philosophy: row.philosophy || undefined,
@@ -136,6 +163,7 @@ export function mapAboutFromDb(row: AboutRow): AboutDocument {
 export function mapAboutToDb(doc: Partial<AboutDocument>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   if (doc.id) result.id = doc.id;
+  if (doc.aboutDescription !== undefined) result.about_description = doc.aboutDescription;
   if (doc.primaryDescription !== undefined) result.primary_description = doc.primaryDescription;
   if (doc.supportingDescription !== undefined) result.supporting_description = doc.supportingDescription;
   if (doc.philosophy !== undefined) result.philosophy = doc.philosophy;
@@ -159,6 +187,7 @@ export function mapSkillFromDb(row: SkillRow): SkillDocument {
     level: row.level || undefined,
     years: row.years || undefined,
     featured: Boolean(row.featured),
+    orbit_enabled: Boolean(row.orbit_enabled),
     order: row.order ?? 0,
     status: row.status,
     createdAt: new Date(row.created_at || Date.now()),
@@ -176,20 +205,101 @@ export function mapSkillToDb(doc: Partial<SkillDocument>): Record<string, unknow
   if (doc.level !== undefined) result.level = doc.level;
   if (doc.years !== undefined) result.years = doc.years;
   if (doc.featured !== undefined) result.featured = doc.featured;
+  if (doc.orbit_enabled !== undefined) result.orbit_enabled = doc.orbit_enabled;
   if (doc.order !== undefined) result.order = doc.order;
   if (doc.status !== undefined) result.status = doc.status;
   result.updated_at = new Date().toISOString();
   return result;
 }
 
-// 5. Experience
-export function mapExperienceFromDb(row: ExperienceRow): ExperienceDocument {
+// 4B. Skill Category
+export function mapSkillCategoryFromDb(row: SkillCategoryRow): SkillCategoryDocument {
   return {
     id: row.id,
     _id: row.id,
+    name: row.name,
+    description: row.description || undefined,
+    icon: row.icon || undefined,
+    accent: row.accent || "blue",
+    display_order: row.display_order ?? 0,
+    order: row.display_order ?? 0,
+    enabled: Boolean(row.enabled),
+    createdAt: new Date(row.created_at || Date.now()),
+    updatedAt: new Date(row.updated_at || Date.now()),
+  };
+}
+
+export function mapSkillCategoryToDb(doc: Partial<SkillCategoryDocument>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  if (doc.id) result.id = doc.id;
+  if (doc.name !== undefined) result.name = doc.name;
+  if (doc.description !== undefined) result.description = doc.description;
+  if (doc.icon !== undefined) result.icon = doc.icon;
+  if (doc.accent !== undefined) result.accent = doc.accent;
+  if (doc.display_order !== undefined) result.display_order = doc.display_order;
+  else if (doc.order !== undefined) result.display_order = doc.order;
+  if (doc.enabled !== undefined) result.enabled = doc.enabled;
+  result.updated_at = new Date().toISOString();
+  return result;
+}
+
+// 5. Experience / Professional Track
+export function mapExperienceFromDb(row: ExperienceRow): ExperienceDocument {
+  // Map highlights if present, or synthesize from responsibilities
+  let highlights: ExperienceDocument["highlights"] = undefined;
+  if (Array.isArray(row.highlights) && row.highlights.length > 0) {
+    highlights = row.highlights.map((h: Record<string, unknown>, idx: number) => ({
+      id: (h.id as string) || `hl-${idx + 1}`,
+      title: (h.title as string) || "",
+      description: (h.description as string) || "",
+      type: ((h.type as SemanticWorkType) || "other"),
+      metrics: Array.isArray(h.metrics) ? (h.metrics as string[]) : [],
+      technologies: Array.isArray(h.technologies) ? (h.technologies as string[]) : [],
+      order: typeof h.order === "number" ? h.order : idx,
+      enabled: h.enabled !== false,
+      destinationUrl: (h.destinationUrl as string) || undefined,
+    }));
+  } else if (Array.isArray(row.responsibilities) && row.responsibilities.length > 0) {
+    highlights = row.responsibilities.map((resp, idx) => {
+      const lower = resp.toLowerCase();
+      let type: SemanticWorkType = "other";
+      if (lower.includes("crm")) type = "crm";
+      else if (lower.includes("inventory")) type = "inventory";
+      else if (lower.includes("api") || lower.includes("endpoint")) type = "api";
+      else if (lower.includes("ai") || lower.includes("llm")) type = "ai";
+      else if (lower.includes("automation") || lower.includes("workflow")) type = "automation";
+      else if (lower.includes("database") || lower.includes("sql") || lower.includes("postgres")) type = "database";
+      else if (lower.includes("frontend") || lower.includes("react")) type = "frontend";
+      else if (lower.includes("backend") || lower.includes("node")) type = "backend";
+
+      // Extract title from first sentence or phrase
+      const parts = resp.split(/—|-|managing|supporting|across/i);
+      const title = parts[0]?.trim() || `Work Highlight ${idx + 1}`;
+
+      return {
+        id: `hl-synth-${idx + 1}`,
+        title,
+        description: resp,
+        type,
+        metrics: [],
+        technologies: [],
+        order: idx,
+        enabled: true,
+      };
+    });
+  }
+
+  return {
+    id: row.id,
+    _id: row.id,
+    type: ((row.type as ExperienceDocument["type"]) || "work"),
     role: row.role,
     company: row.company,
-    employmentType: row.employment_type || "Full-time",
+    companyLogoUrl: row.company_logo_url || undefined,
+    companyLogoPath: row.company_logo_path || undefined,
+    companyWebsite: row.company_website || undefined,
+    employmentType: (row.employment_type as ExperienceDocument["employmentType"]) || "Full-time",
+    workMode: (row.work_mode as "On-site" | "Hybrid" | "Remote") || "Hybrid",
     location: row.location || "",
     startDate: row.start_date,
     endDate: row.end_date || undefined,
@@ -199,7 +309,10 @@ export function mapExperienceFromDb(row: ExperienceRow): ExperienceDocument {
     achievements: row.achievements || undefined,
     technologies: row.technologies || [],
     metrics: row.metrics || undefined,
-    order: row.order ?? 0,
+    highlights,
+    ctaLabel: row.cta_label || "Full Timeline",
+    ctaUrl: row.cta_url || "/experience",
+    order: row.order ?? row.display_order ?? 0,
     status: row.status,
     createdAt: new Date(row.created_at || Date.now()),
     updatedAt: new Date(row.updated_at || Date.now()),
@@ -209,19 +322,30 @@ export function mapExperienceFromDb(row: ExperienceRow): ExperienceDocument {
 export function mapExperienceToDb(doc: Partial<ExperienceDocument>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   if (doc.id) result.id = doc.id;
+  if (doc.type !== undefined) result.type = doc.type;
   if (doc.role !== undefined) result.role = doc.role;
   if (doc.company !== undefined) result.company = doc.company;
-  if (doc.location !== undefined) result.location = doc.location;
+  if (doc.companyLogoUrl !== undefined) result.company_logo_url = doc.companyLogoUrl || null;
+  if (doc.companyLogoPath !== undefined) result.company_logo_path = doc.companyLogoPath || null;
+  if (doc.companyWebsite !== undefined) result.company_website = doc.companyWebsite || null;
   if (doc.employmentType !== undefined) result.employment_type = doc.employmentType;
+  if (doc.workMode !== undefined) result.work_mode = doc.workMode;
+  if (doc.location !== undefined) result.location = doc.location;
   if (doc.startDate !== undefined) result.start_date = doc.startDate;
-  if (doc.endDate !== undefined) result.end_date = doc.endDate;
+  if (doc.endDate !== undefined) result.end_date = doc.endDate || null;
   if (doc.current !== undefined) result.current = doc.current;
   if (doc.description !== undefined) result.description = doc.description;
   if (doc.responsibilities !== undefined) result.responsibilities = doc.responsibilities;
   if (doc.achievements !== undefined) result.achievements = doc.achievements;
   if (doc.technologies !== undefined) result.technologies = doc.technologies;
   if (doc.metrics !== undefined) result.metrics = doc.metrics;
-  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.highlights !== undefined) result.highlights = doc.highlights;
+  if (doc.ctaLabel !== undefined) result.cta_label = doc.ctaLabel;
+  if (doc.ctaUrl !== undefined) result.cta_url = doc.ctaUrl;
+  if (doc.order !== undefined) {
+    result.order = doc.order;
+    result.display_order = doc.order;
+  }
   if (doc.status !== undefined) result.status = doc.status;
   result.updated_at = new Date().toISOString();
   return result;
@@ -347,17 +471,26 @@ export function mapAchievementToDb(doc: Partial<AchievementDocument>): Record<st
   return result;
 }
 
-// 8. Certification
+// 8. Certification & Distinctions
 export function mapCertificationFromDb(row: CertificationRow): CertificationDocument {
+  const rawTags = Array.isArray(row.tags) ? row.tags : (Array.isArray(row.skills) ? row.skills : []);
   return {
     id: row.id,
     _id: row.id,
-    name: row.name,
+    name: row.name || row.title || "",
+    title: row.title || row.name,
     issuer: row.issuer,
+    credentialType: (row.credential_type as CertificationDocument["credentialType"]) || "certification",
     date: row.date || row.issue_date || "",
+    issueDate: row.issue_date || row.date || "",
+    expirationDate: row.expiration_date || row.expiry_date || undefined,
     credentialId: row.credential_id || undefined,
     credentialUrl: row.credential_url || undefined,
+    verificationUrl: row.verification_url || row.credential_url || undefined,
     certificateUrl: row.certificate_url || undefined,
+    imagePath: row.image_path || undefined,
+    tags: rawTags,
+    rank: row.rank || undefined,
     description: row.description || undefined,
     featured: Boolean(row.featured),
     order: row.order ?? row.display_order ?? 0,
@@ -371,14 +504,37 @@ export function mapCertificationToDb(doc: Partial<CertificationDocument>): Recor
   const result: Record<string, unknown> = {};
   if (doc.id) result.id = doc.id;
   if (doc.name !== undefined) result.name = doc.name;
+  if (doc.title !== undefined && doc.name === undefined) result.name = doc.title;
   if (doc.issuer !== undefined) result.issuer = doc.issuer;
-  if (doc.date !== undefined) result.date = doc.date;
+  if (doc.credentialType !== undefined) result.credential_type = doc.credentialType;
+  if (doc.date !== undefined) {
+    result.date = doc.date;
+    result.issue_date = doc.date;
+  }
+  if (doc.issueDate !== undefined) {
+    result.issue_date = doc.issueDate;
+    if (doc.date === undefined) result.date = doc.issueDate;
+  }
+  if (doc.expirationDate !== undefined) {
+    result.expiration_date = doc.expirationDate;
+    result.expiry_date = doc.expirationDate;
+  }
   if (doc.credentialId !== undefined) result.credential_id = doc.credentialId;
   if (doc.credentialUrl !== undefined) result.credential_url = doc.credentialUrl;
+  if (doc.verificationUrl !== undefined) result.verification_url = doc.verificationUrl;
   if (doc.certificateUrl !== undefined) result.certificate_url = doc.certificateUrl;
+  if (doc.imagePath !== undefined) result.image_path = doc.imagePath;
+  if (doc.tags !== undefined) {
+    result.tags = doc.tags;
+    result.skills = doc.tags;
+  }
+  if (doc.rank !== undefined) result.rank = doc.rank;
   if (doc.description !== undefined) result.description = doc.description;
   if (doc.featured !== undefined) result.featured = doc.featured;
-  if (doc.order !== undefined) result.order = doc.order;
+  if (doc.order !== undefined) {
+    result.order = doc.order;
+    result.display_order = doc.order;
+  }
   if (doc.status !== undefined) result.status = doc.status;
   result.updated_at = new Date().toISOString();
   return result;
@@ -522,6 +678,110 @@ export function mapSeoToDb(doc: Partial<SeoMetadataDocument>): Record<string, un
 
 // 13. Site Content
 export function mapSiteContentFromDb(row: SiteContentRow): SiteContentDocument {
+  let pageHeroes: Record<string, PageHeroConfig> | undefined;
+  if (row.page_heroes) {
+    if (typeof row.page_heroes === "string") {
+      try {
+        pageHeroes = JSON.parse(row.page_heroes);
+      } catch {
+        pageHeroes = undefined;
+      }
+    } else {
+      pageHeroes = row.page_heroes as unknown as Record<string, PageHeroConfig>;
+    }
+  }
+
+  let featuredSection: FeaturedSectionConfig | undefined;
+  if (row.featured_section) {
+    if (typeof row.featured_section === "string") {
+      try {
+        featuredSection = JSON.parse(row.featured_section);
+      } catch {
+        featuredSection = undefined;
+      }
+    } else {
+      featuredSection = row.featured_section as unknown as FeaturedSectionConfig;
+    }
+  }
+
+  let technicalTaxonomy: TechnicalTaxonomyConfig | undefined;
+  if (row.technical_taxonomy) {
+    if (typeof row.technical_taxonomy === "string") {
+      try {
+        technicalTaxonomy = JSON.parse(row.technical_taxonomy);
+      } catch {
+        technicalTaxonomy = undefined;
+      }
+    } else {
+      technicalTaxonomy = row.technical_taxonomy as unknown as TechnicalTaxonomyConfig;
+    }
+  }
+
+  let distinctionsSection: DistinctionsSectionConfig | undefined;
+  if (row.distinctions_section) {
+    if (typeof row.distinctions_section === "string") {
+      try {
+        distinctionsSection = JSON.parse(row.distinctions_section);
+      } catch {
+        distinctionsSection = undefined;
+      }
+    } else {
+      distinctionsSection = row.distinctions_section as unknown as DistinctionsSectionConfig;
+    }
+  }
+
+  let opportunitiesSection: OpportunitiesSectionConfig | undefined;
+  if (row.opportunities_section) {
+    if (typeof row.opportunities_section === "string") {
+      try {
+        opportunitiesSection = JSON.parse(row.opportunities_section);
+      } catch {
+        opportunitiesSection = undefined;
+      }
+    } else {
+      opportunitiesSection = row.opportunities_section as unknown as OpportunitiesSectionConfig;
+    }
+  }
+
+  let footerSection: FooterSectionConfig | undefined;
+  if (row.footer_section) {
+    if (typeof row.footer_section === "string") {
+      try {
+        footerSection = JSON.parse(row.footer_section);
+      } catch {
+        footerSection = undefined;
+      }
+    } else {
+      footerSection = row.footer_section as unknown as FooterSectionConfig;
+    }
+  }
+
+  let aboutSection: AboutSectionConfig | undefined;
+  if (row.about_section) {
+    if (typeof row.about_section === "string") {
+      try {
+        aboutSection = JSON.parse(row.about_section);
+      } catch {
+        aboutSection = undefined;
+      }
+    } else {
+      aboutSection = row.about_section as unknown as AboutSectionConfig;
+    }
+  }
+
+  let skillsPageSettings: SkillsPageSettings | undefined;
+  if (row.skills_page_settings) {
+    if (typeof row.skills_page_settings === "string") {
+      try {
+        skillsPageSettings = JSON.parse(row.skills_page_settings);
+      } catch {
+        skillsPageSettings = undefined;
+      }
+    } else {
+      skillsPageSettings = row.skills_page_settings as unknown as SkillsPageSettings;
+    }
+  }
+
   return {
     id: row.id,
     _id: row.id,
@@ -536,6 +796,14 @@ export function mapSiteContentFromDb(row: SiteContentRow): SiteContentDocument {
     loadingMessage: row.loading_message || undefined,
     emptyStateMessage: row.empty_state_message || undefined,
     notFoundMessage: row.not_found_message || undefined,
+    pageHeroes,
+    featuredSection,
+    technicalTaxonomy,
+    distinctionsSection,
+    opportunitiesSection,
+    footerSection,
+    aboutSection,
+    skillsPageSettings,
     createdAt: new Date(row.created_at || Date.now()),
     updatedAt: new Date(row.updated_at || Date.now()),
   };
@@ -550,6 +818,14 @@ export function mapSiteContentToDb(doc: Partial<SiteContentDocument>): Record<st
   if (doc.loadingMessage !== undefined) result.loading_message = doc.loadingMessage;
   if (doc.emptyStateMessage !== undefined) result.empty_state_message = doc.emptyStateMessage;
   if (doc.notFoundMessage !== undefined) result.not_found_message = doc.notFoundMessage;
+  if (doc.pageHeroes !== undefined) result.page_heroes = doc.pageHeroes;
+  if (doc.featuredSection !== undefined) result.featured_section = doc.featuredSection;
+  if (doc.technicalTaxonomy !== undefined) result.technical_taxonomy = doc.technicalTaxonomy;
+  if (doc.distinctionsSection !== undefined) result.distinctions_section = doc.distinctionsSection;
+  if (doc.opportunitiesSection !== undefined) result.opportunities_section = doc.opportunitiesSection;
+  if (doc.footerSection !== undefined) result.footer_section = doc.footerSection;
+  if (doc.aboutSection !== undefined) result.about_section = doc.aboutSection;
+  if (doc.skillsPageSettings !== undefined) result.skills_page_settings = doc.skillsPageSettings;
   result.updated_at = new Date().toISOString();
   return result;
 }

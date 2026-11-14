@@ -3,6 +3,7 @@ import { withDatabaseErrorHandling } from "../errors";
 import { getStore } from "../store";
 import { deleteBlob } from "@/lib/server/storage/blob";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { parseDateForSort } from "@/lib/utils/date-format";
 import {
   mapProfileFromDb,
   mapProfileToDb,
@@ -12,6 +13,8 @@ import {
   mapAboutToDb,
   mapSkillFromDb,
   mapSkillToDb,
+  mapSkillCategoryFromDb,
+  mapSkillCategoryToDb,
   mapExperienceFromDb,
   mapExperienceToDb,
   mapProjectFromDb,
@@ -36,11 +39,17 @@ import {
   mapRevisionFromDb,
   mapActivityLogFromDb,
 } from "../mappers";
+import {
+  DEFAULT_SKILL_CATEGORIES,
+  DEFAULT_SKILLS_PAGE_SETTINGS,
+} from "../default-skills-page-settings";
 import type {
   ProfileDocument,
   HeroDocument,
   AboutDocument,
   SkillDocument,
+  SkillCategoryDocument,
+  SkillsPageSettings,
   ExperienceDocument,
   ProjectDocument,
   AchievementDocument,
@@ -50,12 +59,26 @@ import type {
   ResumeMetadataDocument,
   SeoMetadataDocument,
   SiteContentDocument,
+  PageHeroConfig,
+  FeaturedSectionConfig,
+  TechnicalTaxonomyConfig,
+  DistinctionsSectionConfig,
+  OpportunitiesSectionConfig,
+  FooterSectionConfig,
+  AboutSectionConfig,
   RevisionDocument,
   ActivityLogDocument,
   ContactMessageDocument,
   MediaMetadataDocument,
   ContentStatus,
 } from "@/types";
+import { DEFAULT_PAGE_HEROES } from "../default-page-heroes";
+import { DEFAULT_FEATURED_SECTION } from "../default-featured-section";
+import { DEFAULT_TECHNICAL_TAXONOMY } from "../default-technical-taxonomy";
+import { DEFAULT_DISTINCTIONS_SECTION } from "../default-distinctions-section";
+import { DEFAULT_OPPORTUNITIES_SECTION } from "../default-opportunities-section";
+import { DEFAULT_FOOTER_SECTION } from "../default-footer-section";
+import { DEFAULT_ABOUT_SECTION } from "../default-about-section";
 import crypto from "node:crypto";
 
 export interface PaginationParams {
@@ -553,6 +576,225 @@ export async function deleteAdminSkill(id: string, actor: string): Promise<boole
 }
 
 // -----------------------------------------------------------------------------
+// 4B. SKILL CATEGORIES & SKILLS PAGE SETTINGS
+// -----------------------------------------------------------------------------
+
+export async function getAdminSkillCategories(): Promise<SkillCategoryDocument[]> {
+  return withDatabaseErrorHandling(async () => {
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("skill_categories")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) {
+        console.warn("[Supabase] getAdminSkillCategories error:", error.message);
+      } else if (data && data.length > 0) {
+        return data.map(mapSkillCategoryFromDb);
+      }
+    }
+    const store = getStore();
+    const categories = store.skillCategories && store.skillCategories.length > 0
+      ? store.skillCategories
+      : DEFAULT_SKILL_CATEGORIES;
+    return [...categories].sort(
+      (a, b) => (a.display_order ?? a.order ?? 0) - (b.display_order ?? b.order ?? 0)
+    );
+  }, "Failed to retrieve skill categories");
+}
+
+export async function createAdminSkillCategory(
+  data: Omit<SkillCategoryDocument, "_id" | "id" | "createdAt" | "updatedAt">,
+  actor: string
+): Promise<SkillCategoryDocument> {
+  return withDatabaseErrorHandling(async () => {
+    const store = getStore();
+    const id = generateId("cat");
+    const now = new Date();
+
+    const doc: SkillCategoryDocument = {
+      ...data,
+      id,
+      _id: id,
+      display_order: data.display_order ?? data.order ?? (store.skillCategories?.length || 0) + 1,
+      order: data.display_order ?? data.order ?? (store.skillCategories?.length || 0) + 1,
+      createdAt: now,
+      updatedAt: now,
+    };
+    if (!store.skillCategories) store.skillCategories = [...DEFAULT_SKILL_CATEGORIES];
+    store.skillCategories.push(doc);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapSkillCategoryToDb(doc);
+      await supabase.from("skill_categories").insert({ id, ...dbPayload });
+    }
+
+    await recordRevision({
+      contentType: "skill" as any,
+      contentId: id,
+      action: "create",
+      newState: doc as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "create_skill" as any,
+      category: "content",
+      status: "success",
+      actor,
+      details: { name: doc.name, type: "category" },
+    });
+
+    return doc;
+  }, "Failed to create skill category");
+}
+
+export async function updateAdminSkillCategory(
+  id: string,
+  data: Partial<SkillCategoryDocument>,
+  actor: string
+): Promise<SkillCategoryDocument | null> {
+  return withDatabaseErrorHandling(async () => {
+    const store = getStore();
+    if (!store.skillCategories) store.skillCategories = [...DEFAULT_SKILL_CATEGORIES];
+    const idx = store.skillCategories.findIndex((c) => c.id === id || c._id === id);
+    if (idx === -1) return null;
+
+    const existing = store.skillCategories[idx];
+    const previousName = existing.name;
+    const updated: SkillCategoryDocument = {
+      ...existing,
+      ...data,
+      display_order: data.display_order ?? data.order ?? existing.display_order,
+      order: data.display_order ?? data.order ?? existing.order,
+      updatedAt: new Date(),
+    };
+    store.skillCategories[idx] = updated;
+
+    // If category name changed, cascade update to skills referencing the old category name
+    if (data.name && data.name !== previousName) {
+      for (const skill of store.skills) {
+        if (skill.category === previousName) {
+          skill.category = data.name;
+        }
+      }
+    }
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      const dbPayload = mapSkillCategoryToDb(updated);
+      await supabase.from("skill_categories").update(dbPayload).eq("id", id);
+      if (data.name && data.name !== previousName) {
+        await supabase.from("skills").update({ category: data.name }).eq("category", previousName);
+      }
+    }
+
+    await recordRevision({
+      contentType: "skill" as any,
+      contentId: id,
+      action: "update",
+      previousState: existing as unknown as Record<string, unknown>,
+      newState: data as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "update_skill" as any,
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, name: updated.name, type: "category" },
+    });
+
+    return updated;
+  }, "Failed to update skill category");
+}
+
+export async function deleteAdminSkillCategory(
+  id: string,
+  actor: string
+): Promise<{ success: boolean; error?: string }> {
+  return withDatabaseErrorHandling(async () => {
+    const store = getStore();
+    if (!store.skillCategories) store.skillCategories = [...DEFAULT_SKILL_CATEGORIES];
+    const idx = store.skillCategories.findIndex((c) => c.id === id || c._id === id);
+    if (idx === -1) return { success: false, error: "Category not found" };
+
+    const existing = store.skillCategories[idx];
+
+    // Check if any active skills belong to this category (prevent orphaning skills)
+    const skillsInCategory = store.skills.filter((s) => s.category === existing.name && s.status !== "archived");
+    if (skillsInCategory.length > 0) {
+      return {
+        success: false,
+        error: `Cannot delete category "${existing.name}" because ${skillsInCategory.length} active skill(s) belong to it. Reassign or archive those skills first, or disable the category instead.`,
+      };
+    }
+
+    store.skillCategories.splice(idx, 1);
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase.from("skill_categories").delete().eq("id", id);
+    }
+
+    await recordRevision({
+      contentType: "skill" as any,
+      contentId: id,
+      action: "delete",
+      previousState: existing as unknown as Record<string, unknown>,
+      actor,
+    });
+    await logAdminActivity({
+      event: "delete_skill" as any,
+      category: "content",
+      status: "success",
+      actor,
+      details: { id, name: existing.name, type: "category" },
+    });
+
+    return { success: true };
+  }, "Failed to delete skill category");
+}
+
+export async function updateSkillsPageSettings(
+  settings: Partial<SkillsPageSettings>,
+  actor: string
+): Promise<SkillsPageSettings> {
+  return withDatabaseErrorHandling(async () => {
+    const store = getStore();
+    const current = store.siteContent.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS;
+    const merged: SkillsPageSettings = {
+      ...current,
+      ...settings,
+      metrics: settings.metrics || current.metrics,
+      approachBanner: {
+        ...current.approachBanner,
+        ...(settings.approachBanner || {}),
+      },
+    };
+    store.siteContent.skillsPageSettings = merged;
+
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      await supabase
+        .from("site_content")
+        .update({ skills_page_settings: merged, updated_at: new Date().toISOString() })
+        .eq("id", store.siteContent.id || "site_content_root");
+    }
+
+    await logAdminActivity({
+      event: "update_skills_page_settings" as any,
+      category: "content",
+      status: "success",
+      actor,
+      details: { orbitEnabled: merged.orbitEnabled, orbitSpeed: merged.orbitSpeed },
+    });
+
+    return merged;
+  }, "Failed to update skills page settings");
+}
+
+// -----------------------------------------------------------------------------
 // 5. EXPERIENCE
 // -----------------------------------------------------------------------------
 
@@ -560,13 +802,24 @@ export async function getAdminExperience(): Promise<ExperienceDocument[]> {
   return withDatabaseErrorHandling(async () => {
     const supabase = getSupabaseAdmin();
     if (supabase) {
-      const { data, error } = await supabase.from("experiences").select("*").order("order", { ascending: true });
+      const { data, error } = await supabase
+        .from("experiences")
+        .select("*")
+        .order("start_date", { ascending: false })
+        .order("created_at", { ascending: false });
       if (!error && data && data.length > 0) {
         return data.map(mapExperienceFromDb);
       }
     }
     const store = getStore();
-    return store.experience.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    return store.experience
+      .slice()
+      .sort((a, b) => {
+        const timeA = parseDateForSort(a.startDate);
+        const timeB = parseDateForSort(b.startDate);
+        if (timeB !== timeA) return timeB - timeA;
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
   }, "Failed to retrieve experience items");
 }
 
@@ -1041,13 +1294,24 @@ export async function getAdminCertifications(): Promise<CertificationDocument[]>
   return withDatabaseErrorHandling(async () => {
     const supabase = getSupabaseAdmin();
     if (supabase) {
-      const { data, error } = await supabase.from("certifications").select("*").order("order", { ascending: true });
+      const { data, error } = await supabase
+        .from("certifications")
+        .select("*")
+        .order("issue_date", { ascending: false })
+        .order("created_at", { ascending: false });
       if (!error && data && data.length > 0) {
         return data.map(mapCertificationFromDb);
       }
     }
     const store = getStore();
-    return store.certifications.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    return [...store.certifications].sort((a, b) => {
+      const dateA = parseDateForSort(a.issueDate || a.date);
+      const dateB = parseDateForSort(b.issueDate || b.date);
+      if (dateB !== dateA) return dateB - dateA;
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
   }, "Failed to retrieve certifications");
 }
 
@@ -1761,6 +2025,436 @@ export async function updateAdminSiteContent(
     return updated;
   }, "Failed to update site content");
 }
+
+export async function getAdminPageHeroes(): Promise<Record<string, PageHeroConfig>> {
+  const siteContent = await getAdminSiteContent();
+  return {
+    ...DEFAULT_PAGE_HEROES,
+    ...(siteContent?.pageHeroes || {}),
+  };
+}
+
+export async function updateAdminPageHero(
+  pageKey: string,
+  heroConfig: PageHeroConfig,
+  actor: string
+): Promise<PageHeroConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+    const existingHeroes = siteContent?.pageHeroes || { ...DEFAULT_PAGE_HEROES };
+    const updatedHeroes = {
+      ...existingHeroes,
+      [pageKey]: {
+        ...heroConfig,
+        pageKey,
+      },
+    };
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: updatedHeroes,
+      },
+      actor
+    );
+
+    return updatedHeroes[pageKey];
+  }, `Failed to update page hero for ${pageKey}`);
+}
+
+export async function getAdminFeaturedSection(): Promise<FeaturedSectionConfig> {
+  const siteContent = await getAdminSiteContent();
+  return siteContent?.featuredSection || DEFAULT_FEATURED_SECTION;
+}
+
+export async function updateAdminFeaturedSection(
+  featuredConfig: FeaturedSectionConfig,
+  actor: string
+): Promise<FeaturedSectionConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
+        featuredSection: featuredConfig,
+        technicalTaxonomy: siteContent?.technicalTaxonomy,
+      },
+      actor
+    );
+
+    await logAdminActivity({
+      event: "update_featured_section",
+      category: "content",
+      status: "success",
+      actor,
+      details: {
+        enabled: featuredConfig.enabled,
+        itemCount: featuredConfig.items.length,
+      },
+    });
+
+    return featuredConfig;
+  }, "Failed to update Featured Highlights section");
+}
+
+export async function getAdminTechnicalTaxonomy(): Promise<TechnicalTaxonomyConfig> {
+  const siteContent = await getAdminSiteContent();
+  return siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY;
+}
+
+export async function updateAdminTechnicalTaxonomy(
+  taxonomyConfig: TechnicalTaxonomyConfig,
+  actor: string
+): Promise<TechnicalTaxonomyConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
+        featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
+        technicalTaxonomy: taxonomyConfig,
+      },
+      actor
+    );
+
+    await logAdminActivity({
+      event: "update_technical_taxonomy",
+      category: "content",
+      status: "success",
+      actor,
+      details: {
+        enabled: taxonomyConfig.enabled,
+        skillCount: taxonomyConfig.skills.length,
+      },
+    });
+
+    return taxonomyConfig;
+  }, "Failed to update Technical Taxonomy section");
+}
+
+export async function getAdminDistinctionsSection(): Promise<DistinctionsSectionConfig> {
+  const siteContent = await getAdminSiteContent();
+  if (siteContent?.distinctionsSection) {
+    return {
+      ...DEFAULT_DISTINCTIONS_SECTION,
+      ...siteContent.distinctionsSection,
+      decorativeVisual: {
+        ...DEFAULT_DISTINCTIONS_SECTION.decorativeVisual,
+        ...(siteContent.distinctionsSection.decorativeVisual || {}),
+      },
+      metrics: {
+        ...DEFAULT_DISTINCTIONS_SECTION.metrics,
+        ...(siteContent.distinctionsSection.metrics || {}),
+      },
+      cta: {
+        ...DEFAULT_DISTINCTIONS_SECTION.cta,
+        ...(siteContent.distinctionsSection.cta || {}),
+      },
+    };
+  }
+  return DEFAULT_DISTINCTIONS_SECTION;
+}
+
+export async function updateAdminDistinctionsSection(
+  distinctionsConfig: DistinctionsSectionConfig,
+  actor: string
+): Promise<DistinctionsSectionConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
+        featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
+        technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+        distinctionsSection: distinctionsConfig,
+        opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+      },
+      actor
+    );
+
+    await logAdminActivity({
+      event: "update_distinctions_section",
+      category: "content",
+      status: "success",
+      actor,
+      details: {
+        enabled: distinctionsConfig.enabled,
+        eyebrow: distinctionsConfig.eyebrow,
+      },
+    });
+
+    return distinctionsConfig;
+  }, "Failed to update Verified Distinctions section");
+}
+
+export async function getAdminOpportunitiesSection(): Promise<OpportunitiesSectionConfig> {
+  const siteContent = await getAdminSiteContent();
+  if (siteContent?.opportunitiesSection) {
+    return {
+      ...DEFAULT_OPPORTUNITIES_SECTION,
+      ...siteContent.opportunitiesSection,
+      badges:
+        siteContent.opportunitiesSection.badges && siteContent.opportunitiesSection.badges.length > 0
+          ? siteContent.opportunitiesSection.badges
+          : DEFAULT_OPPORTUNITIES_SECTION.badges,
+    };
+  }
+  return DEFAULT_OPPORTUNITIES_SECTION;
+}
+
+export async function updateAdminOpportunitiesSection(
+  opportunitiesConfig: OpportunitiesSectionConfig,
+  actor: string
+): Promise<OpportunitiesSectionConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
+        featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
+        technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+        distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+        opportunitiesSection: opportunitiesConfig,
+        footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+      },
+      actor
+    );
+
+    await logAdminActivity({
+      event: "update_opportunities_section",
+      category: "content",
+      status: "success",
+      actor,
+      details: {
+        enabled: opportunitiesConfig.enabled,
+        eyebrow: opportunitiesConfig.eyebrow,
+      },
+    });
+
+    return opportunitiesConfig;
+  }, "Failed to update Open For Opportunities section");
+}
+
+export async function getAdminFooterSection(): Promise<FooterSectionConfig> {
+  const siteContent = await getAdminSiteContent();
+  if (siteContent?.footerSection) {
+    return {
+      ...DEFAULT_FOOTER_SECTION,
+      ...siteContent.footerSection,
+      metrics: {
+        ...DEFAULT_FOOTER_SECTION.metrics,
+        ...(siteContent.footerSection.metrics || {}),
+      },
+      connect: {
+        ...DEFAULT_FOOTER_SECTION.connect,
+        ...(siteContent.footerSection.connect || {}),
+      },
+      artwork: {
+        ...DEFAULT_FOOTER_SECTION.artwork,
+        ...(siteContent.footerSection.artwork || {}),
+      },
+      bottomBar: {
+        ...DEFAULT_FOOTER_SECTION.bottomBar,
+        ...(siteContent.footerSection.bottomBar || {}),
+      },
+    };
+  }
+  return DEFAULT_FOOTER_SECTION;
+}
+
+export async function updateAdminFooterSection(
+  footerConfig: FooterSectionConfig,
+  actor: string
+): Promise<FooterSectionConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
+        featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
+        technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+        distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+        opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+        footerSection: footerConfig,
+        aboutSection: siteContent?.aboutSection || DEFAULT_ABOUT_SECTION,
+      },
+      actor
+    );
+
+    await logAdminActivity({
+      event: "update_footer_section",
+      category: "content",
+      status: "success",
+      actor,
+      details: {
+        enabled: footerConfig.enabled,
+        title: footerConfig.title,
+      },
+    });
+
+    return footerConfig;
+  }, "Failed to update Footer section");
+}
+
+export async function getAdminAboutSection(): Promise<AboutSectionConfig> {
+  const siteContent = await getAdminSiteContent();
+  if (siteContent?.aboutSection) {
+    return {
+      ...DEFAULT_ABOUT_SECTION,
+      ...siteContent.aboutSection,
+      contextBadge: {
+        ...DEFAULT_ABOUT_SECTION.contextBadge,
+        ...(siteContent.aboutSection.contextBadge || {}),
+      },
+      personalDetails: {
+        ...DEFAULT_ABOUT_SECTION.personalDetails,
+        ...(siteContent.aboutSection.personalDetails || {}),
+      },
+      actions: {
+        ...DEFAULT_ABOUT_SECTION.actions,
+        ...(siteContent.aboutSection.actions || {}),
+      },
+      backgroundSection: {
+        ...DEFAULT_ABOUT_SECTION.backgroundSection,
+        ...(siteContent.aboutSection.backgroundSection || {}),
+      },
+      closingVisual: {
+        ...DEFAULT_ABOUT_SECTION.closingVisual,
+        ...(siteContent.aboutSection.closingVisual || {}),
+      },
+      metrics:
+        siteContent.aboutSection.metrics && siteContent.aboutSection.metrics.length > 0
+          ? siteContent.aboutSection.metrics
+          : DEFAULT_ABOUT_SECTION.metrics,
+      timeline:
+        siteContent.aboutSection.timeline && siteContent.aboutSection.timeline.length > 0
+          ? siteContent.aboutSection.timeline
+          : DEFAULT_ABOUT_SECTION.timeline,
+      pillars:
+        siteContent.aboutSection.pillars && siteContent.aboutSection.pillars.length > 0
+          ? siteContent.aboutSection.pillars
+          : DEFAULT_ABOUT_SECTION.pillars,
+    };
+  }
+  return DEFAULT_ABOUT_SECTION;
+}
+
+export async function updateAdminAboutSection(
+  aboutConfig: AboutSectionConfig,
+  actor: string
+): Promise<AboutSectionConfig> {
+  return withDatabaseErrorHandling(async () => {
+    const siteContent = await getAdminSiteContent();
+
+    await updateAdminSiteContent(
+      {
+        footerText: siteContent?.footerText || "Designed & engineered with Next.js 15, React 19, and PostgreSQL.",
+        copyright: siteContent?.copyright || `© ${new Date().getFullYear()} Siddharth Varpe. All rights reserved.`,
+        globalCta: siteContent?.globalCta || {
+          headline: "Have an architectural challenge or founding opportunity?",
+          subheadline: "Let's connect and discuss building resilient systems together.",
+          buttonLabel: "Initiate Conversation",
+          buttonDestination: "#contact",
+        },
+        loadingMessage: siteContent?.loadingMessage,
+        emptyStateMessage: siteContent?.emptyStateMessage,
+        notFoundMessage: siteContent?.notFoundMessage,
+        pageHeroes: siteContent?.pageHeroes || DEFAULT_PAGE_HEROES,
+        featuredSection: siteContent?.featuredSection || DEFAULT_FEATURED_SECTION,
+        technicalTaxonomy: siteContent?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+        distinctionsSection: siteContent?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+        opportunitiesSection: siteContent?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+        footerSection: siteContent?.footerSection || DEFAULT_FOOTER_SECTION,
+        aboutSection: aboutConfig,
+      },
+      actor
+    );
+
+    await logAdminActivity({
+      event: "update_about_section",
+      category: "content",
+      status: "success",
+      actor,
+      details: {
+        enabled: aboutConfig.enabled,
+        eyebrow: aboutConfig.eyebrow,
+      },
+    });
+
+    return aboutConfig;
+  }, "Failed to update About section");
+}
+
 
 // -----------------------------------------------------------------------------
 // 15. CONTACT MESSAGES

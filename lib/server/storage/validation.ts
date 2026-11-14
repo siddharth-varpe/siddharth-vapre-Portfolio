@@ -8,7 +8,8 @@ export type MediaCategory =
   | "certificate"
   | "achievement"
   | "resume"
-  | "general";
+  | "general"
+  | "company-logo";
 
 export interface FileValidationResult {
   valid: boolean;
@@ -26,6 +27,7 @@ export const CATEGORY_SIZE_LIMITS: Record<MediaCategory, number> = {
   achievement: 5 * 1024 * 1024, // 5 MB
   resume: 5 * 1024 * 1024, // 5 MB
   general: 5 * 1024 * 1024, // 5 MB
+  "company-logo": 5 * 1024 * 1024, // 5 MB
 };
 
 const ALLOWED_IMAGE_MIMES: Record<string, { ext: string; name: string }> = {

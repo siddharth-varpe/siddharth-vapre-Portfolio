@@ -1,11 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "server-only";
 import seedDataRaw from "@/data/portfolio-seed-data.json";
+import { DEFAULT_PAGE_HEROES } from "./default-page-heroes";
+import { DEFAULT_FEATURED_SECTION } from "./default-featured-section";
+import { DEFAULT_TECHNICAL_TAXONOMY } from "./default-technical-taxonomy";
+import { DEFAULT_DISTINCTIONS_SECTION } from "./default-distinctions-section";
+import { DEFAULT_OPPORTUNITIES_SECTION } from "./default-opportunities-section";
+import { DEFAULT_FOOTER_SECTION } from "./default-footer-section";
+import { DEFAULT_ABOUT_SECTION } from "./default-about-section";
+import {
+  DEFAULT_SKILL_CATEGORIES,
+  DEFAULT_SKILLS_PAGE_SETTINGS,
+} from "./default-skills-page-settings";
 import type {
   ProfileDocument,
   HeroDocument,
   AboutDocument,
   SkillDocument,
+  SkillCategoryDocument,
   ExperienceDocument,
   ProjectDocument,
   AchievementDocument,
@@ -67,6 +79,7 @@ interface InMemoryStore {
   hero: HeroDocument;
   about: AboutDocument;
   skills: SkillDocument[];
+  skillCategories: SkillCategoryDocument[];
   experience: ExperienceDocument[];
   projects: ProjectDocument[];
   achievements: AchievementDocument[];
@@ -89,7 +102,11 @@ declare global {
 function initializeStore(): InMemoryStore {
   const raw: any = ensureDates(seedDataRaw);
 
-  const skillsWithIds = assignIds(raw.skills as SkillDocument[], "skill");
+  const orbitInitialSkills = new Set(["sk-1", "sk-2", "sk-6", "sk-7", "sk-8", "sk-9", "sk-13", "sk-16"]);
+  const skillsWithIds = assignIds(raw.skills as SkillDocument[], "skill").map((s) => ({
+    ...s,
+    orbit_enabled: s.orbit_enabled !== undefined ? Boolean(s.orbit_enabled) : (s.id ? orbitInitialSkills.has(s.id) : false),
+  }));
   const expWithIds = assignIds(raw.experience as ExperienceDocument[], "exp");
   const projWithIds = assignIds(raw.projects as ProjectDocument[], "proj");
   const achWithIds = assignIds(raw.achievements as AchievementDocument[], "ach");
@@ -138,6 +155,15 @@ function initializeStore(): InMemoryStore {
     ctaLabel: raw.hero?.ctaLabel || raw.hero?.primaryCtaText || "Explore Projects",
     ctaUrl: raw.hero?.ctaUrl || raw.hero?.primaryCtaLink || "#projects",
     supportingText: raw.hero?.supportingText || raw.hero?.tagline,
+    imageOverlay: raw.hero?.imageOverlay || {
+      enabled: true,
+      text: "Building systems that solve real problems.",
+      textAlign: "center",
+      horizontalPosition: "center",
+      verticalPosition: "bottom",
+      style: "badge",
+      textColor: "light",
+    },
     status: (raw.hero?.status as any) || "published",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -185,6 +211,14 @@ function initializeStore(): InMemoryStore {
     loadingMessage: raw.site_content?.loadingMessage,
     emptyStateMessage: raw.site_content?.emptyStateMessage,
     notFoundMessage: raw.site_content?.notFoundMessage,
+    pageHeroes: (raw.site_content as any)?.pageHeroes || DEFAULT_PAGE_HEROES,
+    featuredSection: (raw.site_content as any)?.featuredSection || DEFAULT_FEATURED_SECTION,
+    technicalTaxonomy: (raw.site_content as any)?.technicalTaxonomy || DEFAULT_TECHNICAL_TAXONOMY,
+    distinctionsSection: (raw.site_content as any)?.distinctionsSection || DEFAULT_DISTINCTIONS_SECTION,
+    opportunitiesSection: (raw.site_content as any)?.opportunitiesSection || DEFAULT_OPPORTUNITIES_SECTION,
+    footerSection: (raw.site_content as any)?.footerSection || DEFAULT_FOOTER_SECTION,
+    aboutSection: (raw.site_content as any)?.aboutSection || DEFAULT_ABOUT_SECTION,
+    skillsPageSettings: (raw.site_content as any)?.skillsPageSettings || DEFAULT_SKILLS_PAGE_SETTINGS,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -194,6 +228,7 @@ function initializeStore(): InMemoryStore {
     hero: heroDoc,
     about: { ...(raw.about as AboutDocument), id: "about_root", _id: "about_root" },
     skills: skillsWithIds,
+    skillCategories: [...DEFAULT_SKILL_CATEGORIES],
     experience: expWithIds,
     projects: projWithIds,
     achievements: achWithIds,
@@ -212,9 +247,7 @@ function initializeStore(): InMemoryStore {
 
 export function getStore(): InMemoryStore {
   if (process.env.NODE_ENV === "development") {
-    if (!global._portfolioInMemoryStore) {
-      global._portfolioInMemoryStore = initializeStore();
-    }
+    global._portfolioInMemoryStore = initializeStore();
     return global._portfolioInMemoryStore;
   }
   if (!global._portfolioInMemoryStore) {

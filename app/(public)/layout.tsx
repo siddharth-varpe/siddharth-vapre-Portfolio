@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 import * as React from "react";
 import { PublicNavbar, PublicFooter } from "@/components/public";
 import { ScrollProgressBar } from "@/components/motion";

@@ -2,10 +2,9 @@ import { buildMetadata, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import * as React from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Trophy, ExternalLink, ArrowRight } from "lucide-react";
-import { getPublishedAchievements } from "@/lib/server/db/repositories/content";
-import { PageIntro } from "@/components/public/page-intro";
+import { Trophy, ExternalLink } from "lucide-react";
+import { getPublishedAchievements, getPageHero } from "@/lib/server/db/repositories/content";
+import { DynamicHero } from "@/components/public/dynamic-hero";
 import {
   Container,
   Card,
@@ -15,7 +14,6 @@ import {
   BodyText,
   TechnicalLabel,
   Badge,
-  Button,
 } from "@/components/ui";
 
 export const metadata: Metadata = buildMetadata({
@@ -26,26 +24,17 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function AchievementsPage() {
-  const achievements = await getPublishedAchievements();
+  const [achievements, pageHero] = await Promise.all([
+    getPublishedAchievements(),
+    getPageHero("achievements"),
+  ]);
 
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Achievements", path: "/achievements" }]);
 
   return (
     <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
-      <PageIntro
-        eyebrow="AWARDS & COMPETITIONS"
-        title="Verified Distinctions"
-        description="Official competitive engineering recognitions, university hackathon placements, and technical honors."
-        action={
-          <Link href="/certifications">
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <span>View Certifications</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </Link>
-        }
-      />
+      <DynamicHero pageKey="achievements" config={pageHero} />
 
       <Container size="public" className="space-y-8 sm:space-y-10">
         {achievements.length === 0 ? (

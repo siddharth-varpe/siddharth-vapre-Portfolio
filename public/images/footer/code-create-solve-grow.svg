@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 290" fill="none">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=swap');
+      .handwritten-line {
+        font-family: 'Caveat', 'Dancing Script', 'Segoe Script', cursive;
+        font-weight: 700;
+        font-size: 56px;
+        fill: #1e293b;
+      }
+      @media (prefers-color-scheme: dark) {
+        .handwritten-line {
+          fill: #f8fafc;
+        }
+      }
+    </style>
+    <linearGradient id="brushGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(10, 10)">
+    <!-- "Code" -->
+    <text x="25" y="55" class="handwritten-line" transform="rotate(-6, 25, 55)">Code</text>
+    
+    <!-- "Create" -->
+    <text x="32" y="118" class="handwritten-line" transform="rotate(-5, 32, 118)">Create</text>
+    
+    <!-- "Solve" -->
+    <text x="40" y="180" class="handwritten-line" transform="rotate(-6, 40, 180)">Solve</text>
+    
+    <!-- "Grow" -->
+    <text x="48" y="242" class="handwritten-line" transform="rotate(-4, 48, 242)">Grow</text>
+
+    <!-- Dynamic royal blue brush accent stroke -->
+    <path
+      d="M 68 252 C 105 244, 155 228, 215 204"
+      stroke="url(#brushGrad)"
+      stroke-width="5.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <!-- Subtle secondary tapered tail -->
+    <path
+      d="M 72 255 C 100 248, 140 238, 175 222"
+      stroke="#60a5fa"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.75"
+    />
+  </g>
+</svg>

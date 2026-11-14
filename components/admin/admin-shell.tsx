@@ -19,6 +19,8 @@ import {
   Search,
   FileText,
   Image as ImageIcon,
+  Layers,
+  LayoutTemplate,
   Globe,
   History,
   ShieldAlert,
@@ -28,6 +30,7 @@ import {
   Menu,
   X,
   Terminal,
+  Code2,
 } from "lucide-react";
 import { authClient } from "@/lib/client/auth";
 import { ToastProvider } from "./toast";
@@ -55,6 +58,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Profile", href: "/admin/profile", icon: User },
       { label: "Hero Section", href: "/admin/hero", icon: Sparkles },
+      { label: "Featured Highlights", href: "/admin/featured", icon: Layers },
+      { label: "Technical Taxonomy", href: "/admin/taxonomy", icon: Code2 },
+      { label: "Page Heroes", href: "/admin/page-heroes", icon: LayoutTemplate },
       { label: "About Section", href: "/admin/about", icon: BookOpen },
       { label: "Site Content", href: "/admin/site-content", icon: Globe },
     ],
@@ -64,9 +70,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Projects", href: "/admin/projects", icon: FolderGit2 },
       { label: "Skills", href: "/admin/skills", icon: Wrench },
-      { label: "Experience", href: "/admin/experience", icon: Briefcase },
+      { label: "Professional Tracks", href: "/admin/experience", icon: Briefcase },
       { label: "Achievements", href: "/admin/achievements", icon: Trophy },
-      { label: "Certifications", href: "/admin/certifications", icon: Award },
+      { label: "Verified Distinctions", href: "/admin/certifications", icon: Award },
       { label: "Metrics", href: "/admin/metrics", icon: TrendingUp },
     ],
   },

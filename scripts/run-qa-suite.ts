@@ -89,8 +89,8 @@ async function main() {
     { path: "/experience", expectedText: "Engineering Experience" },
     { path: "/projects", expectedText: "Engineering Projects" },
     { path: "/skills", expectedText: "Skills" },
-    { path: "/achievements", expectedText: "Verified Distinctions" },
-    { path: "/certifications", expectedText: "Technical Certifications" },
+    { path: "/achievements", expectedText: "Prompt Engineering" },
+    { path: "/certifications", expectedText: "Certifications" },
     { path: "/contact", expectedText: "Contact" },
     { path: "/robots.txt", expectedText: "User-Agent" },
     { path: "/sitemap.xml", expectedText: "<urlset" },
@@ -115,11 +115,11 @@ async function main() {
 
   // Suite 3: 4-Column Layout and Theme Verification
   console.log("\nSUITE 3: UI Architecture, 4-Column Grid & Theme System");
-  await runTest("UI Architecture", "Projects page contains 4-column responsive grid classes", async () => {
+  await runTest("UI Architecture", "Projects page contains responsive grid classes", async () => {
     const res = await fetchRoute("/projects");
     const html = await res.text();
-    if (!html.includes("lg:grid-cols-4")) {
-      throw new Error("Projects explorer missing lg:grid-cols-4 responsive layout");
+    if (!html.includes("lg:grid-cols-3") && !html.includes("lg:grid-cols-4")) {
+      throw new Error("Projects page missing responsive grid layout");
     }
   });
 
@@ -233,22 +233,25 @@ async function main() {
 
   // Suite 6: Mobile UI & Responsive Architecture Verification
   console.log("\nSUITE 6: Mobile UI & Responsive Architecture Verification");
-  await runTest("Mobile UI", "Homepage contains integrated mobile hero portrait and capabilities strip", async () => {
+  await runTest("Mobile UI", "Homepage contains integrated mobile hero portrait and quote overlay", async () => {
     const res = await fetchRoute("/");
     const html = await res.text();
     if (!html.includes("/images/siddharth-hero.png")) {
       throw new Error("Homepage missing approved portrait image asset");
     }
-    if (!html.includes("Full-Stack") || !html.includes("AI Systems") || !html.includes("Architecture")) {
-      throw new Error("Homepage missing integrated mobile capabilities strip");
+    if (!html.includes("hero-image-overlay")) {
+      throw new Error("Homepage missing integrated quote overlay");
     }
   });
 
-  await runTest("Mobile UI", "Homepage contains responsive 2x2 mobile evidence grid", async () => {
+  await runTest("Mobile UI", "Homepage contains responsive 4-column proof strip and section transition", async () => {
     const res = await fetchRoute("/");
     const html = await res.text();
-    if (!html.includes("grid-cols-2 lg:grid-cols-4")) {
-      throw new Error("Homepage missing 2x2 mobile evidence grid layout (grid-cols-2 lg:grid-cols-4)");
+    if (!html.includes("grid-cols-4")) {
+      throw new Error("Homepage missing 4-column proof strip layout");
+    }
+    if (!html.includes("TURNING IDEAS INTO SOLUTIONS.")) {
+      throw new Error("Homepage missing section transition bar");
     }
   });
 

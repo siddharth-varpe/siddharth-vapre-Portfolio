@@ -20,6 +20,7 @@ import {
   getPublishedProjectBySlug,
   getPublishedProjects,
 } from "@/lib/server/db/repositories/content";
+import { DynamicHero } from "@/components/public/dynamic-hero";
 import {
   Container,
   Card,
@@ -28,7 +29,6 @@ import {
   CardContent,
   Badge,
   BodyText,
-  DisplayHeadline,
   TechnicalLabel,
   SectionTitle,
 } from "@/components/ui";
@@ -107,124 +107,53 @@ export default async function ProjectCaseStudyPage({ params }: ProjectPageProps)
     <article className="space-y-8 sm:space-y-12 pb-16 sm:pb-24">
       <JsonLd data={projectSchema} />
       <JsonLd data={breadcrumbSchema} />
-      {/* 1. Back Navigation Breadcrumb */}
-      <div className="border-b border-border/70 py-2.5 sm:py-3.5 bg-surface/30 backdrop-blur-sm sticky top-14 sm:top-16 z-20">
-        <Container size="public">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/projects"
-              className="inline-flex items-center gap-2 text-xs font-mono text-foreground-muted hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-sm py-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>BACK TO PROJECTS</span>
-            </Link>
-
-            <span className="font-mono text-[11px] text-foreground-muted hidden sm:inline-block">
-              CASE STUDY 0{project.order || currentIndex + 1} OF 0{allProjects.length}
+      {/* Dynamic Project Detail Hero */}
+      <DynamicHero
+        project={project}
+        currentIndex={currentIndex}
+        totalProjects={allProjects.length}
+      >
+        {/* Meta Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-5 rounded-lg border border-border bg-surface/80 text-xs shadow-md mt-4">
+          <div className="space-y-0.5 sm:space-y-1">
+            <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
+              Timeline
+            </span>
+            <span className="font-semibold text-foreground font-mono block text-xs">
+              {project.year || "2024–2025"}
             </span>
           </div>
-        </Container>
-      </div>
-
-      {/* 2. Header & Hero Intro */}
-      <header className="border-b border-border/80 pb-6 sm:pb-10 pt-3 sm:pt-4">
-        <Container size="public" className="space-y-4 sm:space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
-            <div className="inline-flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <TechnicalLabel>
-                SYSTEMS CASE STUDY // {project.category.toUpperCase()}
-              </TechnicalLabel>
-            </div>
-
-            {project.year && (
-              <span className="font-mono text-xs text-foreground-muted px-2.5 py-1 rounded bg-surface border border-border">
-                DELIVERED {project.year}
-              </span>
-            )}
+          <div className="space-y-0.5 sm:space-y-1">
+            <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
+              Engineering Role
+            </span>
+            <span className="font-semibold text-foreground block truncate text-xs" title={project.role}>
+              {project.role || "Lead Engineer"}
+            </span>
           </div>
-
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-6">
-            <div className="space-y-2.5 sm:space-y-4 max-w-3xl">
-              <DisplayHeadline className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-                {project.title}
-              </DisplayHeadline>
-              <p className="text-sm sm:text-lg md:text-xl text-foreground-secondary leading-relaxed font-sans">
-                {project.shortDescription}
-              </p>
-            </div>
-
-            {/* External Links: STRICTLY rendered ONLY if verified */}
-            {(project.liveDemoUrl || project.githubUrl) && (
-              <div className="flex flex-wrap items-center gap-3 pt-2 lg:pt-0 flex-shrink-0">
-                {project.liveDemoUrl && (
-                  <a
-                    href={project.liveDemoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center rounded-md font-sans text-xs font-semibold h-10 px-4 gap-2 transition-all bg-foreground text-background hover:bg-foreground/90 border border-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  >
-                    <span>Live Platform</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
-                {project.githubUrl && (
-                  <a
-                    href={project.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center rounded-md font-sans text-xs font-medium h-10 px-4 gap-2 transition-all bg-surface text-foreground hover:bg-surface-muted border border-border hover:border-border-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  >
-                    <GithubIcon className="w-4 h-4" />
-                    <span>Source Code</span>
-                  </a>
-                )}
-              </div>
-            )}
+          <div className="space-y-0.5 sm:space-y-1">
+            <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
+              Domain Category
+            </span>
+            <span className="font-semibold text-foreground block text-xs truncate">{project.category}</span>
           </div>
-
-          {/* Meta Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-5 rounded-lg border border-border bg-surface/80 text-xs shadow-md">
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
-                Timeline
+          <div className="space-y-0.5 sm:space-y-1">
+            <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
+              Deployment Status
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-semibold text-foreground text-xs">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  project.liveDemoUrl ? "bg-emerald-400" : "bg-accent"
+                }`}
+              />
+              <span className="truncate">
+                {project.liveDemoUrl ? "Production Live" : "Architecture Verified"}
               </span>
-              <span className="font-semibold text-foreground font-mono block text-xs">
-                {project.year || "2024–2025"}
-              </span>
-            </div>
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
-                Engineering Role
-              </span>
-              <span className="font-semibold text-foreground block truncate text-xs" title={project.role}>
-                {project.role || "Lead Engineer"}
-              </span>
-            </div>
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
-                Domain Category
-              </span>
-              <span className="font-semibold text-foreground block text-xs truncate">{project.category}</span>
-            </div>
-            <div className="space-y-0.5 sm:space-y-1">
-              <span className="text-foreground-muted block uppercase font-mono tracking-wider text-[10px]">
-                Deployment Status
-              </span>
-              <span className="inline-flex items-center gap-1.5 font-semibold text-foreground text-xs">
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    project.liveDemoUrl ? "bg-emerald-400" : "bg-accent"
-                  }`}
-                />
-                <span className="truncate">
-                  {project.liveDemoUrl ? "Production Live" : "Architecture Verified"}
-                </span>
-              </span>
-            </div>
+            </span>
           </div>
-        </Container>
-      </header>
+        </div>
+      </DynamicHero>
 
       <Container size="public" className="space-y-8 sm:space-y-14">
         {/* 3. Verified Metrics Banner */}

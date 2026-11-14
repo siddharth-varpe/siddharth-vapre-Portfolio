@@ -31,6 +31,7 @@ export interface HeroRow {
   cta_label: string;
   cta_url: string;
   supporting_text: string | null;
+  image_overlay?: Record<string, unknown> | string | null;
   status: "draft" | "published" | "archived";
   created_at: string;
   updated_at: string;
@@ -38,6 +39,7 @@ export interface HeroRow {
 
 export interface AboutRow {
   id: string;
+  about_description?: string | null;
   primary_description?: string | null;
   supporting_description?: string | null;
   philosophy?: string | null;
@@ -49,15 +51,28 @@ export interface AboutRow {
   updated_at: string;
 }
 
+export interface SkillCategoryRow {
+  id: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  accent?: string | null;
+  display_order: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SkillRow {
   id: string;
   name: string;
-  category: "Frontend" | "Backend" | "AI & ML" | "DevOps & Cloud" | "Tools & Systems";
+  category: "Frontend" | "Backend" | "AI & ML" | "DevOps & Cloud" | "Tools & Systems" | string;
   description?: string | null;
   icon?: string | null;
   level?: "Proficient" | "Advanced" | "Familiar" | null;
   years?: number | null;
   featured: boolean;
+  orbit_enabled?: boolean;
   order: number;
   status: "draft" | "published" | "archived";
   created_at: string;
@@ -66,9 +81,14 @@ export interface SkillRow {
 
 export interface ExperienceRow {
   id: string;
+  type?: string | null;
   company: string;
   role: string;
-  employment_type: "Full-time" | "Contract" | "Freelance" | "Internship";
+  company_logo_url?: string | null;
+  company_logo_path?: string | null;
+  company_website?: string | null;
+  employment_type: "Full-time" | "Contract" | "Freelance" | "Internship" | "Education" | "Other" | string;
+  work_mode?: string | null;
   location: string;
   start_date: string;
   end_date?: string | null;
@@ -78,7 +98,11 @@ export interface ExperienceRow {
   achievements?: string[] | null;
   technologies?: string[] | null;
   metrics?: string[] | null;
-  order: number;
+  highlights?: Array<Record<string, unknown>> | null;
+  cta_label?: string | null;
+  cta_url?: string | null;
+  order?: number;
+  display_order?: number;
   status: "draft" | "published" | "archived";
   created_at: string;
   updated_at: string;
@@ -147,15 +171,22 @@ export interface AchievementRow {
 export interface CertificationRow {
   id: string;
   name: string;
+  title?: string | null;
   issuer: string;
+  credential_type?: string | null;
   date: string | null;
   issue_date: string | null;
-  expiry_date: string | null;
+  expiry_date?: string | null;
+  expiration_date?: string | null;
   credential_id: string | null;
   credential_url: string | null;
+  verification_url?: string | null;
   certificate_url: string | null;
+  image_path?: string | null;
   description: string | null;
   skills: string[] | null;
+  tags?: string[] | null;
+  rank?: string | null;
   featured: boolean;
   order: number;
   display_order?: number;
@@ -260,6 +291,14 @@ export interface SiteContentRow {
   loading_message: string | null;
   empty_state_message: string | null;
   not_found_message: string | null;
+  page_heroes?: Record<string, unknown> | null;
+  featured_section?: Record<string, unknown> | null;
+  technical_taxonomy?: Record<string, unknown> | null;
+  distinctions_section?: Record<string, unknown> | null;
+  opportunities_section?: Record<string, unknown> | null;
+  footer_section?: Record<string, unknown> | null;
+  about_section?: Record<string, unknown> | null;
+  skills_page_settings?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }

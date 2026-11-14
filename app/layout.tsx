@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Caveat } from "next/font/google";
 import "./globals.css";
 import { SITE_CONFIG, SITE_URL, generatePersonJsonLd, generateWebSiteJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -21,6 +21,11 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
   subsets: ["latin"],
 });
 
@@ -111,7 +116,7 @@ export default function RootLayout({
   const websiteSchema = generateWebSiteJsonLd();
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable}`}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -119,12 +124,18 @@ export default function RootLayout({
               (function() {
                 try {
                   var stored = localStorage.getItem('theme');
-                  if (stored === 'light' || (!stored && window.matchMedia('(prefers-color-scheme: light)').matches)) {
-                    document.documentElement.classList.add('light');
-                    document.documentElement.setAttribute('data-theme', 'light');
+                  var root = document.documentElement;
+                  var isDark = stored === 'dark' || (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  if (isDark) {
+                    root.classList.add('dark');
+                    root.classList.remove('light');
+                    root.setAttribute('data-theme', 'dark');
+                    root.style.colorScheme = 'dark';
                   } else {
-                    document.documentElement.classList.remove('light');
-                    document.documentElement.setAttribute('data-theme', 'dark');
+                    root.classList.add('light');
+                    root.classList.remove('dark');
+                    root.setAttribute('data-theme', 'light');
+                    root.style.colorScheme = 'light';
                   }
                 } catch (e) {}
               })();
@@ -134,7 +145,7 @@ export default function RootLayout({
         <JsonLd data={websiteSchema} />
         <JsonLd data={personSchema} />
       </head>
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-accent/25 selection:text-accent transition-colors duration-200">
+      <body className="m-0 p-0 min-h-screen w-fit min-w-full bg-background font-sans text-foreground antialiased selection:bg-accent/25 selection:text-accent transition-colors duration-200">
         {children}
       </body>
     </html>

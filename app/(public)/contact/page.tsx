@@ -4,7 +4,7 @@ import * as React from "react";
 import type { Metadata } from "next";
 import { Mail, MessageSquare, ArrowUpRight, ShieldCheck, Clock, MapPin, Globe } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "@/components/public/icons";
-import { PageIntro } from "@/components/public/page-intro";
+import { DynamicHero } from "@/components/public/dynamic-hero";
 import {
   Container,
   Card,
@@ -16,7 +16,7 @@ import {
   TechnicalLabel,
 } from "@/components/ui";
 import { ContactForm } from "@/components/public/contact-form";
-import { getPublishedProfile } from "@/lib/server/db/repositories/content";
+import { getPublishedProfile, getPageHero } from "@/lib/server/db/repositories/content";
 import { publicEnv } from "@/lib/env";
 
 export const metadata: Metadata = buildMetadata({
@@ -27,7 +27,10 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ContactPage() {
-  const profile = await getPublishedProfile();
+  const [profile, pageHero] = await Promise.all([
+    getPublishedProfile(),
+    getPageHero("contact"),
+  ]);
   const email = profile?.email || "siddharth.varpe0@gmail.com";
   const location = profile?.location || "Pune, Maharashtra, India";
   const turnstileKey = publicEnv.TURNSTILE_SITE_KEY;
@@ -37,17 +40,13 @@ export default async function ContactPage() {
   return (
     <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
-      <PageIntro
-        eyebrow="COMMUNICATION & COLLABORATION PIPELINE"
-        title="Contact & Channels"
-        description="Direct pathways for technical inquiries, software engineering opportunities, and architectural collaboration."
-      />
+      <DynamicHero pageKey="contact" config={pageHero} />
 
       <Container size="public" className="space-y-8 sm:space-y-14">
         {/* Main Grid: Interactive Form & Direct Channels */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           {/* Left Column: Interactive Contact Form (7 cols) */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7" id="contact-form">
             <ContactForm turnstileSiteKey={turnstileKey} />
           </div>
 

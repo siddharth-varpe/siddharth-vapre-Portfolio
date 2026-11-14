@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" fill="none">
+  <defs>
+    <linearGradient id="sigGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+  </defs>
+  <style>
+    .sig-text {
+      font-family: 'Caveat', 'Brush Script MT', 'Segoe Script', cursive;
+      font-size: 54px;
+      font-weight: 700;
+      fill: url(#sigGradient);
+      letter-spacing: 1px;
+    }
+    .sig-last {
+      font-family: 'Caveat', 'Brush Script MT', 'Segoe Script', cursive;
+      font-size: 64px;
+      font-weight: 700;
+      fill: url(#sigGradient);
+      letter-spacing: 2px;
+    }
+  </style>
+  <g transform="rotate(-6 160 90)">
+    <!-- Main cursive signature text -->
+    <text x="30" y="70" class="sig-text">Siddharth</text>
+    <text x="80" y="135" class="sig-last">Varpe</text>
+    <!-- Flourish underline curve -->
+    <path d="M 85 145 C 130 160, 210 155, 270 125" stroke="#2563eb" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85" />
+  </g>
+</svg>

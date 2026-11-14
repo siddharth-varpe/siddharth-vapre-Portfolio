@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" fill="none">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&amp;display=swap');
+      .tomorrow-script {
+        font-family: 'Caveat', 'Dancing Script', 'Segoe Script', cursive;
+        font-weight: 700;
+        font-size: 32px;
+        fill: #1e293b;
+      }
+      @media (prefers-color-scheme: dark) {
+        .tomorrow-script {
+          fill: #f8fafc;
+        }
+      }
+    </style>
+  </defs>
+
+  <!-- Angled text with natural handwritten slant -->
+  <g transform="translate(15, 20) rotate(-14)">
+    <text x="25" y="32" class="tomorrow-script">A</text>
+    <text x="45" y="44" class="tomorrow-script">Better</text>
+    <text x="65" y="78" class="tomorrow-script">Tomorrow</text>
+  </g>
+</svg>

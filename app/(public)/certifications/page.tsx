@@ -2,9 +2,9 @@ import { buildMetadata, generateBreadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import * as React from "react";
 import type { Metadata } from "next";
-import { ShieldCheck, ExternalLink, Download } from "lucide-react";
-import { getPublishedCertifications } from "@/lib/server/db/repositories/content";
-import { PageIntro } from "@/components/public/page-intro";
+import { ShieldCheck, ExternalLink } from "lucide-react";
+import { getPublishedCertifications, getPageHero } from "@/lib/server/db/repositories/content";
+import { DynamicHero } from "@/components/public/dynamic-hero";
 import {
   Container,
   Card,
@@ -14,7 +14,6 @@ import {
   BodyText,
   TechnicalLabel,
   Badge,
-  Button,
 } from "@/components/ui";
 
 export const metadata: Metadata = buildMetadata({
@@ -25,31 +24,17 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function CertificationsPage() {
-  const certifications = await getPublishedCertifications();
+  const [certifications, pageHero] = await Promise.all([
+    getPublishedCertifications(),
+    getPageHero("certifications"),
+  ]);
 
   const breadcrumbs = generateBreadcrumbJsonLd([{ name: "Certifications", path: "/certifications" }]);
 
   return (
     <div className="space-y-8 sm:space-y-12 pb-14 sm:pb-20">
       <JsonLd data={breadcrumbs} />
-      <PageIntro
-        eyebrow="CREDENTIALS & LICENSES"
-        title="Technical Certifications"
-        description="Formal training certifications and demonstrated engineering competencies in UI/UX, responsive systems, and relational databases."
-        action={
-          <a
-            href="/api/resume/download"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Download resume with verified credentials"
-          >
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="w-4 h-4 text-accent" />
-              <span>Download Full Resume</span>
-            </Button>
-          </a>
-        }
-      />
+      <DynamicHero pageKey="certifications" config={pageHero} />
 
       <Container size="public" className="space-y-8 sm:space-y-10">
         {certifications.length === 0 ? (
@@ -82,7 +67,7 @@ export default async function CertificationsPage() {
                   </div>
 
                   <CardTitle className="text-sm sm:text-lg font-bold text-foreground line-clamp-2 leading-snug">
-                    {cert.name}
+                    {cert.title || cert.name}
                   </CardTitle>
                 </CardHeader>
 
@@ -91,6 +76,19 @@ export default async function CertificationsPage() {
                     <BodyText className="text-xs sm:text-sm text-foreground-secondary leading-relaxed line-clamp-3 sm:line-clamp-none">
                       {cert.description}
                     </BodyText>
+                  )}
+
+                  {cert.tags && cert.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {cert.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface/80 border border-border text-foreground-secondary"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   )}
 
                   {cert.credentialId && (
